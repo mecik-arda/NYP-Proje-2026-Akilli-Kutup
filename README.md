@@ -1,5 +1,12 @@
 # Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi - 2026 Nesneye Yönelik Programlama Proje ödevi
 
+![C++](https://img.shields.io/badge/C++-17-00599C?logo=c%2B%2B&logoColor=white)
+![Frontend](https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JS-E34F26?logo=html5&logoColor=white)
+![Database](https://img.shields.io/badge/Database-JSON-orange)
+![Security](https://img.shields.io/badge/Security-SHA--256-red?logo=springsecurity&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?logo=linux)
+![License](https://img.shields.io/badge/License-MIT-brightgreen)
+
 ## 1. Proje Özeti
 Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri ve **derinlemesine savunma (Defense-in-Depth)** prensipleriyle birleştiren, C++ tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, C++ bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir.
 
