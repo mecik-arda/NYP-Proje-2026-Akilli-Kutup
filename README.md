@@ -26,6 +26,16 @@ NYP-Proje-2026-Akilli-Kutup/
 ├── docs/
 │   ├── UML_Sema.md
 │   └── Proje_Raporu.md
+├── frontend/
+│   ├── index.html
+│   ├── dashboard.html
+│   ├── css/
+│   │   ├── login.css
+│   │   └── main.css
+│   └── js/
+│       ├── api.js
+│       ├── auth.js
+│       └── dashboard.js
 ├── include/
 │   ├── auth/
 │   │   └── AuthManager.h
@@ -36,10 +46,11 @@ NYP-Proje-2026-Akilli-Kutup/
 │   │   └── DijitalMedya.h
 │   ├── db/
 │   │   └── DatabaseManager.h
-│   └── ui/
-│       └── MainWindow.h
+│   └── server/
+│       └── HttpServer.h
 ├── lib/
-│   └── nlohmann_json/
+│   ├── nlohmann_json/
+│   └── httplib/
 ├── src/
 │   ├── auth/
 │   │   └── AuthManager.cpp
@@ -49,8 +60,8 @@ NYP-Proje-2026-Akilli-Kutup/
 │   │   └── DijitalMedya.cpp
 │   ├── db/
 │   │   └── DatabaseManager.cpp
-│   ├── ui/
-│   │   └── MainWindow.cpp
+│   ├── server/
+│   │   └── HttpServer.cpp
 │   └── main.cpp
 └── tests/
     ├── test_auth.cpp
