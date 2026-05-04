@@ -18,7 +18,8 @@ tests/test_core.cpp
 src/main.cpp
 ```
 
-## Database & Data Persistence Manager / Penetration Tester - Arda Meçik: Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine C++ veya Java kullanarak dosya tabanlı (JSON/TXT/Binary) bir yapıda saklayacak olan "Database Engine" mekanizmasını kurar. Nesnelerin diske yazılması (Save) ve açılışta tekrar belleğe yüklenmesi (Load) süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi (Exception Handling) mimarisini ve veritabanı güvenliğini (Backup/Sync) sağlar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
+## Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
+Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine C++ veya Java kullanarak dosya tabanlı (JSON/TXT/Binary) bir yapıda saklayacak olan "Database Engine" mekanizmasını kurar. Nesnelerin diske yazılması (Save) ve açılışta tekrar belleğe yüklenmesi (Load) süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi (Exception Handling) mimarisini ve veritabanı güvenliğini (Backup/Sync) sağlar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
 ## Yaptığı dosyalar
 ```
 include/db/DatabaseManager.h
