@@ -1,7 +1,7 @@
 # NYP-Proje-2026-Akilli-Kutup
 Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi
 
-EKİP GÖREV DAĞILIMI
+## EKİP GÖREV DAĞILIMI
 
 Backend & Core Architect - Ahmet Güler:
 Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını (Business Logic) kurgular. Sistemdeki tüm nesnelerin atası olan Abstract (Soyut) sınıfları ve ortak davranışları belirleyen Interface (Arayüz) yapılarını tasarlar. Kalıtım (Inheritance) mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin (Composition/Aggregation) sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
