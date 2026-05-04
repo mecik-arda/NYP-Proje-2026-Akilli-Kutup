@@ -91,7 +91,7 @@ README.md
 docs/UML_Sema.md
 docs/Proje_Raporu.md
 ```
-## Proje Dosya Şeması
+## Genel Proje Dosya Şeması
 ```
 NYP-Proje-2026-Akilli-Kutup/
 ├── .gitignore
