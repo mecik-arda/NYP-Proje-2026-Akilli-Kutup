@@ -14,6 +14,8 @@ Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim sen
 Security & Integration Specialist - Eren Gider:
 Sistemin güvenlik altyapısını ve proje entegrasyon süreçlerini yönetir. Kullanıcı kayıt ve giriş işlemlerinde güvenli yetkilendirme (Authentication & Authorization) mekanizmalarını kurar. Hassas verilerin korunması için Hashing (SHA-256 vb.) algoritmalarını kullanarak şifreleme katmanını oluşturur. Ayrıca, projenin profesyonel bir portfolyo öğesi haline gelmesi için GitHub depo yönetimi, kapsamlı README dokümantasyonu ve teknik raporlama süreçlerini yürütür. Kodun farklı branch’ler üzerinden tutarlı bir şekilde birleştirilmesini (Merge/Integration) sağlayarak ekip içi teknik koordinasyonu denetler.
 
+## Proje Dosya Şeması
+```
 NYP-Proje-2026-Akilli-Kutup/
 ├── .gitignore
 ├── README.md
@@ -54,3 +56,4 @@ NYP-Proje-2026-Akilli-Kutup/
     ├── test_auth.cpp
     ├── test_core.cpp
     └── test_db.cpp
+```
