@@ -29,40 +29,38 @@ Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla geli
 *   Gelişmiş **Exception Handling (Hata Yakalama)** blokları sayesinde; dosya bulunamaması, okuma/yazma yetkisi olmaması veya JSON formatının dışarıdan bozulması (Corrupted Data) gibi durumlarda sistemin çökmesi engellenir ve otomatik kurtarma/uyarı senaryoları devreye girer.
 
 ## 5. Modern Web Arayüzü (Frontend Integration)
-*   C++ backend'i, gömülü bir HTTP sunucusu modülü (`httplib`) barındırarak ağ üzerinden gelen istekleri dinler.
+*   Java backend'i, gömülü bir HTTP sunucusu modülü (`httplib`) barındırarak ağ üzerinden gelen istekleri dinler.
 *   Kullanıcılar sisteme HTML, CSS ve JavaScript ile geliştirilmiş modern, asenkron (`fetch API`) ve kullanıcı dostu bir web paneli (Dashboard) üzerinden erişim sağlar. Tıklama, arama ve form gönderme işlemleri arka plana güvenli HTTP istekleri olarak iletilir.
 
 ## EKİP GÖREV DAĞILIMI
 
-## Backend & Core Architect - Ahmet Güler:
-Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını (Business Logic) kurgular. Sistemdeki tüm nesnelerin atası olan Abstract (Soyut) sınıfları ve ortak davranışları belirleyen Interface (Arayüz) yapılarını tasarlar. Kalıtım (Inheritance) mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin (Composition/Aggregation) sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
-## Yaptığı dosyalar
-```
-include/core/IMateryal.h
-include/core/Materyal.h
-include/core/Kitap.h
-include/core/DijitalMedya.h
-src/core/Materyal.cpp
-src/core/Kitap.cpp
-src/core/DijitalMedya.cpp
-tests/test_core.cpp
-src/main.cpp
-```
+Backend & Core Architect - Ahmet Güler:
 
-## Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
-Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine C++ veya Java kullanarak dosya tabanlı (JSON/TXT/Binary) bir yapıda saklayacak olan "Database Engine" mekanizmasını kurar. Nesnelerin diske yazılması (Save) ve açılışta tekrar belleğe yüklenmesi (Load) süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi (Exception Handling) mimarisini ve veritabanı güvenliğini (Backup/Sync) sağlar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
-## Yaptığı dosyalar
+Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını (Business Logic) kurgular. Sistemdeki tüm nesnelerin atası olan Abstract (Soyut) sınıfları ve ortak davranışları belirleyen Interface (Arayüz) yapılarını tasarlar. Kalıtım (Inheritance) mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin (Composition/Aggregation) sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
+Yaptığı dosyalar
 ```
-include/db/DatabaseManager.h
-src/db/DatabaseManager.cpp
+src/main/java/com/akillikutup/core/IMateryal.java
+src/main/java/com/akillikutup/core/Materyal.java
+src/main/java/com/akillikutup/core/Kitap.java
+src/main/java/com/akillikutup/core/DijitalMedya.java
+src/test/java/com/akillikutup/core/CoreTest.java
+src/main/java/com/akillikutup/Main.java
+```
+Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
+
+Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine Java kullanarak dosya tabanlı (JSON/TXT/Binary) bir yapıda saklayacak olan "Database Engine" mekanizmasını kurar. Nesnelerin diske yazılması (Save) ve açılışta tekrar belleğe yüklenmesi (Load) süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi (Exception Handling) mimarisini ve veritabanı güvenliğini (Backup/Sync) sağlar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
+Yaptığı dosyalar
+```
+src/main/java/com/akillikutup/db/DatabaseManager.java
+src/test/java/com/akillikutup/db/DatabaseManagerTest.java
 data/users.json
 data/materials.json
 data/backup/
-tests/test_db.cpp
 ```
-## UI/UX Developer - Göktuğ Berke Kuzucu:
-Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. JavaFX, Qt veya Swing gibi teknolojileri kullanarak, karmaşık kütüphane işlemlerini (materyal arama, ödünç alma, kullanıcı kaydı) son kullanıcı için basit ve sezgisel bir deneyime dönüştürür. Görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini (UX) iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir. Ayrıca, arayüzün sistem mantığıyla entegrasyonunu sağlayarak akıcı bir navigasyon yapısı oluşturur.
-## Yaptığı dosyalar
+UI/UX Developer - Göktuğ Berke Kuzucu:
+
+Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. Web teknolojilerini (HTML, CSS, JavaScript) kullanarak, karmaşık kütüphane işlemlerini (materyal arama, ödünç alma, kullanıcı kaydı) son kullanıcı için basit ve sezgisel bir deneyime dönüştürür. Görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini (UX) iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir. Ayrıca, arayüzün sistem mantığıyla entegrasyonunu sağlayarak akıcı bir navigasyon yapısı oluşturur.
+Yaptığı dosyalar
 ```
 frontend/index.html
 frontend/dashboard.html
@@ -70,19 +68,17 @@ frontend/css/login.css
 frontend/css/main.css
 frontend/js/dashboard.js
 ```
+Security & Integration Specialist - Eren Gider:
 
-
-## Security & Integration Specialist - Eren Gider:
 Sistemin güvenlik altyapısını ve proje entegrasyon süreçlerini yönetir. Kullanıcı kayıt ve giriş işlemlerinde güvenli yetkilendirme (Authentication & Authorization) mekanizmalarını kurar. Hassas verilerin korunması için Hashing (SHA-256 vb.) algoritmalarını kullanarak şifreleme katmanını oluşturur. Ayrıca, projenin profesyonel bir portfolyo öğesi haline gelmesi için GitHub depo yönetimi, kapsamlı README dokümantasyonu ve teknik raporlama süreçlerini yürütür. Kodun farklı branch’ler üzerinden tutarlı bir şekilde birleştirilmesini (Merge/Integration) sağlayarak ekip içi teknik koordinasyonu denetler.
-## Yaptığı dosyalar
+Yaptığı dosyalar
 ```
-include/auth/AuthManager.h
-src/auth/AuthManager.cpp
-include/server/HttpServer.h
-src/server/HttpServer.cpp
+src/main/java/com/akillikutup/auth/AuthManager.java
+src/main/java/com/akillikutup/server/ApiServer.java
+src/test/java/com/akillikutup/auth/AuthManagerTest.java
 frontend/js/api.js
 frontend/js/auth.js
-tests/test_auth.cpp
+pom.xml
 README.md
 docs/UML_Sema.md
 docs/Proje_Raporu.md
@@ -92,6 +88,7 @@ docs/Proje_Raporu.md
 NYP-Proje-2026-Akilli-Kutup/
 ├── .gitignore
 ├── README.md
+├── pom.xml
 ├── data/
 │   ├── users.json
 │   ├── materials.json
@@ -109,35 +106,31 @@ NYP-Proje-2026-Akilli-Kutup/
 │       ├── api.js
 │       ├── auth.js
 │       └── dashboard.js
-├── include/
-│   ├── auth/
-│   │   └── AuthManager.h
-│   ├── core/
-│   │   ├── IMateryal.h
-│   │   ├── Materyal.h
-│   │   ├── Kitap.h
-│   │   └── DijitalMedya.h
-│   ├── db/
-│   │   └── DatabaseManager.h
-│   └── server/
-│       └── HttpServer.h
-├── lib/
-│   ├── nlohmann_json/
-│   └── httplib/
-├── src/
-│   ├── auth/
-│   │   └── AuthManager.cpp
-│   ├── core/
-│   │   ├── Materyal.cpp
-│   │   ├── Kitap.cpp
-│   │   └── DijitalMedya.cpp
-│   ├── db/
-│   │   └── DatabaseManager.cpp
-│   ├── server/
-│   │   └── HttpServer.cpp
-│   └── main.cpp
-└── tests/
-    ├── test_auth.cpp
-    ├── test_core.cpp
-    └── test_db.cpp
+└── src/
+    ├── main/
+    │   └── java/
+    │       └── com/
+    │           └── akillikutup/
+    │               ├── auth/
+    │               │   └── AuthManager.java
+    │               ├── core/
+    │               │   ├── IMateryal.java
+    │               │   ├── Materyal.java
+    │               │   ├── Kitap.java
+    │               │   └── DijitalMedya.java
+    │               ├── db/
+    │               │   └── DatabaseManager.java
+    │               ├── server/
+    │               │   └── ApiServer.java
+    │               └── Main.java
+    └── test/
+        └── java/
+            └── com/
+                └── akillikutup/
+                    ├── auth/
+                    │   └── AuthManagerTest.java
+                    ├── core/
+                    │   └── CoreTest.java
+                    └── db/
+                        └── DatabaseManagerTest.java
 ```
