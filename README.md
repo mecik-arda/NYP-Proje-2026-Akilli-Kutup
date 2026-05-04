@@ -37,7 +37,9 @@ Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla geli
 Backend & Core Architect - Ahmet Güler:
 
 Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını (Business Logic) kurgular. Sistemdeki tüm nesnelerin atası olan Abstract (Soyut) sınıfları ve ortak davranışları belirleyen Interface (Arayüz) yapılarını tasarlar. Kalıtım (Inheritance) mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin (Composition/Aggregation) sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
-Yaptığı dosyalar
+
+Yaptığı dosyalar:
+
 ```
 src/main/java/com/akillikutup/core/IMateryal.java
 src/main/java/com/akillikutup/core/Materyal.java
@@ -49,7 +51,9 @@ src/main/java/com/akillikutup/Main.java
 Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
 
 Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine Java kullanarak dosya tabanlı (JSON/TXT/Binary) bir yapıda saklayacak olan "Database Engine" mekanizmasını kurar. Nesnelerin diske yazılması (Save) ve açılışta tekrar belleğe yüklenmesi (Load) süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi (Exception Handling) mimarisini ve veritabanı güvenliğini (Backup/Sync) sağlar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
+
 Yaptığı dosyalar
+
 ```
 src/main/java/com/akillikutup/db/DatabaseManager.java
 src/test/java/com/akillikutup/db/DatabaseManagerTest.java
@@ -60,7 +64,9 @@ data/backup/
 UI/UX Developer - Göktuğ Berke Kuzucu:
 
 Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. Web teknolojilerini (HTML, CSS, JavaScript) kullanarak, karmaşık kütüphane işlemlerini (materyal arama, ödünç alma, kullanıcı kaydı) son kullanıcı için basit ve sezgisel bir deneyime dönüştürür. Görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini (UX) iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir. Ayrıca, arayüzün sistem mantığıyla entegrasyonunu sağlayarak akıcı bir navigasyon yapısı oluşturur.
+
 Yaptığı dosyalar
+
 ```
 frontend/index.html
 frontend/dashboard.html
@@ -71,7 +77,9 @@ frontend/js/dashboard.js
 Security & Integration Specialist - Eren Gider:
 
 Sistemin güvenlik altyapısını ve proje entegrasyon süreçlerini yönetir. Kullanıcı kayıt ve giriş işlemlerinde güvenli yetkilendirme (Authentication & Authorization) mekanizmalarını kurar. Hassas verilerin korunması için Hashing (SHA-256 vb.) algoritmalarını kullanarak şifreleme katmanını oluşturur. Ayrıca, projenin profesyonel bir portfolyo öğesi haline gelmesi için GitHub depo yönetimi, kapsamlı README dokümantasyonu ve teknik raporlama süreçlerini yürütür. Kodun farklı branch’ler üzerinden tutarlı bir şekilde birleştirilmesini (Merge/Integration) sağlayarak ekip içi teknik koordinasyonu denetler.
+
 Yaptığı dosyalar
+
 ```
 src/main/java/com/akillikutup/auth/AuthManager.java
 src/main/java/com/akillikutup/server/ApiServer.java
