@@ -28,7 +28,7 @@ data/materials.json
 data/backup/
 tests/test_db.cpp
 ```
-##UI/UX Developer - Göktuğ Berke Kuzucu:
+## UI/UX Developer - Göktuğ Berke Kuzucu:
 Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. JavaFX, Qt veya Swing gibi teknolojileri kullanarak, karmaşık kütüphane işlemlerini (materyal arama, ödünç alma, kullanıcı kaydı) son kullanıcı için basit ve sezgisel bir deneyime dönüştürür. Görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini (UX) iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir. Ayrıca, arayüzün sistem mantığıyla entegrasyonunu sağlayarak akıcı bir navigasyon yapısı oluşturur.
 ## Yaptığı dosyalar
 ```
