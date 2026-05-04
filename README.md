@@ -1,5 +1,29 @@
-# NYP-Proje-2026-Akilli-Kutup
-Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi
+# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi - 2026 Nesneye Yönelik Programlama Proje ödevi
+
+## 1. Proje Özeti
+Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri ve **derinlemesine savunma (Defense-in-Depth)** prensipleriyle birleştiren, C++ tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, C++ bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir.
+
+## 2. Çekirdek Mimari ve OOP Uygulamaları
+Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak tasarlanmıştır:
+*   **Kalıtım (Inheritance) ve Soyutlama (Abstraction):** `IMateryal` arayüzü ve `Materyal` soyut sınıfı üzerinden `Kitap` ve `DijitalMedya` gibi alt sınıflar türetilerek, genişletilebilir (Scalable) bir yapı kurulmuştur.
+*   **Çok Biçimlilik (Polymorphism):** Her materyal türünün ceza hesaplama veya ödünç verilme mantığı çalışma zamanında (Runtime) dinamik olarak belirlenir.
+*   **Kapsülleme (Encapsulation):** Kritik iş mantığı, ceza puanları ve sistemin iç durumu dış müdahalelere kapatılarak nesne bütünlüğü korunmuştur.
+
+## 3. Siber Güvenlik Katmanı (Cybersecurity Framework)
+Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları içerir:
+*   **Kriptografik Şifreleme (Hashing & Salting):** Kullanıcı parolaları veritabanında (JSON) kesinlikle açık metin (plaintext) olarak saklanmaz. Parolalar, güvenlik standartlarına uygun olarak hash algoritmaları (Örn: SHA-256) kullanılarak şifrelenir.
+*   **Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization):** Frontend ile Backend arasındaki API iletişiminde yetkisiz erişimleri engellemek için oturum (Session) veya Token tabanlı güvenlik mekanizmaları devrededir. Sistemde **Least Privilege (En Az Ayrıcalık)** prensibi uygulanır; sıradan bir "Üye" sadece okuma (Read) yapabilirken, CRUD operasyonlarını yalnızca "Admin" yetkisine sahip kullanıcılar gerçekleştirebilir.
+*   **Girdi Denetimi ve Sanitizasyon (Input Validation):** İstemciden (Web arayüzünden) gelen her türlü veri, Backend tarafında işlenmeden önce süzgeçten geçirilir. Bu sayede **JSON Injection** ve **XSS (Cross-Site Scripting)** gibi saldırı vektörleri engellenir.
+*   **Dosya Yolu Güvenliği (Path Traversal Protection):** Sistem, veri kalıcılığı için yerel JSON dosyalarını kullandığından, dışarıdan manipüle edilmiş dosya yolu isteklerine karşı (Örn: `../../etc/passwd` veya `../backup/`) sıkı bir dizin denetimi uygular. Dosya okuma/yazma işlemleri izole edilmiş bir `data/` klasörü dışına çıkamaz.
+
+## 4. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
+*   Sistem, SQL kullanmak yerine kendi özel **Dosya Tabanlı Veritabanı Motorunu** (File-Based Database Engine) C++ ile sıfırdan yönetir.
+*   Veriler `JSON` formatında serialize/deserialize edilerek saklanır.
+*   Gelişmiş **Exception Handling (Hata Yakalama)** blokları sayesinde; dosya bulunamaması, okuma/yazma yetkisi olmaması veya JSON formatının dışarıdan bozulması (Corrupted Data) gibi durumlarda sistemin çökmesi engellenir ve otomatik kurtarma/uyarı senaryoları devreye girer.
+
+## 5. Modern Web Arayüzü (Frontend Integration)
+*   C++ backend'i, gömülü bir HTTP sunucusu modülü (`httplib`) barındırarak ağ üzerinden gelen istekleri dinler.
+*   Kullanıcılar sisteme HTML, CSS ve JavaScript ile geliştirilmiş modern, asenkron (`fetch API`) ve kullanıcı dostu bir web paneli (Dashboard) üzerinden erişim sağlar. Tıklama, arama ve form gönderme işlemleri arka plana güvenli HTTP istekleri olarak iletilir.
 
 ## EKİP GÖREV DAĞILIMI
 
