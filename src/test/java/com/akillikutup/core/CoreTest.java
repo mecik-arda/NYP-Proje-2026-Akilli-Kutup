@@ -25,10 +25,19 @@ public class CoreTest {
         // Dijital Medya: Baslik, Birim Fiyat, Format
         DijitalMedya dijital = new DijitalMedya("AI Handbook", 50.0, "PDF");
 
+        // DUZELTME 3 (Test): stoktaVarMi() artik toplamErisimSayisi'ne gore calisiyor.
+        // Yeni duzende stokAdedi=0 ile baslatiliyor; stoktaVarMi() override edildi.
+        assertTrue(dijital.stoktaVarMi()); // Limit dolmadigi icin erisim acik olmali
+
         // Erisim (Odunc) testi: Lisans uretildi mi?
         dijital.oduncVer();
         assertNotNull(dijital.getSonUretilenLisans());
         assertEquals(1, dijital.getToplamErisimSayisi());
+
+        // Iade testi: Sayac geri dusuyor mu?
+        dijital.iadeEt();
+        assertNull(dijital.getSonUretilenLisans());
+        assertEquals(0, dijital.getToplamErisimSayisi());
 
         // Ceza testi: (10 gun * 0.5 TL) + (50 TL * %5) = 5 + 2.5 = 7.5 TL
         assertEquals(7.5, dijital.cezaHesapla(10));

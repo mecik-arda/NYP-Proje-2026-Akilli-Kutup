@@ -10,9 +10,15 @@ public class Kitap extends Materyal {
 
     @Override
     public void oduncVer() {
-        // IS MANTIGI: Fiziksel kitap stoktan duser
+        // DUZELTME 2: oduncVer() artik geri bildirim veriyor.
+        // Daha onceden stok azaltiliyordu ama hicbir cikti uretilmiyordu.
+        // Stok kontrolu Uye.materyalAl() tarafindan yapilir; bu metod sadece islemleri uygular.
         if (stoktaVarMi()) {
             this.stokAdedi--;
+            System.out.println("ISLEM BASARILI: '" + getBaslik() + "' fiziksel kitabi teslim edildi.");
+            System.out.println("ISBN: " + isbn + " | Kalan stok: " + this.stokAdedi);
+        } else {
+            System.out.println("HATA: '" + getBaslik() + "' icin stok bulunmamaktadir.");
         }
     }
 
@@ -20,6 +26,7 @@ public class Kitap extends Materyal {
     public void iadeEt() {
         // IS MANTIGI: Iade edilen kitap stoga geri girer
         this.stokAdedi++;
+        System.out.println("IADE BASARILI: '" + getBaslik() + "' stoga geri eklendi. Guncel stok: " + this.stokAdedi);
     }
 
     @Override
