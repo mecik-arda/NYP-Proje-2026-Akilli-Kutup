@@ -2,8 +2,8 @@ package com.akillikutup.core;
 
 public class Uye extends Kullanici {
 
-    public Uye(String isim, String tcNo) {
-        super(isim, tcNo, "UYE");
+    public Uye(String isim, String tcNo, String sifre) {
+        super(isim, tcNo, "UYE", sifre);
     }
 
     @Override

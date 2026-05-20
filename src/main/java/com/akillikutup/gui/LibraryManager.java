@@ -15,9 +15,9 @@ public class LibraryManager {
         materials = new ArrayList<>();
         
         // Add mock data
-        users.add(new Admin("Ahmet Guler (Admin)", "11122233344"));
-        users.add(new Uye("Mehmet Yilmaz (Uye)", "99988877766"));
-        users.add(new Uye("Ayse Demir (Uye)", "55544433322"));
+        users.add(new Admin("Ahmet Guler (Admin)", "11122233344", "admin123"));
+        users.add(new Admin("Eren Gider", "1231602061", "TestSifresi"));
+        users.add(new Uye("Ayse Demir (Uye)", "55544433322", "uye123"));
 
         materials.add(new Kitap("1984", 5, 25.0, "978-0451524935"));
         materials.add(new Kitap("Seker Portakali", 3, 15.0, "978-9750719387"));

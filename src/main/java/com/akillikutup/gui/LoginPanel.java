@@ -9,6 +9,7 @@ import java.util.List;
 public class LoginPanel extends JPanel {
     private MainFrame mainFrame;
     private JComboBox<String> userComboBox;
+    private JPasswordField passwordField;
 
     public LoginPanel(MainFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -39,21 +40,38 @@ public class LoginPanel extends JPanel {
         gbc.gridy = 1;
         add(userComboBox, gbc);
 
+        JLabel passwordLabel = new JLabel("Sifre:");
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        add(passwordLabel, gbc);
+
+        passwordField = new JPasswordField(15);
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        add(passwordField, gbc);
+
         JButton loginButton = new JButton("Giris Yap");
         loginButton.addActionListener(e -> {
             int selectedIndex = userComboBox.getSelectedIndex();
             if (selectedIndex >= 0) {
                 Kullanici selectedUser = users.get(selectedIndex);
-                LibraryManager.getInstance().setCurrentUser(selectedUser);
-                if (selectedUser.getRol().equals("ADMIN")) {
-                    mainFrame.showPanel("ADMIN");
+                String enteredPassword = new String(passwordField.getPassword());
+                if (selectedUser.getSifre().equals(enteredPassword)) {
+                    LibraryManager.getInstance().setCurrentUser(selectedUser);
+                    passwordField.setText("");
+                    if (selectedUser.getRol().equals("ADMIN")) {
+                        mainFrame.showPanel("ADMIN");
+                    } else {
+                        mainFrame.showPanel("USER");
+                    }
                 } else {
-                    mainFrame.showPanel("USER");
+                    JOptionPane.showMessageDialog(this, "Hatali sifre!", "Hata", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
         gbc.gridx = 0;
-        gbc.gridy = 2;
+        gbc.gridy = 3;
         gbc.gridwidth = 2;
         add(loginButton, gbc);
     }

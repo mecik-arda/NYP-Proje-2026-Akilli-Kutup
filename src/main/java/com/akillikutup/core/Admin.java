@@ -2,8 +2,8 @@ package com.akillikutup.core;
 
 public class Admin extends Kullanici {
 
-    public Admin(String isim, String tcNo) {
-        super(isim, tcNo, "ADMIN");
+    public Admin(String isim, String tcNo, String sifre) {
+        super(isim, tcNo, "ADMIN", sifre);
     }
 
     @Override
