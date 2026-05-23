@@ -125,9 +125,18 @@ NYP-Proje-2026-Akilli-Kutup/
     │               │   ├── IMateryal.java
     │               │   ├── Materyal.java
     │               │   ├── Kitap.java
-    │               │   └── DijitalMedya.java
+    │               │   ├── DijitalMedya.java
+    │               │   ├── Kullanici.java
+    │               │   ├── Admin.java
+    │               │   └── Uye.java
     │               ├── db/
     │               │   └── DatabaseManager.java
+    │               ├── gui/
+    │               │   ├── MainFrame.java
+    │               │   ├── LoginPanel.java
+    │               │   ├── AdminPanel.java
+    │               │   ├── UserPanel.java
+    │               │   └── LibraryManager.java
     │               ├── server/
     │               │   └── ApiServer.java
     │               └── Main.java

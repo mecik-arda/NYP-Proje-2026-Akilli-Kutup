@@ -39,13 +39,13 @@ public class CoreTest {
         Uye uye = new Uye("Ahmet Guler", "11122233344", "test123");
         Kitap kitap = new Kitap("Test Kitabi", 5, 100.0, "000");
 
-        uye.puanGuncelle(-90); 
+        uye.puanGuncelle(-90);
         uye.materyalAl(kitap);
-        assertEquals(5, kitap.getStokAdedi()); 
+        assertEquals(5, kitap.getStokAdedi());
 
         uye.puanGuncelle(50);
         uye.materyalAl(kitap);
-        assertEquals(4, kitap.getStokAdedi()); 
+        assertEquals(4, kitap.getStokAdedi());
     }
 
     @Test

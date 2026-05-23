@@ -22,7 +22,7 @@ public class AdminPanel extends JPanel {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
-        // --- UST PANEL ---
+
         JPanel topPanel = new JPanel(new BorderLayout());
         JPanel leftTop = new JPanel(new GridLayout(2, 1));
         welcomeLabel = new JLabel("Admin Paneli");
@@ -43,7 +43,7 @@ public class AdminPanel extends JPanel {
 
         JTabbedPane tabbedPane = new JTabbedPane();
 
-        // ==================== SEKME 1: MATERYAL YONETIMI ====================
+
         JPanel materyalPanel = new JPanel(new BorderLayout());
 
         String[] matColumnNames = {"ID", "Baslik", "Tur", "Stok/Erisim", "Fiyat"};
@@ -162,7 +162,7 @@ public class AdminPanel extends JPanel {
         materyalPanel.add(matBottomPanel, BorderLayout.SOUTH);
         tabbedPane.addTab("Materyal Yonetimi", materyalPanel);
 
-        // ==================== SEKME 2: UYE YONETIMI ====================
+
         JPanel uyePanel = new JPanel(new BorderLayout());
 
         String[] userColumnNames = {"Isim", "Rol", "TC Kimlik No", "Kredi Puani"};
@@ -177,7 +177,7 @@ public class AdminPanel extends JPanel {
         JPanel userButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         userButtonPanel.setBorder(BorderFactory.createTitledBorder("Uye Islemleri"));
 
-        // Detay Goruntule
+
         JButton detailButton = new JButton("Detay Goruntule");
         detailButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -194,7 +194,7 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(detailButton);
 
-        // Uye Sil
+
         JButton deleteUserButton = new JButton("Uyeyi Sil");
         deleteUserButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -217,7 +217,7 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(deleteUserButton);
 
-        // Kredi Puani Guncelle
+
         JButton updatePointsButton = new JButton("Kredi Guncelle");
         updatePointsButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -243,7 +243,7 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(updatePointsButton);
 
-        // TC Degistir
+
         JButton changeTcButton = new JButton("TC Degistir");
         changeTcButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -265,7 +265,7 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(changeTcButton);
 
-        // Sifre Sifirla
+
         JButton resetPassButton = new JButton("Sifre Sifirla");
         resetPassButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -281,7 +281,7 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(resetPassButton);
 
-        // Isim Degistir
+
         JButton changeNameButton = new JButton("Isim Degistir");
         changeNameButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -335,7 +335,7 @@ public class AdminPanel extends JPanel {
             welcomeLabel.setText("Hosgeldin, " + currentUser.getIsim() + " (Admin)");
         }
 
-        // Istatistik
+
         int toplamUye = 0, toplamAdmin = 0;
         for (Kullanici k : LibraryManager.getInstance().getUsers()) {
             if (k.getRol().equals("ADMIN")) toplamAdmin++;
@@ -344,7 +344,7 @@ public class AdminPanel extends JPanel {
         int toplamMateryal = LibraryManager.getInstance().getMaterials().size();
         statsLabel.setText("Toplam: " + toplamAdmin + " Admin, " + toplamUye + " Uye, " + toplamMateryal + " Materyal");
 
-        // Materyal tablosu
+
         materialTableModel.setRowCount(0);
         List<Materyal> materials = LibraryManager.getInstance().getMaterials();
         for (Materyal m : materials) {
@@ -353,7 +353,7 @@ public class AdminPanel extends JPanel {
             materialTableModel.addRow(new Object[]{m.getId(), m.getBaslik(), tur, stok, m.getBirimFiyat()});
         }
 
-        // Uye tablosu
+
         userTableModel.setRowCount(0);
         Kullanici admin = LibraryManager.getInstance().getCurrentUser();
         List<Kullanici> users = LibraryManager.getInstance().getUsers();

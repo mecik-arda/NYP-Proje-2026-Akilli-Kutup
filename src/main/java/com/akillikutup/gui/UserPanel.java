@@ -19,7 +19,7 @@ public class UserPanel extends JPanel {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
-        // --- UST PANEL ---
+
         JPanel topPanel = new JPanel(new BorderLayout());
 
         JPanel userInfoPanel = new JPanel();
@@ -72,7 +72,7 @@ public class UserPanel extends JPanel {
         topPanel.add(rightButtons, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // --- MATERYAL TABLOSU ---
+
         String[] columnNames = {"ID", "Baslik", "Tur", "Stok/Erisim", "Fiyat"};
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -82,10 +82,10 @@ public class UserPanel extends JPanel {
         JScrollPane scrollPane = new JScrollPane(materialTable);
         add(scrollPane, BorderLayout.CENTER);
 
-        // --- ALT PANEL ---
+
         JPanel bottomPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
 
-        // Arama
+
         bottomPanel.add(new JLabel("Ara:"));
         JTextField searchField = new JTextField(12);
         bottomPanel.add(searchField);
@@ -114,7 +114,7 @@ public class UserPanel extends JPanel {
 
         bottomPanel.add(Box.createHorizontalStrut(20));
 
-        // Odunc Al
+
         JButton borrowButton = new JButton("Secili Materyali Odunc Al");
         borrowButton.addActionListener(e -> {
             int selectedRow = materialTable.getSelectedRow();
