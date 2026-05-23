@@ -14,7 +14,6 @@ public class LibraryManager {
         users = new ArrayList<>();
         materials = new ArrayList<>();
         
-        // Add mock data
         users.add(new Admin("Ahmet Guler (Admin)", "11122233344", "admin123"));
         users.add(new Admin("Eren Gider", "1231602061", "TestSifresi"));
         users.add(new Uye("Ayse Demir (Uye)", "55544433322", "uye123"));

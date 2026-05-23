@@ -5,17 +5,16 @@ public abstract class Kullanici {
     private String tcNo;
     private String rol;
     private String sifre;
-    protected int krediPuani; // Uye'de degisecek
+    protected int krediPuani;
 
     public Kullanici(String isim, String tcNo, String rol, String sifre) {
         this.isim = isim;
         this.tcNo = tcNo;
         this.rol = rol;
         this.sifre = sifre;
-        this.krediPuani = 100; // Herkes 100 puanla baslar
+        this.krediPuani = 100;
     }
 
-    // GUVENLIK: TC bilgisini sadece Admin veya kisi kendisi gorebilir
     public String getTcNo(Kullanici talepEden) {
         if (talepEden.getRol().equals("ADMIN") || talepEden.equals(this)) {
             return this.tcNo;

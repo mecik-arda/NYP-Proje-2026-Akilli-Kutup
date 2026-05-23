@@ -18,7 +18,6 @@ public class UserPanel extends JPanel {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
-        // Top Panel
         JPanel topPanel = new JPanel(new BorderLayout());
         JPanel userInfoPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         welcomeLabel = new JLabel("Uye Paneli");
@@ -36,14 +35,12 @@ public class UserPanel extends JPanel {
         topPanel.add(logoutButton, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // Center Panel: Material Table
         String[] columnNames = {"ID", "Baslik", "Tur", "Stok/Erisim", "Fiyat"};
         tableModel = new DefaultTableModel(columnNames, 0);
         materialTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(materialTable);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Bottom Panel: Borrow action
         JPanel bottomPanel = new JPanel(new FlowLayout());
         JButton borrowButton = new JButton("Secili Materyali Odunc Al");
         borrowButton.addActionListener(e -> {
@@ -63,7 +60,6 @@ public class UserPanel extends JPanel {
                     if (currentUser instanceof Uye) {
                         Uye uye = (Uye) currentUser;
                         uye.materyalAl(selectedMaterial);
-                        // Simulate a reduction in credit points for borrowing (optional logic)
                         uye.puanGuncelle(-5);
                         JOptionPane.showMessageDialog(this, "Islem gerceklestirildi. Konsolu kontrol edin.\nYeni Kredi: " + uye.getKrediPuani());
                         refreshData();

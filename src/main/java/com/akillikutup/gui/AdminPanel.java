@@ -17,7 +17,6 @@ public class AdminPanel extends JPanel {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
-        // Top Panel: Welcome and Logout
         JPanel topPanel = new JPanel(new BorderLayout());
         welcomeLabel = new JLabel("Admin Paneli");
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
@@ -31,22 +30,20 @@ public class AdminPanel extends JPanel {
         topPanel.add(logoutButton, BorderLayout.EAST);
         add(topPanel, BorderLayout.NORTH);
 
-        // Center Panel: Material Table
         String[] columnNames = {"ID", "Baslik", "Tur", "Stok/Erisim", "Fiyat"};
         tableModel = new DefaultTableModel(columnNames, 0);
         materialTable = new JTable(tableModel);
         JScrollPane scrollPane = new JScrollPane(materialTable);
         add(scrollPane, BorderLayout.CENTER);
 
-        // Bottom Panel: Add Material Form
         JPanel bottomPanel = new JPanel(new FlowLayout());
         bottomPanel.setBorder(BorderFactory.createTitledBorder("Yeni Materyal Ekle"));
 
         JComboBox<String> typeCombo = new JComboBox<>(new String[]{"Kitap", "Dijital Medya"});
         JTextField baslikField = new JTextField(10);
         JTextField fiyatField = new JTextField(5);
-        JTextField extraField = new JTextField(10); // ISBN veya Format
-        JTextField stokField = new JTextField(5); // Sadece kitap icin
+        JTextField extraField = new JTextField(10);
+        JTextField stokField = new JTextField(5);
 
         bottomPanel.add(new JLabel("Tur:"));
         bottomPanel.add(typeCombo);

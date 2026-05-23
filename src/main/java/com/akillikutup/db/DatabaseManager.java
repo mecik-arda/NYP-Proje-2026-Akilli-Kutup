@@ -48,7 +48,6 @@ public class DatabaseManager {
         tekOrnek = null;
     }
 
-    // ======================== KLASOR YONETIMI ========================
 
     private void klasorleriOlustur() {
         File veriKlasoru = new File(VERI_KLASORU);
@@ -68,7 +67,6 @@ public class DatabaseManager {
         }
     }
 
-    // ======================== GUVENLIK: PATH TRAVERSAL KORUMASI ========================
 
     private void yolGuvenligi(String dosyaYolu) {
         try {
@@ -86,7 +84,6 @@ public class DatabaseManager {
         }
     }
 
-    // ======================== JSON SERIALIZE (NESNE -> JSON METNI) ========================
 
     private String kullaniciListesiniJsonaSerialize(List<Kullanici> liste) {
         StringBuilder sb = new StringBuilder();
@@ -164,7 +161,6 @@ public class DatabaseManager {
                 .replace("\t", "\\t");
     }
 
-    // ======================== JSON DESERIALIZE (JSON METNI -> NESNE) ========================
 
     public List<Kullanici> kullanicilariJsondanYukle(String jsonIcerik) {
         List<Kullanici> sonuc = new ArrayList<>();
@@ -260,7 +256,6 @@ public class DatabaseManager {
         return sonuc;
     }
 
-    // ======================== JSON PARSER YARDIMCI METODLARI ========================
 
     private List<String> jsonNesneleriniAyir(String jsonDizisi) {
         List<String> nesneler = new ArrayList<>();
@@ -401,7 +396,6 @@ public class DatabaseManager {
         return sb.toString();
     }
 
-    // ======================== DOSYA OKUMA / YAZMA ========================
 
     public void kaydet(List<Kullanici> kullanicilar, List<Materyal> materyaller) {
         this.kullaniciListesi = new ArrayList<>(kullanicilar);
@@ -541,7 +535,6 @@ public class DatabaseManager {
         return icerik.toString();
     }
 
-    // ======================== YEDEKLEME (BACKUP) ========================
 
     public void yedekle() {
         DateTimeFormatter bicim = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
@@ -644,7 +637,6 @@ public class DatabaseManager {
         }
     }
 
-    // ======================== SENKRONIZASYON ========================
 
     public void senkronizeEt(List<Kullanici> kullanicilar, List<Materyal> materyaller) {
         yedekle();
@@ -652,7 +644,6 @@ public class DatabaseManager {
         System.out.println("SENKRONIZASYON TAMAMLANDI: Veriler yedeklendi ve kaydedildi.");
     }
 
-    // ======================== TEKIL ISLEMLER ========================
 
     public void kullaniciEkle(Kullanici yeniKullanici) {
         for (Kullanici mevcut : kullaniciListesi) {
@@ -721,7 +712,6 @@ public class DatabaseManager {
         return sonuclar;
     }
 
-    // ======================== VERITABANI DURUMU ========================
 
     public boolean veritabaniMevcutMu() {
         return new File(KULLANICI_DOSYASI).exists() && new File(MATERYAL_DOSYASI).exists();
@@ -759,7 +749,6 @@ public class DatabaseManager {
         return rapor.toString();
     }
 
-    // ======================== GETTER'LAR ========================
 
     public List<Kullanici> getKullaniciListesi() {
         return kullaniciListesi;

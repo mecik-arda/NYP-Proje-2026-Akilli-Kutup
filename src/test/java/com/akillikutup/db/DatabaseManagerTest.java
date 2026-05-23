@@ -26,7 +26,6 @@ public class DatabaseManagerTest {
         DatabaseManager.tekOrnekSifirla();
     }
 
-    // ======================== SINGLETON TESTI ========================
 
     @Test
     @Order(1)
@@ -45,7 +44,6 @@ public class DatabaseManagerTest {
         assertNotSame(ilk, yeni, "Sifirlamadan sonra yeni ornek olusmali");
     }
 
-    // ======================== KULLANICI SERIALIZE / DESERIALIZE TESTI ========================
 
     @Test
     @Order(3)
@@ -102,7 +100,6 @@ public class DatabaseManagerTest {
         assertEquals(70, yuklenen.get(0).getKrediPuani(), "Kredi puani dogru yuklenmeli");
     }
 
-    // ======================== MATERYAL SERIALIZE / DESERIALIZE TESTI ========================
 
     @Test
     @Order(6)
@@ -173,7 +170,6 @@ public class DatabaseManagerTest {
         assertTrue(yuklenen.get(2) instanceof Kitap);
     }
 
-    // ======================== DOSYA YOKKEN YUKLEME TESTI ========================
 
     @Test
     @Order(9)
@@ -197,7 +193,6 @@ public class DatabaseManagerTest {
         assertEquals(0, sonuc.size(), "Dosya yokken bos liste donmeli");
     }
 
-    // ======================== BOS LISTE TESTI ========================
 
     @Test
     @Order(11)
@@ -214,7 +209,6 @@ public class DatabaseManagerTest {
         assertEquals(0, materyaller.size());
     }
 
-    // ======================== TEKIL ISLEM TESTLERI ========================
 
     @Test
     @Order(12)
@@ -270,7 +264,6 @@ public class DatabaseManagerTest {
         assertEquals("Kalacak Medya", db.getMateryalListesi().get(0).getBaslik());
     }
 
-    // ======================== ARAMA VE BULMA TESTLERI ========================
 
     @Test
     @Order(16)
@@ -320,7 +313,6 @@ public class DatabaseManagerTest {
         assertEquals(0, bosSonuc.size(), "Eslesme yoksa bos liste donmeli");
     }
 
-    // ======================== YEDEKLEME TESTI ========================
 
     @Test
     @Order(19)
@@ -339,7 +331,6 @@ public class DatabaseManagerTest {
         assertTrue(sonrakiYedekSayisi > oncekiYedekSayisi, "Yedek sayisi artmali");
     }
 
-    // ======================== SENKRONIZASYON TESTI ========================
 
     @Test
     @Order(20)
@@ -364,7 +355,6 @@ public class DatabaseManagerTest {
         assertEquals("Senkron Kitap", yukMat.get(0).getBaslik());
     }
 
-    // ======================== PATH TRAVERSAL GUVENLIK TESTI ========================
 
     @Test
     @Order(21)
@@ -389,7 +379,6 @@ public class DatabaseManagerTest {
         return "";
     }
 
-    // ======================== BOZUK JSON TESTI ========================
 
     @Test
     @Order(22)
@@ -427,7 +416,6 @@ public class DatabaseManagerTest {
         assertEquals(0, materyaller.size());
     }
 
-    // ======================== DURUM RAPORU TESTI ========================
 
     @Test
     @Order(26)
@@ -440,7 +428,6 @@ public class DatabaseManagerTest {
         assertTrue(rapor.contains("MEVCUT"));
     }
 
-    // ======================== VERITABANI MEVCUT MU TESTI ========================
 
     @Test
     @Order(27)
@@ -449,7 +436,6 @@ public class DatabaseManagerTest {
         assertTrue(db.veritabaniMevcutMu());
     }
 
-    // ======================== OZEL KARAKTER TESTI ========================
 
     @Test
     @Order(28)
@@ -468,7 +454,6 @@ public class DatabaseManagerTest {
         assertEquals("sifre\\test", yuklenen.get(0).getSifre());
     }
 
-    // ======================== DOSYA BOYUTU TESTI ========================
 
     @Test
     @Order(29)
@@ -480,7 +465,6 @@ public class DatabaseManagerTest {
         assertTrue(db.kullaniciDosyasiBoyutu() > 0, "Dosya boyutu 0'dan buyuk olmali");
     }
 
-    // ======================== AYNI ISIMDE KULLANICI EKLEME TESTI ========================
 
     @Test
     @Order(30)
