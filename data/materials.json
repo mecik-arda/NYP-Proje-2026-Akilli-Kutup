@@ -1,2 +1,28 @@
 [
+  {
+    "id": "bf6114d5-80d9-4719-95b0-d037fca8903b",
+    "baslik": "1984",
+    "birimFiyat": 25.0,
+    "stokAdedi": 5,
+    "tur": "Kitap",
+    "isbn": "978-0451524935"
+  },
+  {
+    "id": "1adab593-51b1-4dbc-921a-47ab71d0479b",
+    "baslik": "Seker Portakali",
+    "birimFiyat": 15.0,
+    "stokAdedi": 3,
+    "tur": "Kitap",
+    "isbn": "978-9750719387"
+  },
+  {
+    "id": "e4f54530-0b5b-482e-ada1-35cd5bfb6556",
+    "baslik": "Inception (Film)",
+    "birimFiyat": 10.0,
+    "stokAdedi": 0,
+    "tur": "DijitalMedya",
+    "dosyaFormati": "MP4",
+    "toplamErisimSayisi": 0,
+    "sonUretilenLisans": null
+  }
 ]

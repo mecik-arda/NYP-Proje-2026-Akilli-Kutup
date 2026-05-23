@@ -29,4 +29,8 @@ public abstract class Kullanici {
     public String getSifre() { return sifre; }
     public int getKrediPuani() { return krediPuani; }
     public String getTcNoDogrudan() { return tcNo; }
+
+    public void setTcNo(String tcNo) { this.tcNo = tcNo; }
+    public void setSifre(String sifre) { this.sifre = sifre; }
+    public void setIsim(String isim) { this.isim = isim; }
 }
