@@ -36,7 +36,7 @@ public class CoreTest {
 
     @Test
     public void testUyeKrediPuaniVeOduncSistemi() {
-        Uye uye = new Uye("Ahmet Guler", "11122233344"); //
+        Uye uye = new Uye("Ahmet Guler", "11122233344", "test123");
         Kitap kitap = new Kitap("Test Kitabi", 5, 100.0, "000");
 
         uye.puanGuncelle(-90); 
@@ -50,8 +50,8 @@ public class CoreTest {
 
     @Test
     public void testGuvenlikTCNoErisimi() {
-        Admin admin = new Admin("Eren Gider", "12345678901"); //
-        Uye uye = new Uye("Mehmet Yilmaz", "98765432109");
+        Admin admin = new Admin("Eren Gider", "12345678901", "admin123");
+        Uye uye = new Uye("Mehmet Yilmaz", "98765432109", "uye123");
 
         assertEquals("98765432109", uye.getTcNo(admin));
 

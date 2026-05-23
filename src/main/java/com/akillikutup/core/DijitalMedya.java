@@ -74,4 +74,5 @@ public class DijitalMedya extends Materyal {
     // Getterlar (Arda'nin DatabaseManager'da kullanmasi icin gerekecek)
     public String getSonUretilenLisans() { return sonUretilenLisans; }
     public int getToplamErisimSayisi() { return toplamErisimSayisi; }
+    public String getDosyaFormati() { return dosyaFormati; }
 }

@@ -29,4 +29,5 @@ public abstract class Kullanici {
     public String getRol() { return rol; }
     public String getSifre() { return sifre; }
     public int getKrediPuani() { return krediPuani; }
+    public String getTcNoDogrudan() { return tcNo; }
 }

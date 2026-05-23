@@ -38,4 +38,5 @@ public abstract class Materyal implements IMateryal {
     public double getBirimFiyat() { return birimFiyat; }
     public int getStokAdedi() { return stokAdedi; }
     public String getId() { return id; }
+    public void setId(String id) { this.id = id; }
 }

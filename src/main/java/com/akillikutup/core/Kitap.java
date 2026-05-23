@@ -35,4 +35,6 @@ public class Kitap extends Materyal {
         // Fiziksel kitap cezasi: Gun x 2.5 TL + Birim Fiyat %10
         return (gecikmeGunu * 2.5) + (getBirimFiyat() * 0.10);
     }
+
+    public String getIsbn() { return isbn; }
 }
