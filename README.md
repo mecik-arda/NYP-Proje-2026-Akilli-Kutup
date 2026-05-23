@@ -151,3 +151,19 @@ NYP-Proje-2026-Akilli-Kutup/
                     └── db/
                         └── DatabaseManagerTest.java
 ```
+
+### Geliştirme Durumu (Development Status)
+
+Yukarıdaki şemada belirtilen dosyalardan **tamamlananlar** ve henüz **geliştirme aşamasında olanlar** aşağıda listelenmiştir:
+
+**✅ Tamamlanan Kısımlar:**
+*   `src/main/java/com/akillikutup/core/` (Çekirdek OOP Modelleri)
+*   `src/main/java/com/akillikutup/db/` (Veritabanı Motoru ve JSON İşlemleri)
+*   `src/main/java/com/akillikutup/gui/` (Swing Masaüstü Arayüzü)
+*   `src/main/java/com/akillikutup/auth/` (SHA-256 Şifreleme ve Kimlik Doğrulama)
+*   `src/main/java/com/akillikutup/server/` (REST API Sunucu Altyapısı)
+*   `src/test/` (Birim Testler - Tüm testler başarıyla geçmektedir)
+
+**⏳ Bekleyen/Geliştirilecek Kısımlar:**
+*   `frontend/` (Modern Web Arayüzü - HTML/CSS/JS entegrasyonu henüz yapılmamıştır)
+*   `docs/UML_Sema.md` (Projenin UML diyagramı hazırlanacaktır)
