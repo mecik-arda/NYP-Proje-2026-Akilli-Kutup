@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi - Kitaplarınızı, e-kitaplarınızı ve dijital varlıklarınızı tek platformda yönetin.">
+    <title>BiblioVault — Akıllı Kütüphane & Dijital Varlık Yönetimi</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/login.css">
+    <link rel="stylesheet" href="css/main.css">
+</head>
+<body>
+    <!-- Ambient Background Effects -->
+    <div class="ambient-bg">
+        <div class="ambient-orb ambient-orb-1"></div>
+        <div class="ambient-orb ambient-orb-2"></div>
+        <div class="ambient-orb ambient-orb-3"></div>
+    </div>
+
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <i class="fas fa-book-open"></i>
+                </div>
+                <div class="logo-text">
+                    <span class="logo-title">BiblioVault</span>
+                    <span class="logo-subtitle">Dijital Kütüphane</span>
+                </div>
+            </div>
+            <button class="sidebar-toggle" id="sidebarToggle" aria-label="Menüyü aç/kapat">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">ANA MENÜ</span>
+                <a href="#" class="nav-item active" data-page="dashboard" id="nav-dashboard">
+                    <i class="fas fa-th-large"></i>
+                    <span>Gösterge Paneli</span>
+                </a>
+                <a href="#" class="nav-item" data-page="catalog" id="nav-catalog">
+                    <i class="fas fa-books"></i>
+                    <span>Kitap Kataloğu</span>
+                </a>
+                <a href="#" class="nav-item" data-page="digital-assets" id="nav-digital-assets">
+                    <i class="fas fa-cloud"></i>
+                    <span>Dijital Varlıklar</span>
+                </a>
+                <a href="#" class="nav-item" data-page="members" id="nav-members">
+                    <i class="fas fa-users"></i>
+                    <span>Üyeler</span>
+                    <span class="nav-badge">24</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">YÖNETİM</span>
+                <a href="#" class="nav-item" data-page="borrow" id="nav-borrow">
+                    <i class="fas fa-exchange-alt"></i>
+                    <span>Ödünç İşlemleri</span>
+                    <span class="nav-badge warning">3</span>
+                </a>
+                <a href="#" class="nav-item" data-page="reports" id="nav-reports">
+                    <i class="fas fa-chart-bar"></i>
+                    <span>Raporlar & Analiz</span>
+                </a>
+                <a href="#" class="nav-item" data-page="scanner" id="nav-scanner">
+                    <i class="fas fa-barcode"></i>
+                    <span>Barkod Tarayıcı</span>
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <span class="nav-section-title">SİSTEM</span>
+                <a href="#" class="nav-item" data-page="settings" id="nav-settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Ayarlar</span>
+                </a>
+                <a href="#" class="nav-item" data-page="ai-assist" id="nav-ai-assist">
+                    <i class="fas fa-robot"></i>
+                    <span>AI Asistan</span>
+                    <span class="nav-badge ai">Yeni</span>
+                </a>
+            </div>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="user-profile">
+                <div class="user-avatar">
+                    <span>AY</span>
+                    <span class="status-dot online"></span>
+                </div>
+                <div class="user-info">
+                    <span class="user-name">Ahmet Yılmaz</span>
+                    <span class="user-role">Baş Kütüphaneci</span>
+                </div>
+                <button class="user-menu-btn" aria-label="Kullanıcı menüsü">
+                    <i class="fas fa-ellipsis-v"></i>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content" id="mainContent">
+        <!-- Top Bar -->
+        <header class="topbar">
+            <div class="topbar-left">
+                <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Mobil menü">
+                    <i class="fas fa-bars"></i>
+                </button>
+                <div class="breadcrumb">
+                    <span class="breadcrumb-icon"><i class="fas fa-home"></i></span>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current" id="breadcrumbCurrent">Gösterge Paneli</span>
+                </div>
+            </div>
+            <div class="topbar-center">
+                <div class="search-container" id="globalSearch">
+                    <i class="fas fa-search search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Kitap, yazar, ISBN veya dijital varlık ara..." id="searchInput" autocomplete="off">
+                    <div class="search-shortcut">
+                        <kbd>Ctrl</kbd><kbd>K</kbd>
+                    </div>
+                    <div class="search-results" id="searchResults">
+                        <div class="search-results-header">
+                            <span>Hızlı Sonuçlar</span>
+                            <span class="search-results-count" id="searchCount">0 sonuç</span>
+                        </div>
+                        <div class="search-results-body" id="searchResultsBody">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="topbar-right">
+                <button class="topbar-btn" id="themeToggle" aria-label="Tema değiştir">
+                    <i class="fas fa-moon"></i>
+                </button>
+                <button class="topbar-btn" id="notificationBtn" aria-label="Bildirimler">
+                    <i class="fas fa-bell"></i>
+                    <span class="notification-dot"></span>
+                </button>
+                <button class="topbar-btn" id="fullscreenBtn" aria-label="Tam ekran">
+                    <i class="fas fa-expand"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Dashboard Page -->
+        <div class="page active" id="page-dashboard">
+            <!-- Welcome Banner -->
+            <section class="welcome-banner">
+                <div class="welcome-content">
+                    <div class="welcome-text">
+                        <h1>Hoş Geldin, Ahmet 👋</h1>
+                        <p>Kütüphane sisteminizde bugün <strong>12 yeni kayıt</strong> ve <strong>3 bekleyen iade</strong> var.</p>
+                    </div>
+                    <div class="welcome-actions">
+                        <button class="btn btn-primary" id="addBookBtn">
+                            <i class="fas fa-plus"></i> Yeni Kitap Ekle
+                        </button>
+                        <button class="btn btn-glass" id="quickScanBtn">
+                            <i class="fas fa-qrcode"></i> Hızlı Tarama
+                        </button>
+                    </div>
+                </div>
+                <div class="welcome-illustration">
+                    <div class="floating-books">
+                        <div class="floating-book fb-1"><i class="fas fa-book"></i></div>
+                        <div class="floating-book fb-2"><i class="fas fa-tablet-alt"></i></div>
+                        <div class="floating-book fb-3"><i class="fas fa-headphones"></i></div>
+                        <div class="floating-book fb-4"><i class="fas fa-file-pdf"></i></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Stats Grid -->
+            <section class="stats-grid">
+                <div class="stat-card stat-card-books">
+                    <div class="stat-card-bg"></div>
+                    <div class="stat-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Toplam Kitap</span>
+                        <span class="stat-value" data-target="12847">0</span>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +127 bu ay
+                        </div>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" class="sparkline">
+                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,35 10,30 20,25 30,28 40,20 50,22 60,15 70,18 80,10 90,8 100,5"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-digital">
+                    <div class="stat-card-bg"></div>
+                    <div class="stat-icon">
+                        <i class="fas fa-cloud-download-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Dijital Varlık</span>
+                        <span class="stat-value" data-target="3256">0</span>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +43 bu ay
+                        </div>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" class="sparkline">
+                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,30 10,28 20,32 30,25 40,22 50,20 60,18 70,15 80,12 90,10 100,8"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-members">
+                    <div class="stat-card-bg"></div>
+                    <div class="stat-icon">
+                        <i class="fas fa-user-friends"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Aktif Üye</span>
+                        <span class="stat-value" data-target="1893">0</span>
+                        <div class="stat-change positive">
+                            <i class="fas fa-arrow-up"></i> +56 bu ay
+                        </div>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" class="sparkline">
+                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,32 10,30 20,28 30,26 40,24 50,22 60,20 70,18 80,16 90,14 100,12"/>
+                        </svg>
+                    </div>
+                </div>
+
+                <div class="stat-card stat-card-borrows">
+                    <div class="stat-card-bg"></div>
+                    <div class="stat-icon">
+                        <i class="fas fa-exchange-alt"></i>
+                    </div>
+                    <div class="stat-info">
+                        <span class="stat-label">Ödünç Verilen</span>
+                        <span class="stat-value" data-target="487">0</span>
+                        <div class="stat-change warning">
+                            <i class="fas fa-exclamation-triangle"></i> 23 gecikmiş
+                        </div>
+                    </div>
+                    <div class="stat-chart">
+                        <svg viewBox="0 0 100 40" class="sparkline">
+                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,20 10,25 20,18 30,22 40,30 50,28 60,25 70,20 80,22 90,18 100,15"/>
+                        </svg>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Main Dashboard Grid -->
+            <div class="dashboard-grid">
+                <!-- Recent Activity Chart -->
+                <section class="card chart-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>Ödünç İstatistikleri</h2>
+                            <span class="card-subtitle">Son 7 gün</span>
+                        </div>
+                        <div class="card-actions">
+                            <div class="chart-period-selector">
+                                <button class="period-btn active" data-period="week">Hafta</button>
+                                <button class="period-btn" data-period="month">Ay</button>
+                                <button class="period-btn" data-period="year">Yıl</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" id="borrowChart">
+                            <canvas id="borrowCanvas"></canvas>
+                        </div>
+                        <div class="chart-legend">
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--accent-primary)"></span>
+                                Ödünç Verilen
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--accent-success)"></span>
+                                İade Edilen
+                            </div>
+                            <div class="legend-item">
+                                <span class="legend-dot" style="background: var(--accent-warning)"></span>
+                                Gecikmiş
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Category Distribution -->
+                <section class="card category-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>Kategori Dağılımı</h2>
+                            <span class="card-subtitle">Tüm koleksiyon</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="category-chart" id="categoryChart">
+                            <div class="donut-container">
+                                <svg viewBox="0 0 200 200" class="donut-svg" id="donutChart">
+                                    <!-- Donut segments will be rendered by JS -->
+                                </svg>
+                                <div class="donut-center">
+                                    <span class="donut-total">16,103</span>
+                                    <span class="donut-label">Toplam</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="category-list" id="categoryList">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Recently Added Books -->
+                <section class="card recent-books-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>Son Eklenen Kitaplar</h2>
+                            <span class="card-subtitle">Son 7 gün</span>
+                        </div>
+                        <a href="#" class="view-all-link" data-page="catalog">
+                            Tümünü Gör <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="book-list" id="recentBooksList">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Digital Assets Overview -->
+                <section class="card digital-assets-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>Dijital Varlık Deposu</h2>
+                            <span class="card-subtitle">Depolama kullanımı</span>
+                        </div>
+                        <a href="#" class="view-all-link" data-page="digital-assets">
+                            Tümünü Gör <i class="fas fa-arrow-right"></i>
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        <div class="storage-overview">
+                            <div class="storage-bar-container">
+                                <div class="storage-bar">
+                                    <div class="storage-segment" style="width: 35%; background: var(--accent-primary)" data-label="E-Kitaplar"></div>
+                                    <div class="storage-segment" style="width: 25%; background: var(--accent-purple)" data-label="Sesli Kitaplar"></div>
+                                    <div class="storage-segment" style="width: 20%; background: var(--accent-success)" data-label="Belgeler"></div>
+                                    <div class="storage-segment" style="width: 10%; background: var(--accent-warning)" data-label="Görseller"></div>
+                                </div>
+                                <div class="storage-info">
+                                    <span>247.3 GB / 500 GB kullanılıyor</span>
+                                    <span>%49.5</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="asset-type-grid">
+                            <div class="asset-type-item">
+                                <div class="asset-type-icon epub"><i class="fas fa-book"></i></div>
+                                <div class="asset-type-info">
+                                    <span class="asset-type-name">E-Kitaplar</span>
+                                    <span class="asset-type-count">1,847 dosya</span>
+                                </div>
+                                <span class="asset-type-size">87.2 GB</span>
+                            </div>
+                            <div class="asset-type-item">
+                                <div class="asset-type-icon audio"><i class="fas fa-headphones"></i></div>
+                                <div class="asset-type-info">
+                                    <span class="asset-type-name">Sesli Kitaplar</span>
+                                    <span class="asset-type-count">423 dosya</span>
+                                </div>
+                                <span class="asset-type-size">62.8 GB</span>
+                            </div>
+                            <div class="asset-type-item">
+                                <div class="asset-type-icon document"><i class="fas fa-file-alt"></i></div>
+                                <div class="asset-type-info">
+                                    <span class="asset-type-name">Belgeler</span>
+                                    <span class="asset-type-count">689 dosya</span>
+                                </div>
+                                <span class="asset-type-size">48.5 GB</span>
+                            </div>
+                            <div class="asset-type-item">
+                                <div class="asset-type-icon image"><i class="fas fa-image"></i></div>
+                                <div class="asset-type-info">
+                                    <span class="asset-type-name">Görseller</span>
+                                    <span class="asset-type-count">297 dosya</span>
+                                </div>
+                                <span class="asset-type-size">24.8 GB</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Active Borrows Timeline -->
+                <section class="card timeline-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>Son İşlemler</h2>
+                            <span class="card-subtitle">Bugün</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="timeline" id="activityTimeline">
+                            <div class="timeline-item">
+                                <div class="timeline-dot borrow"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-action">Ödünç Verildi</span>
+                                        <span class="timeline-time">14:32</span>
+                                    </div>
+                                    <p><strong>Elif Şafak - 10 Minutes 38 Seconds</strong></p>
+                                    <span class="timeline-user"><i class="fas fa-user"></i> Mehmet Kaya</span>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot return"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-action">İade Edildi</span>
+                                        <span class="timeline-time">13:15</span>
+                                    </div>
+                                    <p><strong>Orhan Pamuk - Masumiyet Müzesi</strong></p>
+                                    <span class="timeline-user"><i class="fas fa-user"></i> Ayşe Demir</span>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot new"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-action">Yeni Eklendi</span>
+                                        <span class="timeline-time">11:48</span>
+                                    </div>
+                                    <p><strong>Sabahattin Ali - Kürk Mantolu Madonna</strong></p>
+                                    <span class="timeline-user"><i class="fas fa-user"></i> Sistem</span>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot upload"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-action">Dijital Yükleme</span>
+                                        <span class="timeline-time">10:22</span>
+                                    </div>
+                                    <p><strong>Bilim_Ansiklopedisi_2024.epub</strong> (45.2 MB)</p>
+                                    <span class="timeline-user"><i class="fas fa-user"></i> Ahmet Yılmaz</span>
+                                </div>
+                            </div>
+                            <div class="timeline-item">
+                                <div class="timeline-dot overdue"></div>
+                                <div class="timeline-content">
+                                    <div class="timeline-header">
+                                        <span class="timeline-action">Gecikme Uyarısı</span>
+                                        <span class="timeline-time">09:00</span>
+                                    </div>
+                                    <p><strong>3 kitap</strong> iade tarihi geçmiş</p>
+                                    <span class="timeline-user"><i class="fas fa-bell"></i> Otomatik Bildirim</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Popular Books -->
+                <section class="card popular-card">
+                    <div class="card-header">
+                        <div class="card-title">
+                            <h2>Popüler Kitaplar</h2>
+                            <span class="card-subtitle">Bu ay en çok ödünç alınan</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="popular-list" id="popularBooksList">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <!-- Catalog Page -->
+        <div class="page" id="page-catalog">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Kitap Kataloğu</h1>
+                    <p>Tüm koleksiyonu görüntüleyin, arayın ve yönetin</p>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-glass" id="catalogFilterBtn">
+                        <i class="fas fa-filter"></i> Filtrele
+                    </button>
+                    <button class="btn btn-primary" id="catalogAddBtn">
+                        <i class="fas fa-plus"></i> Yeni Kitap
+                    </button>
+                </div>
+            </section>
+
+            <!-- Catalog Filters -->
+            <section class="catalog-filters" id="catalogFilters">
+                <div class="filter-group">
+                    <label class="filter-label">Kategori</label>
+                    <select class="filter-select" id="filterCategory">
+                        <option value="">Tümü</option>
+                        <option value="roman">Roman</option>
+                        <option value="bilim">Bilim</option>
+                        <option value="tarih">Tarih</option>
+                        <option value="felsefe">Felsefe</option>
+                        <option value="sanat">Sanat</option>
+                        <option value="cocuk">Çocuk</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Durum</label>
+                    <select class="filter-select" id="filterStatus">
+                        <option value="">Tümü</option>
+                        <option value="available">Müsait</option>
+                        <option value="borrowed">Ödünç</option>
+                        <option value="reserved">Rezerve</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Dil</label>
+                    <select class="filter-select" id="filterLanguage">
+                        <option value="">Tümü</option>
+                        <option value="tr">Türkçe</option>
+                        <option value="en">İngilizce</option>
+                        <option value="de">Almanca</option>
+                        <option value="fr">Fransızca</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label class="filter-label">Sıralama</label>
+                    <select class="filter-select" id="filterSort">
+                        <option value="newest">En Yeni</option>
+                        <option value="oldest">En Eski</option>
+                        <option value="title-asc">Başlık (A-Z)</option>
+                        <option value="title-desc">Başlık (Z-A)</option>
+                        <option value="popular">En Popüler</option>
+                    </select>
+                </div>
+            </section>
+
+            <!-- Catalog View Toggle -->
+            <div class="catalog-toolbar">
+                <span class="catalog-count" id="catalogCount">12,847 kitap bulundu</span>
+                <div class="view-toggle">
+                    <button class="view-btn active" data-view="grid" id="viewGridBtn">
+                        <i class="fas fa-th"></i>
+                    </button>
+                    <button class="view-btn" data-view="list" id="viewListBtn">
+                        <i class="fas fa-list"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Book Grid -->
+            <div class="book-grid" id="bookGrid">
+                <!-- Generated by JS -->
+            </div>
+
+            <!-- Pagination -->
+            <div class="pagination" id="catalogPagination">
+                <button class="pagination-btn" disabled><i class="fas fa-chevron-left"></i></button>
+                <button class="pagination-btn active">1</button>
+                <button class="pagination-btn">2</button>
+                <button class="pagination-btn">3</button>
+                <span class="pagination-dots">...</span>
+                <button class="pagination-btn">128</button>
+                <button class="pagination-btn"><i class="fas fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <!-- Digital Assets Page -->
+        <div class="page" id="page-digital-assets">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Dijital Varlık Yönetimi</h1>
+                    <p>E-kitaplar, sesli kitaplar, belgeler ve görselleri yönetin</p>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-glass" id="uploadAssetBtn">
+                        <i class="fas fa-cloud-upload-alt"></i> Yükle
+                    </button>
+                    <button class="btn btn-primary" id="newFolderBtn">
+                        <i class="fas fa-folder-plus"></i> Yeni Klasör
+                    </button>
+                </div>
+            </section>
+
+            <!-- Asset Tabs -->
+            <div class="asset-tabs">
+                <button class="asset-tab active" data-type="all">
+                    <i class="fas fa-layer-group"></i> Tümü
+                    <span class="tab-count">3,256</span>
+                </button>
+                <button class="asset-tab" data-type="ebook">
+                    <i class="fas fa-book"></i> E-Kitaplar
+                    <span class="tab-count">1,847</span>
+                </button>
+                <button class="asset-tab" data-type="audio">
+                    <i class="fas fa-headphones"></i> Sesli Kitaplar
+                    <span class="tab-count">423</span>
+                </button>
+                <button class="asset-tab" data-type="document">
+                    <i class="fas fa-file-alt"></i> Belgeler
+                    <span class="tab-count">689</span>
+                </button>
+                <button class="asset-tab" data-type="image">
+                    <i class="fas fa-image"></i> Görseller
+                    <span class="tab-count">297</span>
+                </button>
+            </div>
+
+            <!-- Asset Grid -->
+            <div class="asset-grid" id="assetGrid">
+                <!-- Generated by JS -->
+            </div>
+        </div>
+
+        <!-- Members Page -->
+        <div class="page" id="page-members">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Üye Yönetimi</h1>
+                    <p>Kütüphane üyelerini görüntüleyin ve yönetin</p>
+                </div>
+                <div class="page-header-actions">
+                    <button class="btn btn-primary" id="addMemberBtn">
+                        <i class="fas fa-user-plus"></i> Yeni Üye
+                    </button>
+                </div>
+            </section>
+            <div class="members-table-container">
+                <table class="members-table" id="membersTable">
+                    <thead>
+                        <tr>
+                            <th>Üye</th>
+                            <th>Üyelik No</th>
+                            <th>Kayıt Tarihi</th>
+                            <th>Ödünç</th>
+                            <th>Durum</th>
+                            <th>İşlem</th>
+                        </tr>
+                    </thead>
+                    <tbody id="membersTableBody">
+                        <!-- Generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Other placeholder pages -->
+        <div class="page" id="page-borrow">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Ödünç İşlemleri</h1>
+                    <p>Kitap ödünç verme ve iade işlemlerini takip edin</p>
+                </div>
+            </section>
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-exchange-alt"></i></div>
+                <h3>Ödünç İşlemleri Modülü</h3>
+                <p>Bu bölüm aktif ödünç ve iade işlemlerini yönetmek için kullanılır.</p>
+            </div>
+        </div>
+
+        <div class="page" id="page-reports">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Raporlar & Analiz</h1>
+                    <p>Detaylı kütüphane analitikleri ve raporları</p>
+                </div>
+            </section>
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-chart-bar"></i></div>
+                <h3>Raporlar Modülü</h3>
+                <p>Kütüphane kullanım istatistikleri, trend analizleri ve özel raporlar oluşturun.</p>
+            </div>
+        </div>
+
+        <div class="page" id="page-scanner">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Barkod Tarayıcı</h1>
+                    <p>ISBN barkodu okutarak hızlı kitap ekleme ve sorgulama</p>
+                </div>
+            </section>
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-barcode"></i></div>
+                <h3>Barkod Tarayıcı Modülü</h3>
+                <p>Kameranızı kullanarak ISBN barkodlarını tarayın veya manuel olarak girin.</p>
+            </div>
+        </div>
+
+        <div class="page" id="page-settings">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>Sistem Ayarları</h1>
+                    <p>Kütüphane sistemi yapılandırma ve tercihler</p>
+                </div>
+            </section>
+            <div class="empty-state">
+                <div class="empty-state-icon"><i class="fas fa-cog"></i></div>
+                <h3>Ayarlar Modülü</h3>
+                <p>Sistem, kullanıcı ve kütüphane ayarlarını buradan yönetin.</p>
+            </div>
+        </div>
+
+        <div class="page" id="page-ai-assist">
+            <section class="page-header">
+                <div class="page-header-content">
+                    <h1>AI Asistan</h1>
+                    <p>Yapay zeka destekli kitap önerileri ve kataloglama</p>
+                </div>
+            </section>
+            <div class="ai-assistant-container">
+                <div class="ai-chat-window" id="aiChatWindow">
+                    <div class="ai-message ai-bot">
+                        <div class="ai-avatar"><i class="fas fa-robot"></i></div>
+                        <div class="ai-bubble">
+                            <p>Merhaba! Ben BiblioVault AI Asistanı. Size şu konularda yardımcı olabilirim:</p>
+                            <ul>
+                                <li>📚 Kitap önerileri</li>
+                                <li>🏷️ Otomatik kataloglama</li>
+                                <li>📊 Koleksiyon analizi</li>
+                                <li>🔍 Akıllı arama</li>
+                            </ul>
+                            <p>Nasıl yardımcı olabilirim?</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="ai-input-container">
+                    <div class="ai-suggestions">
+                        <button class="ai-suggestion-chip">📚 Roman öner</button>
+                        <button class="ai-suggestion-chip">📊 Koleksiyon analizi yap</button>
+                        <button class="ai-suggestion-chip">🔍 Benzer kitap bul</button>
+                    </div>
+                    <div class="ai-input-wrapper">
+                        <input type="text" class="ai-input" placeholder="Bir soru sorun..." id="aiInput">
+                        <button class="ai-send-btn" id="aiSendBtn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add Book Modal -->
+    <div class="modal-overlay" id="addBookModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-book-medical"></i> Yeni Kitap Ekle</h2>
+                <button class="modal-close" id="modalClose" aria-label="Kapat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addBookForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bookTitle">Kitap Adı *</label>
+                            <input type="text" id="bookTitle" class="form-input" placeholder="Kitap adını girin" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="bookAuthor">Yazar *</label>
+                            <input type="text" id="bookAuthor" class="form-input" placeholder="Yazar adını girin" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bookISBN">ISBN</label>
+                            <input type="text" id="bookISBN" class="form-input" placeholder="978-xxx-xxx-xxx-x">
+                        </div>
+                        <div class="form-group">
+                            <label for="bookCategory">Kategori *</label>
+                            <select id="bookCategory" class="form-input" required>
+                                <option value="">Seçin...</option>
+                                <option value="roman">Roman</option>
+                                <option value="bilim">Bilim</option>
+                                <option value="tarih">Tarih</option>
+                                <option value="felsefe">Felsefe</option>
+                                <option value="sanat">Sanat</option>
+                                <option value="cocuk">Çocuk Kitabı</option>
+                                <option value="siir">Şiir</option>
+                                <option value="ansiklopedi">Ansiklopedi</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="bookYear">Yayın Yılı</label>
+                            <input type="number" id="bookYear" class="form-input" placeholder="2024" min="1000" max="2030">
+                        </div>
+                        <div class="form-group">
+                            <label for="bookLanguage">Dil</label>
+                            <select id="bookLanguage" class="form-input">
+                                <option value="tr">Türkçe</option>
+                                <option value="en">İngilizce</option>
+                                <option value="de">Almanca</option>
+                                <option value="fr">Fransızca</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="bookDescription">Açıklama</label>
+                        <textarea id="bookDescription" class="form-input form-textarea" placeholder="Kitap hakkında kısa açıklama..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Kapak Görseli</label>
+                        <div class="file-upload-zone" id="fileUploadZone">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Görseli buraya sürükleyin veya <span class="upload-browse">gözatın</span></p>
+                            <span class="upload-hint">PNG, JPG max 5MB</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="modalCancelBtn">İptal</button>
+                <button class="btn btn-primary" id="modalSaveBtn">
+                    <i class="fas fa-save"></i> Kaydet
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Panel -->
+    <div class="notification-panel" id="notificationPanel">
+        <div class="notification-header">
+            <h3>Bildirimler</h3>
+            <button class="mark-read-btn" id="markAllReadBtn">Tümünü Okundu İşaretle</button>
+        </div>
+        <div class="notification-list" id="notificationList">
+            <div class="notification-item unread">
+                <div class="notification-icon warning"><i class="fas fa-exclamation-circle"></i></div>
+                <div class="notification-content">
+                    <p class="notification-text"><strong>3 kitap</strong> iade tarihi geçmiş</p>
+                    <span class="notification-time">5 dakika önce</span>
+                </div>
+            </div>
+            <div class="notification-item unread">
+                <div class="notification-icon success"><i class="fas fa-check-circle"></i></div>
+                <div class="notification-content">
+                    <p class="notification-text"><strong>Dijital yedekleme</strong> tamamlandı</p>
+                    <span class="notification-time">1 saat önce</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon info"><i class="fas fa-info-circle"></i></div>
+                <div class="notification-content">
+                    <p class="notification-text">Sistem güncellemesi <strong>v3.2.1</strong> mevcut</p>
+                    <span class="notification-time">3 saat önce</span>
+                </div>
+            </div>
+            <div class="notification-item">
+                <div class="notification-icon primary"><i class="fas fa-user-plus"></i></div>
+                <div class="notification-content">
+                    <p class="notification-text"><strong>Zeynep Aydın</strong> yeni üye olarak kaydoldu</p>
+                    <span class="notification-time">Dün</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+</body>
+</html>

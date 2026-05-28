@@ -5,12 +5,5 @@
     "rol": "ADMIN",
     "sifre": "sifre1",
     "krediPuani": 100
-  },
-  {
-    "isim": "ahmet güler",
-    "tcNo": "11111111111",
-    "rol": "UYE",
-    "sifre": "ahmet",
-    "krediPuani": 100
   }
 ]
