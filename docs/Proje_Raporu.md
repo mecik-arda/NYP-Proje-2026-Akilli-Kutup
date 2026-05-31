@@ -1,57 +1,75 @@
 # Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi V2 - Teknik Proje Raporu
 
-## 1. Proje Özeti
-Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştiren, Java tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, Java bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir. V2 sürümü ile birlikte Google Gemini 1.5 altyapısı entegre edilerek yapay zeka destekli akıllı asistan yetenekleri kazandırılmıştır.
+## 1. GİRİŞ & PROJENİN TANITIMI
+Bu projenin amacı, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştirerek güvenli ve yenilikçi bir dijital varlık yönetim sistemi oluşturmaktır. Proje; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetmeyi kapsar. 
 
-## 2. Çekirdek Mimari ve OOP Uygulamaları
-Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak tasarlanmıştır:
-*   Kalıtım (Inheritance) ve Soyutlama (Abstraction): IMateryal arayüzü ve Materyal soyut sınıfı üzerinden Kitap ve DijitalMedya gibi alt sınıflar türetilerek, genişletilebilir (Scalable) bir yapı kurulmuştur.
-*   Çok Biçimlilik (Polymorphism): Her materyal türünün ceza hesaplama veya ödünç verilme mantığı çalışma zamanında (Runtime) dinamik olarak belirlenir.
-*   Kapsülleme (Encapsulation): Kritik iş mantığı, ceza puanları ve sistemin iç durumu dış müdahalelere kapatılarak nesne bütünlüğü korunmuştur.
+Mevcut kütüphane otomasyonlarından (örneğin Koha vb.) farklı olarak, sistemimize Google Gemini 1.5 altyapısı entegre edilmiştir. Bu sayede kullanıcılara kişiselleştirilmiş okuma önerileri ve akıllı asistan hizmetleri sunulmaktadır. Ayrıca, projenin arka planı tamamen özel bir Java REST API sunucusu olarak çalışırken, veritabanı dışarıdan bağımsız JSON tabanlı bir motorla yürütülmektedir. Bu yönüyle hem öğrenci projeleri arasında mimari açıdan öne çıkmakta hem de hafif ve taşınabilir bir çözüm sunmaktadır.
 
-## 3. Siber Güvenlik Katmanı (Cybersecurity Framework)
-Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları içerir:
-*   Kriptografik Şifreleme (Hashing & Salting): Kullanıcı parolaları veritabanında kesinlikle açık metin (plaintext) olarak saklanmaz. Parolalar, güvenlik standartlarına uygun olarak hash algoritmaları (SHA-256) kullanılarak şifrelenir. Ayrıca hassas konfigürasyon verileri AES-256 algoritmasıyla uçtan uca korunur.
-*   Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization): Frontend ile Backend arasındaki API iletişiminde yetkisiz erişimleri engellemek için güvenlik mekanizmaları devrededir. Sistemde En Az Ayrıcalık (Least Privilege) prensibi uygulanır; sıradan bir Uye sadece okuma yapabilirken, CRUD operasyonlarını yalnızca Admin yetkisine sahip kullanıcılar gerçekleştirebilir.
-*   Girdi Denetimi ve Sanitizasyon (Input Validation): İstemciden (Web arayüzünden) gelen her türlü veri, Backend tarafında işlenmeden önce süzgeçten geçirilir. Bu sayede JSON Injection ve XSS gibi saldırı vektörleri engellenir.
-*   Dosya Yolu Güvenliği (Path Traversal Protection): Sistem, yerel JSON dosyalarını kullandığından dışarıdan manipüle edilmiş dosya yolu isteklerine karşı sıkı bir dizin denetimi uygular. Dosya okuma/yazma işlemleri data/ klasörü dışına çıkamaz.
+## 2. GEREKSİNİM ANALİZİ
+**Hedef Platform ve İşletim Sistemi:** Sistem, Java 17+ yüklü olan Windows, macOS veya Linux tabanlı herhangi bir sunucu veya masaüstü bilgisayarda çalışabilmektedir. İstemci tarafı (Frontend) ise modern bir web tarayıcısı (Chrome, Firefox, Safari) olan tüm cihazlarda (mobil, tablet, masaüstü) tam uyumlu olarak çalışır.
 
-## 4. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
-*   Sistem, SQL kullanmak yerine kendi özel Dosya Tabanlı Veritabanı Motorunu (File-Based Database Engine) Java ile sıfırdan yönetir.
-*   Veriler JSON formatında serialize/deserialize edilerek saklanır.
-*   Gelişmiş Hata Yakalama (Exception Handling) blokları sayesinde; dosya bulunamaması veya JSON formatının bozulması gibi durumlarda sistem çökmez. Ayrıca her kritik işlemden önce zaman damgalı otomatik JSON yedekleri oluşturularak veri kaybı tamamen önlenir.
+**Hedef Kitle ve Kullanıcı Rolleri:** Projenin hedef kitlesi yerel kütüphaneler, okul kütüphaneleri ve kişisel arşiv sahipleridir. Sistemde iki ana rol bulunmaktadır:
+*   **Admin:** Tüm materyalleri ve kullanıcıları (CRUD) yönetebilen, sistemin yapılandırmasına hakim yönetici sınıfıdır. Sınırsız materyal ödünç alabilir.
+*   **Üye:** Sadece materyalleri listeleyebilen, okuma asistanından faydalanabilen ve belirli limitler dahilinde materyal ödünç alabilen standart kullanıcılardır.
 
-## 5. Modern Web Arayüzü ve AI Entegrasyonu (Frontend Integration)
-*   Java backend'i, gömülü bir HTTP sunucusu modülü (ApiServer) barındırarak ağ üzerinden gelen istekleri dinler.
-*   Kullanıcılar sisteme kurumsal tasarıma sahip, karanlık tema destekli, asenkron (Fetch API) ve kullanıcı dostu bir web paneli üzerinden erişim sağlar.
-*   Sisteme entegre edilen GeminiClient modülü sayesinde kullanıcılara okuma geçmişlerine uygun materyal önerileri, akıllı asistan hizmetleri ve katalog analizleri sağlanır.
+**Araç ve Teknolojiler:**
+*   **Backend (Java 17):** OOP prensiplerine tam uyum sağlamak ve yerleşik `HttpServer` modülü ile hafif bir REST API kurmak için seçilmiştir. Spring Boot gibi ağır frameworkler yerine mimariyi sıfırdan kurmak tercih edilmiştir.
+*   **Frontend (HTML, CSS, Vanilla JS):** Saf (Vanilla) JavaScript kullanılarak asenkron (Fetch API) yapılar oluşturulmuş, SPA (Tek Sayfa Uygulaması) hissiyatı yaratılmıştır.
+*   **Veritabanı (JSON Motoru):** SQL veritabanı kurma zorunluluğunu ortadan kaldırmak, sistemi "tak-çalıştır" (plug-and-play) hale getirmek ve Java dosya işleme (I/O) yeteneklerini göstermek amacıyla tercih edilmiştir.
+*   **Güvenlik:** Parola hashleme için SHA-256 ve API anahtarı yapılandırması için AES-256 şifreleme algoritmaları entegre edilmiştir.
+*   **Yapay Zeka:** Kitap öneri algoritmaları ve metin işleme için Google Gemini API entegre edilmiştir.
 
-## 6. Sistemin Temel Özellikleri (Features)
-Projeye V2 sürümü ile birlikte kazandırılan ve sistemin temelini oluşturan tüm fonksiyonel yetenekler aşağıda detaylandırılmıştır:
-*   Kapsamlı Materyal Yönetimi: Admin kullanıcıları sisteme Kitap veya Dijital Medya gibi farklı özelliklere sahip materyaller ekleyebilir, güncelleyebilir, stok durumlarını kontrol edebilir ve silebilir.
-*   Rol Tabanlı Gelişmiş Kimlik Doğrulama: Admin ve standart Üye rolleri birbirinden ayrılmıştır. SHA-256 ile şifrelenen hesaplara giriş yapıldığında, yetkilendirmeye göre sadece ilgili butonlar ve işlemler (CRUD) açılır.
-*   Ödünç Alma ve İade Süreçleri: Kullanıcılar kütüphane materyallerini ödünç alabilir. Ödünç alma limitleri (Admin için sınırsız, Üye için belirli limitler) nesneye yönelik programlama kurallarıyla dinamik olarak yönetilir.
-*   Dinamik Ceza Puanı ve Kredi Sistemi: Zamanında iade edilmeyen materyaller için sisteme entegre algoritma sayesinde dinamik ceza puanı hesaplanır. Kredisi eksilere düşen üyeler otomatik olarak kısıtlanır.
-*   Google Gemini Yapay Zeka Desteği: Sisteme AES-256 ile şifrelenerek entegre edilen Gemini 1.5 altyapısı sayesinde; kullanıcılara akıllı kitap/medya önerileri yapılır ve genel okuma alışkanlıkları analiz edilir.
-*   Finansal Analiz ve Otomatik PDF Raporlama: Sistemin finansal durumu, kesilen cezalar ve genel istatistikler admin paneli üzerinden anlık olarak PDF formatında raporlanabilir.
-*   Simüle Edilmiş Barkod/Hızlı Tarama Sistemi: Ön yüz (Dashboard) üzerinde yer alan hızlı işlemler menüsü ile kütüphane barkod sistemi simüle edilerek tek tıkla en çok okunanlara erişim imkanı tanınır.
-*   Asenkron Çalışan Arka Plan Sunucusu: Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
-*   Felaket Kurtarma ve Otomatik Yedekleme: Sistemde yapılan her kritik okuma/yazma işlemi öncesinde DatabaseManager modülü tüm veritabanı (JSON) dosyalarının tam yedeğini alır.
+## 3. TASARIM
+Projemiz, "Client-Server" (İstemci-Sunucu) mimarisine dayanmaktadır. 
 
-## 7. Ekip Görev Dağılımı
-Backend & Core Architect - Ahmet Güler:
-Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını kurgular. Sistemdeki tüm nesnelerin atası olan Abstract sınıfları ve ortak davranışları belirleyen Interface yapılarını tasarlar. Kalıtım mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
+**Mimari ve OOP Uygulamaları:**
+*   `IMateryal` arayüzü ve `Materyal` soyut sınıfından `Kitap` ve `DijitalMedya` sınıfları türetilerek kalıtım (Inheritance) sağlanmıştır.
+*   Ödünç alma süreleri ve dinamik ceza puanları (Polymorphism) üzerinden materyal türüne göre farklılık göstermektedir.
+*   `ApiServer` modülü arka planda 8080 portunu dinleyerek gelen HTTP isteklerini yönlendirir (Routing). 
+*   Kullanıcı giriş işlemlerinde Session bazlı bir yetkilendirme altyapısı mevcuttur. İstekler frontend tarafındaki `auth.js` ve `api.js` modülleri ile JSON tabanlı olarak sunucuya aktarılır.
 
-Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
-Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine Java kullanarak dosya tabanlı bir yapıda saklayacak olan Database Engine mekanizmasını kurar. Nesnelerin diske yazılması ve açılışta tekrar belleğe yüklenmesi süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi mimarisini, otomatik yedekleme süreçlerini kurar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
+**Arayüz Tasarımı:**
+Arayüz, "Koyu Arduvaz" (Dark Slate) renk paletine sahip, göz yormayan, kurumsal ve modern bir yapıya sahiptir. Menüler, tablolar ve form elemanları tamamen duyarlı (Responsive) tasarıma uygun kodlanmıştır.
 
-UI/UX Developer - Göktuğ Berke Kuzucu:
-Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. Web teknolojilerini kullanarak karmaşık kütüphane işlemlerini son kullanıcı için basit bir deneyime dönüştürür. Kurumsal koyu tema, görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir.
+## 4. GELİŞTİRME
+**Güvenlik ve Şifreleme Kod Örneği:**
+Kullanıcı parolaları düz metin yerine SHA-256 ile hashlenerek saklanmaktadır. Bunun yanında, `ConfigManager.java` ile API anahtarlarımız AES-256 algoritmasıyla şifrelenmiştir.
 
-Security & Integration Specialist - Eren Gider:
-Sistemin güvenlik altyapısını ve iletişim ağını kurar. AES-256 ve SHA-256 şifreleme sistemleri üzerinden güvenli veri ve konfigürasyon depolama mimarilerini kurar. ApiServer ile Java backend - web frontend haberleşmesini sağlar. V2 güncellemesi ile Gemini AI entegrasyonunu gerçekleştirerek sisteme yapay zeka özelliklerini kazandırır. Kapsamlı README dokümantasyonunu yönetir.
+```java
+// AuthManager.java içerisinden parola hashleme metodu
+private String hashPassword(String password) {
+    try {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+        return Base64.getEncoder().encodeToString(hash);
+    } catch (NoSuchAlgorithmException e) {
+        throw new RuntimeException("Hash algoritması bulunamadı.", e);
+    }
+}
+```
 
-## 8. Geliştirme Metodolojisi ve Süreç Yönetimi
-Proje, "Çevik Yazılım Geliştirme" (Agile) prensiplerine uygun olarak ve iteratif bir yaklaşımla hayata geçirilmiştir. Modern yazılım mühendisliği süreçlerinde verimliliği ve kod kalitesini artırmak amacıyla yeni nesil yapay zeka (AI) destekli kodlama asistanlarından endüstri standartlarına uygun şekilde faydalanılmıştır.
-*   AI Destekli Hızlı Prototipleme: Tasarım aşamasında (özellikle HTML/CSS arayüz iskeletlerinin oluşturulmasında ve standart JavaScript DOM işlemlerinde) AI asistan eklentileri bir geliştirme yardımcısı (pair-programmer) olarak kullanılarak prototipleme süresi kısaltılmıştır. Bu yaklaşım, sistemin çekirdek Java algoritmalarına ve karmaşık güvenlik mimarisine odaklanılması için önemli bir zaman tasarrufu sağlamıştır.
-*   Manuel Kod İnceleme (Code-Review): AI araçları tarafından sunulan kod kalıpları körü körüne projeye dahil edilmemiş; tüm kod blokları nesne yönelimli programlama (OOP) prensipleri, veritabanı kararlılığı ve derinlemesine savunma stratejileri bizzat geliştirici tarafından gözetilerek titiz bir manuel denetimden (code-review) geçirildikten sonra ana mimariye entegre edilmiştir.
+**Kurulum ve Çalıştırma Yönergeleri:**
+1.  Bilgisayarınızda Java 17 veya üzeri bir sürümün ve Apache Maven'ın kurulu olduğundan emin olun.
+2.  Proje ana dizininde komut satırını açarak `mvn clean install` komutu ile bağımlılıkları yükleyin ve projeyi derleyin.
+3.  Sunucuyu başlatmak için `mvn exec:java "-Dexec.mainClass=com.akillikutup.Main"` komutunu çalıştırın.
+4.  Konsolda `API Sunucusu baslatildi: http://localhost:8080` mesajını gördükten sonra tarayıcınızdan `http://localhost:8080` adresine girerek sisteme ulaşabilirsiniz.
+
+## 5. TEST ve DOĞRULAMA
+Projemizde çekirdek algoritmaların ve veritabanı işlemlerinin kararlılığını test etmek için JUnit kullanılarak birim (Unit) testleri yazılmıştır.
+
+*   **`CoreTest.java`:** Nesneye yönelik mimarinin doğru çalıştığını, materyallerin kredi puanlarını doğru hesapladığını, stok limitlerinin aşılamadığını ve yetki ihlallerini doğrulamak için yazılmıştır. (Örn: Admin olmayan birinin başka birinin TC numarasını görememesi).
+*   **`DatabaseManagerTest.java`:** Sistemin JSON dosyalarını başarıyla okuyup yazdığını, aynı TC Kimlik numarasıyla ikinci bir kayıt açılamayacağını test eder.
+*   **`AuthManagerTest.java`:** Kullanıcı parolalarının SHA-256 ile doğru hashlenip hashlenmediğini ve hatalı parolaların sisteme girişi engelleyip engellemediğini test eder.
+
+Testlerimiz yerel bilgisayarda çalıştırılmış ve %100 başarı oranına (All Tests Passed) ulaşmıştır.
+
+## 6. SONUÇ
+Geliştirilen bu sistem sayesinde, klasik kütüphane otomasyon projelerinin çok ötesine geçilerek baştan sona tam güvenlikli, yapay zeka destekli ve modern bir web servisi altyapısı elde edilmiştir. Java'nın sadece masaüstü uygulamaları için değil, güçlü REST API arka planları (Backend) kurmak için de ne kadar elverişli olduğu gösterilmiştir.
+
+**Gelecekte Yapılabilecek Geliştirmeler:**
+İlerleyen dönemde sisteme gerçek zamanlı barkod okuma cihazları (Donanım Entegrasyonu) bağlanabilir. Ayrıca, dosya tabanlı veritabanı PostgreSQL gibi daha büyük ölçekli ve ilişkisel (RDBMS) bir sunucuya taşınarak sistemin binlerce kullanıcılı üniversite kampüslerinde kullanılması sağlanabilir.
+
+## KAYNAKLAR
+[1] E. Gamma, R. Helm, R. Johnson, J. Vlissides, "Design Patterns: Elements of Reusable Object-Oriented Software", Addison-Wesley, 1994.
+[2] "Java SE 17 Documentation", Oracle. [Çevrimiçi]. Erişim adresi: https://docs.oracle.com/en/java/javase/17/. [Erişim tarihi: 31-Mayıs-2026].
+[3] "Gemini API Documentation", Google AI for Developers. [Çevrimiçi]. Erişim adresi: https://ai.google.dev/docs. [Erişim tarihi: 31-Mayıs-2026].
