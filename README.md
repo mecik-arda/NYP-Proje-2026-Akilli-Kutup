@@ -1,115 +1,174 @@
-# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi V2 🚀
+# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi V2 - 2026 Nesneye Yönelik Programlama Proje Ödevi
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?logo=java&logoColor=white)
 ![Frontend](https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JS-E34F26?logo=html5&logoColor=white)
 ![Database](https://img.shields.io/badge/Database-JSON-orange)
 ![Security](https://img.shields.io/badge/Security-SHA--256-red?logo=springsecurity&logoColor=white)
-![AI](https://img.shields.io/badge/AI-Google_Gemini_1.5-blue?logo=google&logoColor=white)
+![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?logo=linux)
 ![License](https://img.shields.io/badge/License-MIT-brightgreen)
 
-## 📖 1. Proje Özeti
-Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, **Yapay Zeka (AI)** ve **Derinlemesine Savunma (Defense-in-Depth)** prensipleriyle birleştiren, Java tabanlı yenilikçi bir dijital varlık yönetim sistemidir. 
+## 1. Proje Özeti
+Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştiren, Java tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, Java bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir. V2 sürümü ile birlikte Google Gemini 1.5 altyapısı entegre edilerek yapay zeka destekli akıllı asistan yetenekleri kazandırılmıştır.
 
-Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. **V2 Güncellemesi** ile birlikte sistem salt bir masaüstü yazılımı olmaktan çıkmış, Java'nın arka planda bir REST API sunucusu olarak çalıştığı ve modern bir Web Gösterge Paneli (Frontend Dashboard) ile haberleştiği tam teşekküllü bir otomasyona dönüşmüştür.
-
----
-
-## ✨ 2. Yeni Sürüm Özellikleri (V2 Güncellemeleri)
-
-*   **🤖 Gemini Yapay Zeka Entegrasyonu:** `GeminiClient` modülü sayesinde sistem Google Gemini 1.5 altyapısını kullanır. Kullanıcılara okuma geçmişlerine göre kitap önerileri sunar, kütüphane koleksiyonunu analiz eder ve akıllı asistan hizmeti sağlar. API anahtarları `ConfigManager` ile AES-256 standardında şifrelenerek korunur.
-*   **🌐 Modern Web Arayüzü (Dashboard):** Saf HTML, CSS ve Vanilla JS ile geliştirilmiş, kurumsal koyu temaya (Dark Slate) sahip, mobil uyumlu ve animasyonlu kullanıcı arayüzü. 
-*   **🔌 Gelişmiş API Sunucusu:** Java backend'i içerisinde koşan yerleşik `ApiServer` modülü, web arayüzü ile asenkron (Fetch API) haberleşerek veri iletişimini sağlar.
-*   **🛡️ Gelişmiş Güvenlik ve Şifreleme:** SHA-256 ile kullanıcı şifrelerinin korunmasının yanı sıra, hassas konfigürasyon dosyaları AES-256 ile uçtan uca şifrelenir.
-*   **💾 Otomatik Veri Yedekleme:** `DatabaseManager` her kritik işlemden önce `data/backup/` klasörüne zaman damgalı JSON yedekleri alır, böylece sistem çökmelerine veya veri bozulmalarına karşı %100 koruma sağlar.
-
----
-
-## 🏗️ 3. Çekirdek Mimari ve OOP Uygulamaları
+## 2. Çekirdek Mimari ve OOP Uygulamaları
 Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak tasarlanmıştır:
-*   **Kalıtım (Inheritance) ve Soyutlama (Abstraction):** `IMateryal` arayüzü ve `Materyal` soyut sınıfı üzerinden `Kitap` ve `DijitalMedya` gibi alt sınıflar türetilerek, genişletilebilir (Scalable) bir yapı kurulmuştur.
-*   **Çok Biçimlilik (Polymorphism):** Her materyal türünün ceza hesaplama veya ödünç verilme mantığı çalışma zamanında (Runtime) dinamik olarak belirlenir.
-*   **Kapsülleme (Encapsulation):** Kritik iş mantığı, ceza puanları ve sistemin iç durumu dış müdahalelere kapatılarak nesne bütünlüğü korunmuştur.
+*   Kalıtım (Inheritance) ve Soyutlama (Abstraction): IMateryal arayüzü ve Materyal soyut sınıfı üzerinden Kitap ve DijitalMedya gibi alt sınıflar türetilerek, genişletilebilir (Scalable) bir yapı kurulmuştur.
+*   Çok Biçimlilik (Polymorphism): Her materyal türünün ceza hesaplama veya ödünç verilme mantığı çalışma zamanında (Runtime) dinamik olarak belirlenir.
+*   Kapsülleme (Encapsulation): Kritik iş mantığı, ceza puanları ve sistemin iç durumu dış müdahalelere kapatılarak nesne bütünlüğü korunmuştur.
 
----
+## 3. Siber Güvenlik Katmanı (Cybersecurity Framework)
+Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları içerir:
+*   Kriptografik Şifreleme (Hashing & Salting): Kullanıcı parolaları veritabanında kesinlikle açık metin (plaintext) olarak saklanmaz. Parolalar, güvenlik standartlarına uygun olarak hash algoritmaları (SHA-256) kullanılarak şifrelenir. Ayrıca hassas konfigürasyon verileri AES-256 algoritmasıyla uçtan uca korunur.
+*   Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization): Frontend ile Backend arasındaki API iletişiminde yetkisiz erişimleri engellemek için güvenlik mekanizmaları devrededir. Sistemde En Az Ayrıcalık (Least Privilege) prensibi uygulanır; sıradan bir Uye sadece okuma yapabilirken, CRUD operasyonlarını yalnızca Admin yetkisine sahip kullanıcılar gerçekleştirebilir.
+*   Girdi Denetimi ve Sanitizasyon (Input Validation): İstemciden (Web arayüzünden) gelen her türlü veri, Backend tarafında işlenmeden önce süzgeçten geçirilir. Bu sayede JSON Injection ve XSS gibi saldırı vektörleri engellenir.
+*   Dosya Yolu Güvenliği (Path Traversal Protection): Sistem, yerel JSON dosyalarını kullandığından dışarıdan manipüle edilmiş dosya yolu isteklerine karşı sıkı bir dizin denetimi uygular. Dosya okuma/yazma işlemleri data/ klasörü dışına çıkamaz.
 
-## 🔐 4. Siber Güvenlik Katmanı (Cybersecurity Framework)
-Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla üst düzey güvenlik mekanizmaları içerir:
-*   **Kriptografik Şifreleme (Hashing & AES):** Kullanıcı parolaları SHA-256 ile şifrelenirken, sistemin API yapılandırmaları AES-256 ile korunur.
-*   **Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization):** `AuthManager` sayesinde oturum yönetimi sağlanır. **En Az Ayrıcalık (Least Privilege)** prensibi uygulanır. Admin ve standart kullanıcı yetkileri kesin çizgilerle ayrılmıştır.
-*   **Girdi Denetimi (Input Validation):** İstemciden (Web arayüzünden) gelen her türlü veri süzgeçten geçirilir, SQL/JSON Injection ve XSS saldırı vektörleri engellenir.
-*   **Dosya Yolu Güvenliği:** İzole edilmiş `data/` klasörü sayesinde Path Traversal saldırıları engellenir.
+## 4. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
+*   Sistem, SQL kullanmak yerine kendi özel Dosya Tabanlı Veritabanı Motorunu (File-Based Database Engine) Java ile sıfırdan yönetir.
+*   Veriler JSON formatında serialize/deserialize edilerek saklanır.
+*   Gelişmiş Hata Yakalama (Exception Handling) blokları sayesinde; dosya bulunamaması veya JSON formatının bozulması gibi durumlarda sistem çökmez. Ayrıca her kritik işlemden önce zaman damgalı otomatik JSON yedekleri oluşturularak veri kaybı tamamen önlenir.
 
----
+## 5. Modern Web Arayüzü ve AI Entegrasyonu (Frontend Integration)
+*   Java backend'i, gömülü bir HTTP sunucusu modülü (ApiServer) barındırarak ağ üzerinden gelen istekleri dinler.
+*   Kullanıcılar sisteme kurumsal tasarıma sahip, karanlık tema destekli, asenkron (Fetch API) ve kullanıcı dostu bir web paneli üzerinden erişim sağlar.
+*   Sisteme entegre edilen GeminiClient modülü sayesinde kullanıcılara okuma geçmişlerine uygun materyal önerileri, akıllı asistan hizmetleri ve katalog analizleri sağlanır.
 
-## 📂 5. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
-*   Sistem, SQL veya dış bir servis kullanmak yerine kendi özel **Dosya Tabanlı Veritabanı Motorunu** (File-Based Database Engine) Java ile sıfırdan yönetir.
-*   Veriler `JSON` formatında asenkron olarak serialize/deserialize edilir.
-*   Kapsamlı **Exception Handling** ile dosya bulunamaması veya bozulması durumlarında sistem otomatik olarak son sağlam yedekten kurtarma senaryolarını devreye sokar.
+## EKİP GÖREV DAĞILIMI
 
----
+Backend & Core Architect - Ahmet Güler:
 
-## 👥 6. Ekip Görev Dağılımı
+Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını kurgular. Sistemdeki tüm nesnelerin atası olan Abstract sınıfları ve ortak davranışları belirleyen Interface yapılarını tasarlar. Kalıtım mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
 
-**🏗️ Backend & Core Architect - Ahmet Güler:**
-Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını kurgular. `Abstract` sınıfları ve `Interface` yapılarını tasarlar. Kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Genişletilebilir backend sisteminin ana kurucusudur.
-*(Dosyalar: IMateryal.java, Materyal.java, Kitap.java, DijitalMedya.java, CoreTest.java, Main.java)*
+Yaptığı dosyalar:
 
-**💾 Database Manager & Penetration Tester - Arda Meçik:**
-Sistemin veri kalıcılığı katmanını (Database Engine) tasarlar ve yönetir. JSON tabanlı depolama, nesnelerin diske yazılması/okunması ve hata yönetimi mekanizmalarını kurar. Ayrıca V2 ile gelen **Otomatik Yedekleme** sistemini kodlamış ve host penetrasyon işlemlerini yürütmüştür.
-*(Dosyalar: DatabaseManager.java, DatabaseManagerTest.java, data/users.json, data/materials.json, data/backup/)*
+```text
+src/main/java/com/akillikutup/core/IMateryal.java
+src/main/java/com/akillikutup/core/Materyal.java
+src/main/java/com/akillikutup/core/Kitap.java
+src/main/java/com/akillikutup/core/DijitalMedya.java
+src/test/java/com/akillikutup/core/CoreTest.java
+src/main/java/com/akillikutup/Main.java
+```
 
-**🎨 UI/UX Developer - Göktuğ Berke Kuzucu:**
-Sistemin kullanıcı arayüzünü (Frontend) sıfırdan tasarlar. Web teknolojilerini kullanarak karmaşık işlemleri modern bir "Dashboard" yapısında sunar. V2 sürümünde karanlık/kurumsal tema, animasyonlu geçişler, dinamik grafikler ve bildirim (Toast/Modal) bileşenlerini kurgulamıştır.
-*(Dosyalar: frontend/index.html, frontend/dashboard.html, frontend/css/*.css, frontend/js/dashboard.js)*
+Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
 
-**🛡️ Security & Integration Specialist - Eren Gider:**
-Sistemin güvenlik altyapısını ve iletişim ağını kurar. V2'de **Gemini AI Asistanı**, AES/SHA-256 şifreleme sistemleri ve `ApiServer` entegrasyonlarını kodlamıştır. GitHub depo yönetimi, CI/CD süreçleri ve projenin genel entegrasyonundan sorumludur.
-*(Dosyalar: AuthManager.java, ApiServer.java, GeminiClient.java, ConfigManager.java, AESUtil.java, frontend/js/api.js, pom.xml, README.md, docs/)*
+Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine Java kullanarak dosya tabanlı bir yapıda saklayacak olan Database Engine mekanizmasını kurar. Nesnelerin diske yazılması ve açılışta tekrar belleğe yüklenmesi süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi mimarisini, otomatik yedekleme süreçlerini kurar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
 
----
+Yaptığı dosyalar:
 
-## 📁 7. Genel Proje Dosya Şeması
+```text
+src/main/java/com/akillikutup/db/DatabaseManager.java
+src/test/java/com/akillikutup/db/DatabaseManagerTest.java
+data/users.json
+data/materials.json
+data/backup/
+```
+
+UI/UX Developer - Göktuğ Berke Kuzucu:
+
+Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. Web teknolojilerini kullanarak karmaşık kütüphane işlemlerini son kullanıcı için basit bir deneyime dönüştürür. Kurumsal koyu tema, görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir.
+
+Yaptığı dosyalar:
+
+```text
+frontend/index.html
+frontend/dashboard.html
+frontend/css/login.css
+frontend/css/main.css
+frontend/js/dashboard.js
+```
+
+Security & Integration Specialist - Eren Gider:
+
+Sistemin güvenlik altyapısını ve iletişim ağını kurar. AES-256 ve SHA-256 şifreleme sistemleri üzerinden güvenli veri ve konfigürasyon depolama mimarilerini kurar. ApiServer ile Java backend - web frontend haberleşmesini sağlar. V2 güncellemesi ile Gemini AI entegrasyonunu gerçekleştirerek sisteme yapay zeka özelliklerini kazandırır. Kapsamlı README dokümantasyonunu yönetir.
+
+Yaptığı dosyalar:
+
+```text
+src/main/java/com/akillikutup/auth/AuthManager.java
+src/main/java/com/akillikutup/server/ApiServer.java
+src/main/java/com/akillikutup/server/GeminiClient.java
+src/main/java/com/akillikutup/core/ConfigManager.java
+src/main/java/com/akillikutup/core/AESUtil.java
+src/test/java/com/akillikutup/auth/AuthManagerTest.java
+frontend/js/api.js
+frontend/js/auth.js
+pom.xml
+README.md
+docs/UML_Sema.md
+docs/Proje_Raporu.md
+```
+
+## Genel Proje Dosya Şeması
 ```text
 NYP-Proje-2026-Akilli-Kutup/
 ├── .gitignore
 ├── README.md
 ├── pom.xml
 ├── data/
-│   ├── config.json             # Şifrelenmiş Yapılandırmalar
-│   ├── materials.json          # Materyal Veritabanı
-│   ├── users.json              # Kullanıcı Veritabanı
-│   └── backup/                 # Otomatik JSON Yedekleri
+│   ├── config.json
+│   ├── users.json
+│   ├── materials.json
+│   └── backup/
 ├── docs/
-│   ├── Proje_Raporu.md
-│   └── UML_Sema.md
-├── frontend/                   # Modern Web Arayüzü (V2)
+│   ├── UML_Sema.md
+│   └── Proje_Raporu.md
+├── frontend/
+│   ├── index.html
+│   ├── dashboard.html
 │   ├── css/
 │   │   ├── login.css
-│   │   └── main.css            # Kurumsal Temalı Stil Dosyası
-│   ├── js/
-│   │   ├── api.js              # Fetch API Entegrasyonu
-│   │   ├── auth.js             # İstemci Kimlik Doğrulaması
-│   │   └── dashboard.js        # Dinamik DOM Etkileşimleri
-│   ├── index.html              # Ana Gösterge Paneli
-│   └── dashboard.html
+│   │   └── main.css
+│   └── js/
+│       ├── api.js
+│       ├── auth.js
+│       └── dashboard.js
 └── src/
     ├── main/java/com/akillikutup/
-    │   ├── auth/               # Güvenlik ve Yetkilendirme
-    │   ├── core/               # OOP Çekirdek Sınıfları ve Şifreleme Araçları
-    │   ├── db/                 # Dosya Tabanlı Veritabanı Motoru
-    │   ├── gui/                # Swing Arayüzleri (Eski/Alternatif Sürüm)
-    │   └── server/             # API Sunucusu ve AI Client
+    │   ├── auth/
+    │   │   └── AuthManager.java
+    │   ├── core/
+    │   │   ├── AESUtil.java
+    │   │   ├── ConfigManager.java
+    │   │   ├── IMateryal.java
+    │   │   ├── Materyal.java
+    │   │   ├── Kitap.java
+    │   │   ├── DijitalMedya.java
+    │   │   ├── Kullanici.java
+    │   │   ├── Admin.java
+    │   │   └── Uye.java
+    │   ├── db/
+    │   │   └── DatabaseManager.java
+    │   ├── gui/
+    │   │   ├── MainFrame.java
+    │   │   ├── LoginPanel.java
+    │   │   ├── AdminPanel.java
+    │   │   ├── UserPanel.java
+    │   │   └── LibraryManager.java
+    │   ├── server/
+    │   │   ├── ApiServer.java
+    │   │   └── GeminiClient.java
+    │   └── Main.java
     └── test/java/com/akillikutup/
         ├── auth/
+        │   └── AuthManagerTest.java
         ├── core/
-        └── db/                 # Birim (Unit) Testleri
+        │   └── CoreTest.java
+        └── db/
+            └── DatabaseManagerTest.java
 ```
 
-## 🚀 8. Kurulum ve Çalıştırma
-1. **Gereksinimler:** Java 17+ ve Maven
-2. **Derleme:** Proje dizininde `mvn clean install` komutunu çalıştırın.
-3. **Başlatma:** Java backend'ini başlatmak için `mvn exec:java "-Dexec.mainClass=com.akillikutup.Main"` kullanın.
-4. **Erişim:** Konsolda sunucu başlatıldı uyarısını gördükten sonra tarayıcınızdan `http://localhost:8080` adresine giderek modern web paneline erişebilirsiniz.
+### Geliştirme Durumu
 
----
-*Geliştiriciler tarafından 2026 Nesneye Yönelik Programlama dersi için titizlikle hazırlanmıştır.*
+Yukarıdaki şemada belirtilen dosyalardan tamamlananlar ve güncellenen modüller aşağıda listelenmiştir:
+
+Tamamlanan Kısımlar:
+*   src/main/java/com/akillikutup/core/ (Çekirdek OOP Modelleri, AES-256 Konfigürasyon Şifreleme Eklendi)
+*   src/main/java/com/akillikutup/db/ (Veritabanı Motoru, JSON İşlemleri ve Otomatik Yedekleme Mekanizması Eklendi)
+*   src/main/java/com/akillikutup/gui/ (Swing Masaüstü Arayüzü)
+*   src/main/java/com/akillikutup/auth/ (SHA-256 Şifreleme ve Kimlik Doğrulama)
+*   src/main/java/com/akillikutup/server/ (REST API Sunucu Altyapısı ve Gemini AI İstekcisi Eklendi)
+*   src/test/ (Birim Testler - Tüm testler başarıyla geçmektedir)
+*   frontend/ (Karanlık Temalı Modern Web Arayüzü - HTML/CSS/JS Eklendi)
+*   docs/UML_Sema.md (UML sınıf diyagramı)
+*   docs/Proje_Raporu.md (Proje raporu)
