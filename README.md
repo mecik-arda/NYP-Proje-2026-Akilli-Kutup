@@ -152,18 +152,18 @@ NYP-Proje-2026-Akilli-Kutup/
                         └── DatabaseManagerTest.java
 ```
 
-### Gelistirme Durumu (Development Status)
+### Geliştirme Durumu (Development Status)
 
-Yukaridaki semada belirtilen dosyalardan **tamamlananlar** ve henuz **gelistirme asamasinda olanlar** asagida listelenmistir:
+Yukarıdaki şemada belirtilen dosyalardan **tamamlananlar** ve henüz **geliştirme aşamasında olanlar** aşağıda listelenmiştir:
 
-**Tamamlanan Kisimlar:**
-*   `src/main/java/com/akillikutup/core/` (Cekirdek OOP Modelleri)
-*   `src/main/java/com/akillikutup/db/` (Veritabani Motoru ve JSON Islemleri)
-*   `src/main/java/com/akillikutup/gui/` (Swing Masaustu Arayuzu)
-*   `src/main/java/com/akillikutup/auth/` (SHA-256 Sifreleme ve Kimlik Dogrulama)
-*   `src/main/java/com/akillikutup/server/` (REST API Sunucu Altyapisi)
-*   `src/test/` (Birim Testler - Tum testler basariyla gecmektedir)
-*   `frontend/` (Modern Web Arayuzu - HTML/CSS/JS)
-*   `docs/UML_Sema.md` (UML sinif diyagrami)
-*   `docs/Proje_Raporu.md` (Proje raporu)
+**✅ Tamamlanan Kısımlar:**
+*   `src/main/java/com/akillikutup/core/` (Çekirdek OOP Modelleri)
+*   `src/main/java/com/akillikutup/db/` (Veritabanı Motoru ve JSON İşlemleri)
+*   `src/main/java/com/akillikutup/gui/` (Swing Masaüstü Arayüzü)
+*   `src/main/java/com/akillikutup/auth/` (SHA-256 Şifreleme ve Kimlik Doğrulama)
+*   `src/main/java/com/akillikutup/server/` (REST API Sunucu Altyapısı)
+*   `src/test/` (Birim Testler - Tüm testler başarıyla geçmektedir)
 
+**⏳ Bekleyen/Geliştirilecek Kısımlar:**
+*   `frontend/` (Modern Web Arayüzü - HTML/CSS/JS entegrasyonu henüz yapılmamıştır)
+*   `docs/UML_Sema.md` (Projenin UML diyagramı hazırlanacaktır)

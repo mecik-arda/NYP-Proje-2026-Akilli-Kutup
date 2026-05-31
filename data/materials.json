@@ -1,2 +1,72 @@
 [
+  {
+    "id": "18042a6f-d7a5-4fc1-bfa2-f90806347dde",
+    "baslik": "1984",
+    "birimFiyat": 25.0,
+    "stokAdedi": 5,
+    "tur": "Kitap",
+    "isbn": "978-0451524935"
+  },
+  {
+    "id": "e28b9e33-2521-475c-8583-066416988b4e",
+    "baslik": "Seker Portakali",
+    "birimFiyat": 15.0,
+    "stokAdedi": 3,
+    "tur": "Kitap",
+    "isbn": "978-9750719387"
+  },
+  {
+    "id": "f12eea73-e512-4b6a-8952-252570663195",
+    "baslik": "Kucuk Prens",
+    "birimFiyat": 20.0,
+    "stokAdedi": 7,
+    "tur": "Kitap",
+    "isbn": "978-9750726439"
+  },
+  {
+    "id": "bb9d61c9-4ce2-4eb7-8a0d-04a1e753cf7e",
+    "baslik": "Suç ve Ceza",
+    "birimFiyat": 30.0,
+    "stokAdedi": 4,
+    "tur": "Kitap",
+    "isbn": "978-9754580662"
+  },
+  {
+    "id": "46c935e5-4d70-4096-ae97-2d49b5713d4f",
+    "baslik": "Simyaci",
+    "birimFiyat": 22.0,
+    "stokAdedi": 6,
+    "tur": "Kitap",
+    "isbn": "978-9750726446"
+  },
+  {
+    "id": "8ee07732-a950-4167-9b08-4111ed7aef54",
+    "baslik": "Inception (Film)",
+    "birimFiyat": 10.0,
+    "stokAdedi": 0,
+    "tur": "DijitalMedya",
+    "dosyaFormati": "MP4",
+    "toplamErisimSayisi": 0,
+    "sonUretilenLisans": null
+  },
+  {
+    "id": "40745a34-c5b0-4442-914b-90c48aa9d6dd",
+    "baslik": "Interstellar (Film)",
+    "birimFiyat": 12.0,
+    "stokAdedi": 0,
+    "tur": "DijitalMedya",
+    "dosyaFormati": "MP4",
+    "toplamErisimSayisi": 0,
+    "sonUretilenLisans": null
+  },
+  {
+    "id": "ebcaf4f2-3b56-4cc6-8c09-099036853e28",
+    "baslik": "Java Dersleri (Video)",
+    "birimFiyat": 0.0,
+    "stokAdedi": 0,
+    "tur": "DijitalMedya",
+    "dosyaFormati": "MP4",
+    "toplamErisimSayisi": 0,
+    "sonUretilenLisans": null
+  }
 ]

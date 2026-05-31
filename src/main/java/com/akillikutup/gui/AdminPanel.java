@@ -27,13 +27,13 @@ public class AdminPanel extends JPanel {
         JPanel leftTop = new JPanel(new GridLayout(2, 1));
         welcomeLabel = new JLabel("Admin Paneli");
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
-        statsLabel = new JLabel("Istatistikler yukleniyor...");
+        statsLabel = new JLabel("İstatistikler yükleniyor...");
         statsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
         leftTop.add(welcomeLabel);
         leftTop.add(statsLabel);
         topPanel.add(leftTop, BorderLayout.WEST);
 
-        JButton logoutButton = new JButton("Cikis Yap");
+        JButton logoutButton = new JButton("Çıkış Yap");
         logoutButton.addActionListener(e -> {
             LibraryManager.getInstance().setCurrentUser(null);
             mainFrame.showPanel("LOGIN");
@@ -46,7 +46,7 @@ public class AdminPanel extends JPanel {
 
         JPanel materyalPanel = new JPanel(new BorderLayout());
 
-        String[] matColumnNames = {"ID", "Baslik", "Tur", "Stok/Erisim", "Fiyat"};
+        String[] matColumnNames = {"ID", "Başlık", "Tür", "Stok/Erişim", "Fiyat"};
         materialTableModel = new DefaultTableModel(matColumnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -66,9 +66,9 @@ public class AdminPanel extends JPanel {
         JTextField extraField = new JTextField(10);
         JTextField stokField = new JTextField(5);
 
-        matAddPanel.add(new JLabel("Tur:"));
+        matAddPanel.add(new JLabel("Tür:"));
         matAddPanel.add(typeCombo);
-        matAddPanel.add(new JLabel("Baslik:"));
+        matAddPanel.add(new JLabel("Başlık:"));
         matAddPanel.add(baslikField);
         matAddPanel.add(new JLabel("Birim Fiyat:"));
         matAddPanel.add(fiyatField);
@@ -119,7 +119,7 @@ public class AdminPanel extends JPanel {
                 fiyatField.setText("");
                 extraField.setText("");
                 stokField.setText("");
-                JOptionPane.showMessageDialog(this, "Materyal basariyla eklendi.");
+                JOptionPane.showMessageDialog(this, "Materyal başarıyla eklendi.");
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Hata: Girdileri kontrol edin.", "Hata", JOptionPane.ERROR_MESSAGE);
             }
@@ -128,19 +128,19 @@ public class AdminPanel extends JPanel {
         matBottomPanel.add(matAddPanel, BorderLayout.CENTER);
 
         JPanel matDeletePanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton deleteMaterialButton = new JButton("Secili Materyali Sil");
+        JButton deleteMaterialButton = new JButton("Seçili Materyali Sil");
         deleteMaterialButton.addActionListener(e -> {
             int selectedRow = materialTable.getSelectedRow();
             if (selectedRow < 0) {
-                JOptionPane.showMessageDialog(this, "Lutfen silmek icin bir materyal secin.", "Uyari", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Lütfen silmek için bir materyal seçin.", "Uyarı", JOptionPane.WARNING_MESSAGE);
                 return;
             }
             String id = (String) materialTableModel.getValueAt(selectedRow, 0);
             String baslik = (String) materialTableModel.getValueAt(selectedRow, 1);
 
             int onay = JOptionPane.showConfirmDialog(this,
-                    "\"" + baslik + "\" adli materyali silmek istediginize emin misiniz?",
-                    "Silme Onay", JOptionPane.YES_NO_OPTION);
+                    "\"" + baslik + "\" adlı materyali silmek istediğinize emin misiniz?",
+                    "Silme Onayı", JOptionPane.YES_NO_OPTION);
             if (onay == JOptionPane.YES_OPTION) {
                 Materyal silinecek = null;
                 for (Materyal m : LibraryManager.getInstance().getMaterials()) {
@@ -152,7 +152,7 @@ public class AdminPanel extends JPanel {
                 if (silinecek != null) {
                     LibraryManager.getInstance().removeMaterial(silinecek);
                     refreshData();
-                    JOptionPane.showMessageDialog(this, "Materyal basariyla silindi.");
+                    JOptionPane.showMessageDialog(this, "Materyal başarıyla silindi.");
                 }
             }
         });
@@ -160,12 +160,12 @@ public class AdminPanel extends JPanel {
         matBottomPanel.add(matDeletePanel, BorderLayout.SOUTH);
 
         materyalPanel.add(matBottomPanel, BorderLayout.SOUTH);
-        tabbedPane.addTab("Materyal Yonetimi", materyalPanel);
+        tabbedPane.addTab("Materyal Yönetimi", materyalPanel);
 
 
         JPanel uyePanel = new JPanel(new BorderLayout());
 
-        String[] userColumnNames = {"Isim", "Rol", "TC Kimlik No", "Kredi Puani"};
+        String[] userColumnNames = {"İsim", "Rol", "TC Kimlik No", "Kredi Puanı"};
         userTableModel = new DefaultTableModel(userColumnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -175,27 +175,27 @@ public class AdminPanel extends JPanel {
         uyePanel.add(userScrollPane, BorderLayout.CENTER);
 
         JPanel userButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        userButtonPanel.setBorder(BorderFactory.createTitledBorder("Uye Islemleri"));
+        userButtonPanel.setBorder(BorderFactory.createTitledBorder("Üye İşlemleri"));
 
 
-        JButton detailButton = new JButton("Detay Goruntule");
+        JButton detailButton = new JButton("Detay Görüntüle");
         detailButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
             if (secilen == null) return;
             Kullanici admin = LibraryManager.getInstance().getCurrentUser();
             String tcBilgi = secilen.getTcNo(admin);
-            String detay = "=== Kullanici Detaylari ===\n"
-                    + "Isim: " + secilen.getIsim() + "\n"
+            String detay = "=== Kullanıcı Detayları ===\n"
+                    + "İsim: " + secilen.getIsim() + "\n"
                     + "Rol: " + secilen.getRol() + "\n"
                     + "TC Kimlik No: " + tcBilgi + "\n"
-                    + "Kredi Puani: " + secilen.getKrediPuani() + "\n"
-                    + "Sifre: " + secilen.getSifre();
-            JOptionPane.showMessageDialog(this, detay, "Kullanici Detay", JOptionPane.INFORMATION_MESSAGE);
+                    + "Kredi Puanı: " + secilen.getKrediPuani() + "\n"
+                    + "Şifre: " + secilen.getSifre();
+            JOptionPane.showMessageDialog(this, detay, "Kullanıcı Detay", JOptionPane.INFORMATION_MESSAGE);
         });
         userButtonPanel.add(detailButton);
 
 
-        JButton deleteUserButton = new JButton("Uyeyi Sil");
+        JButton deleteUserButton = new JButton("Üyeyi Sil");
         deleteUserButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
             if (secilen == null) return;
@@ -207,88 +207,88 @@ public class AdminPanel extends JPanel {
             }
 
             int onay = JOptionPane.showConfirmDialog(this,
-                    "\"" + secilen.getIsim() + "\" adli kullaniciyi silmek istediginize emin misiniz?",
-                    "Silme Onay", JOptionPane.YES_NO_OPTION);
+                    "\"" + secilen.getIsim() + "\" adlı kullanıcıyı silmek istediğinize emin misiniz?",
+                    "Silme Onayı", JOptionPane.YES_NO_OPTION);
             if (onay == JOptionPane.YES_OPTION) {
                 LibraryManager.getInstance().removeUser(secilen);
                 refreshData();
-                JOptionPane.showMessageDialog(this, "Kullanici basariyla silindi.");
+                JOptionPane.showMessageDialog(this, "Kullanıcı başarıyla silindi.");
             }
         });
         userButtonPanel.add(deleteUserButton);
 
 
-        JButton updatePointsButton = new JButton("Kredi Guncelle");
+        JButton updatePointsButton = new JButton("Kredi Güncelle");
         updatePointsButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
             if (secilen == null) return;
             if (secilen instanceof Admin) {
-                JOptionPane.showMessageDialog(this, "Admin kullanicilarin kredi puani degistirilemez.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(this, "Admin kullanıcıların kredi puanı değiştirilemez.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
             String input = JOptionPane.showInputDialog(this,
-                    secilen.getIsim() + " icin yeni kredi puani (mevcut: " + secilen.getKrediPuani() + "):",
-                    "Kredi Puani Guncelle", JOptionPane.PLAIN_MESSAGE);
+                    secilen.getIsim() + " için yeni kredi puanı (mevcut: " + secilen.getKrediPuani() + "):",
+                    "Kredi Puanı Güncelle", JOptionPane.PLAIN_MESSAGE);
             if (input != null && !input.trim().isEmpty()) {
                 try {
                     int yeniPuan = Integer.parseInt(input.trim());
                     int fark = yeniPuan - secilen.getKrediPuani();
                     ((Uye) secilen).puanGuncelle(fark);
                     refreshData();
-                    JOptionPane.showMessageDialog(this, "Kredi puani guncellendi: " + secilen.getKrediPuani());
+                    JOptionPane.showMessageDialog(this, "Kredi puanı güncellendi: " + secilen.getKrediPuani());
                 } catch (NumberFormatException ex) {
-                    JOptionPane.showMessageDialog(this, "Gecersiz sayi girdiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Geçersiz sayı girdiniz.", "Hata", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });
         userButtonPanel.add(updatePointsButton);
 
 
-        JButton changeTcButton = new JButton("TC Degistir");
+        JButton changeTcButton = new JButton("TC Değiştir");
         changeTcButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
             if (secilen == null) return;
             Kullanici admin = LibraryManager.getInstance().getCurrentUser();
             String mevcutTc = secilen.getTcNo(admin);
             String yeniTc = JOptionPane.showInputDialog(this,
-                    secilen.getIsim() + " icin yeni TC Kimlik No (mevcut: " + mevcutTc + "):",
-                    "TC Kimlik No Degistir", JOptionPane.PLAIN_MESSAGE);
+                    secilen.getIsim() + " için yeni TC Kimlik No (mevcut: " + mevcutTc + "):",
+                    "TC Kimlik No Değiştir", JOptionPane.PLAIN_MESSAGE);
             if (yeniTc != null && !yeniTc.trim().isEmpty()) {
                 if (yeniTc.trim().length() != 11) {
-                    JOptionPane.showMessageDialog(this, "TC Kimlik No 11 haneli olmalidir!", "Hata", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "TC Kimlik No 11 haneli olmalıdır!", "Hata", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 secilen.setTcNo(yeniTc.trim());
                 refreshData();
-                JOptionPane.showMessageDialog(this, "TC Kimlik No basariyla guncellendi.");
+                JOptionPane.showMessageDialog(this, "TC Kimlik No başarıyla güncellendi.");
             }
         });
         userButtonPanel.add(changeTcButton);
 
 
-        JButton resetPassButton = new JButton("Sifre Sifirla");
+        JButton resetPassButton = new JButton("Şifre Sıfırla");
         resetPassButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
             if (secilen == null) return;
             String yeniSifre = JOptionPane.showInputDialog(this,
-                    secilen.getIsim() + " icin yeni sifre girin:",
-                    "Sifre Sifirla", JOptionPane.PLAIN_MESSAGE);
+                    secilen.getIsim() + " için yeni şifre girin:",
+                    "Şifre Sıfırla", JOptionPane.PLAIN_MESSAGE);
             if (yeniSifre != null && !yeniSifre.trim().isEmpty()) {
                 secilen.setSifre(yeniSifre.trim());
                 refreshData();
-                JOptionPane.showMessageDialog(this, "Sifre basariyla guncellendi.");
+                JOptionPane.showMessageDialog(this, "Şifre başarıyla güncellendi.");
             }
         });
         userButtonPanel.add(resetPassButton);
 
 
-        JButton changeNameButton = new JButton("Isim Degistir");
+        JButton changeNameButton = new JButton("İsim Değiştir");
         changeNameButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
             if (secilen == null) return;
             String yeniIsim = JOptionPane.showInputDialog(this,
                     "Mevcut isim: " + secilen.getIsim() + "\nYeni isim girin:",
-                    "Isim Degistir", JOptionPane.PLAIN_MESSAGE);
+                    "İsim Değiştir", JOptionPane.PLAIN_MESSAGE);
             if (yeniIsim != null && !yeniIsim.trim().isEmpty()) {
                 boolean exists = false;
                 for (Kullanici k : LibraryManager.getInstance().getUsers()) {
@@ -298,18 +298,18 @@ public class AdminPanel extends JPanel {
                     }
                 }
                 if (exists) {
-                    JOptionPane.showMessageDialog(this, "Bu isimde bir kullanici zaten var!", "Hata", JOptionPane.ERROR_MESSAGE);
+                    JOptionPane.showMessageDialog(this, "Bu isimde bir kullanıcı zaten var!", "Hata", JOptionPane.ERROR_MESSAGE);
                     return;
                 }
                 secilen.setIsim(yeniIsim.trim());
                 refreshData();
-                JOptionPane.showMessageDialog(this, "Isim basariyla guncellendi.");
+                JOptionPane.showMessageDialog(this, "İsim başarıyla güncellendi.");
             }
         });
         userButtonPanel.add(changeNameButton);
 
         uyePanel.add(userButtonPanel, BorderLayout.SOUTH);
-        tabbedPane.addTab("Uye Yonetimi", uyePanel);
+        tabbedPane.addTab("Üye Yönetimi", uyePanel);
 
         add(tabbedPane, BorderLayout.CENTER);
     }
@@ -317,7 +317,7 @@ public class AdminPanel extends JPanel {
     private Kullanici getSelectedUser() {
         int selectedRow = userTable.getSelectedRow();
         if (selectedRow < 0) {
-            JOptionPane.showMessageDialog(this, "Lutfen bir kullanici secin.", "Uyari", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(this, "Lütfen bir kullanıcı seçin.", "Uyarı", JOptionPane.WARNING_MESSAGE);
             return null;
         }
         String isim = (String) userTableModel.getValueAt(selectedRow, 0);
@@ -332,7 +332,7 @@ public class AdminPanel extends JPanel {
     public void refreshData() {
         Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
         if (currentUser != null) {
-            welcomeLabel.setText("Hosgeldin, " + currentUser.getIsim() + " (Admin)");
+            welcomeLabel.setText("Hoş geldiniz, " + currentUser.getIsim() + " (Admin)");
         }
 
 
@@ -342,14 +342,14 @@ public class AdminPanel extends JPanel {
             else toplamUye++;
         }
         int toplamMateryal = LibraryManager.getInstance().getMaterials().size();
-        statsLabel.setText("Toplam: " + toplamAdmin + " Admin, " + toplamUye + " Uye, " + toplamMateryal + " Materyal");
+        statsLabel.setText("Toplam: " + toplamAdmin + " Admin, " + toplamUye + " Üye, " + toplamMateryal + " Materyal");
 
 
         materialTableModel.setRowCount(0);
         List<Materyal> materials = LibraryManager.getInstance().getMaterials();
         for (Materyal m : materials) {
             String tur = m instanceof Kitap ? "Kitap" : "Dijital Medya";
-            String stok = m instanceof Kitap ? String.valueOf(m.getStokAdedi()) : "Sinirsiz";
+            String stok = m instanceof Kitap ? String.valueOf(m.getStokAdedi()) : "Sınırsız";
             materialTableModel.addRow(new Object[]{m.getId(), m.getBaslik(), tur, stok, m.getBirimFiyat()});
         }
 

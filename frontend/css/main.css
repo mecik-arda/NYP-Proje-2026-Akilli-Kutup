@@ -4,70 +4,70 @@
 
 /* CSS Custom Properties — Design Tokens */
 :root {
-    /* Color Palette — Dark Mode (Default) */
-    --bg-primary: #0a0e1a;
-    --bg-secondary: #111827;
-    --bg-tertiary: #1a2035;
-    --bg-card: rgba(17, 24, 39, 0.8);
-    --bg-card-hover: rgba(26, 32, 53, 0.9);
-    --bg-glass: rgba(255, 255, 255, 0.03);
-    --bg-glass-hover: rgba(255, 255, 255, 0.06);
-    --bg-sidebar: rgba(10, 14, 26, 0.95);
-    --bg-input: rgba(255, 255, 255, 0.05);
-    --bg-input-focus: rgba(255, 255, 255, 0.08);
+    /* Color Palette — Dark Mode (Corporate) */
+    --bg-primary: #0f172a;
+    --bg-secondary: #1e293b;
+    --bg-tertiary: #334155;
+    --bg-card: #1e293b;
+    --bg-card-hover: #334155;
+    --bg-glass: #1e293b;
+    --bg-glass-hover: #334155;
+    --bg-sidebar: #0f172a;
+    --bg-input: #334155;
+    --bg-input-focus: #475569;
 
     /* Text Colors */
-    --text-primary: #f1f5f9;
-    --text-secondary: #94a3b8;
-    --text-tertiary: #64748b;
-    --text-muted: #475569;
+    --text-primary: #f8fafc;
+    --text-secondary: #cbd5e1;
+    --text-tertiary: #94a3b8;
+    --text-muted: #64748b;
 
-    /* Accent Colors */
-    --accent-primary: #6366f1;
-    --accent-primary-light: #818cf8;
-    --accent-primary-dark: #4f46e5;
-    --accent-primary-glow: rgba(99, 102, 241, 0.3);
+    /* Accent Colors - Professional Blue */
+    --accent-primary: #2563eb;
+    --accent-primary-light: #3b82f6;
+    --accent-primary-dark: #1d4ed8;
+    --accent-primary-glow: rgba(37, 99, 235, 0.15);
 
-    --accent-success: #10b981;
-    --accent-success-light: #34d399;
-    --accent-success-glow: rgba(16, 185, 129, 0.3);
+    --accent-success: #059669;
+    --accent-success-light: #10b981;
+    --accent-success-glow: rgba(5, 150, 105, 0.15);
 
-    --accent-warning: #f59e0b;
-    --accent-warning-light: #fbbf24;
-    --accent-warning-glow: rgba(245, 158, 11, 0.3);
+    --accent-warning: #d97706;
+    --accent-warning-light: #f59e0b;
+    --accent-warning-glow: rgba(217, 119, 6, 0.15);
 
-    --accent-danger: #ef4444;
-    --accent-danger-light: #f87171;
-    --accent-danger-glow: rgba(239, 68, 68, 0.3);
+    --accent-danger: #dc2626;
+    --accent-danger-light: #ef4444;
+    --accent-danger-glow: rgba(220, 38, 38, 0.15);
 
-    --accent-purple: #a855f7;
-    --accent-purple-light: #c084fc;
-    --accent-purple-glow: rgba(168, 85, 247, 0.3);
+    --accent-purple: #7c3aed;
+    --accent-purple-light: #8b5cf6;
+    --accent-purple-glow: rgba(124, 58, 237, 0.15);
 
-    --accent-cyan: #06b6d4;
-    --accent-cyan-light: #22d3ee;
-    --accent-cyan-glow: rgba(6, 182, 212, 0.3);
+    --accent-cyan: #0891b2;
+    --accent-cyan-light: #06b6d4;
+    --accent-cyan-glow: rgba(8, 145, 178, 0.15);
 
     /* Borders */
-    --border-primary: rgba(255, 255, 255, 0.06);
-    --border-secondary: rgba(255, 255, 255, 0.1);
-    --border-active: rgba(99, 102, 241, 0.4);
+    --border-primary: rgba(255, 255, 255, 0.1);
+    --border-secondary: rgba(255, 255, 255, 0.15);
+    --border-active: rgba(37, 99, 235, 0.5);
 
     /* Shadows */
-    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.5);
-    --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.6);
-    --shadow-glow: 0 0 30px var(--accent-primary-glow);
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
+    --shadow-xl: none;
+    --shadow-glow: none;
 
     /* Layout */
     --sidebar-width: 280px;
     --sidebar-collapsed: 72px;
-    --topbar-height: 68px;
-    --border-radius-sm: 8px;
-    --border-radius-md: 12px;
-    --border-radius-lg: 16px;
-    --border-radius-xl: 24px;
+    --topbar-height: 60px;
+    --border-radius-sm: 4px;
+    --border-radius-md: 6px;
+    --border-radius-lg: 8px;
+    --border-radius-xl: 12px;
 
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -85,13 +85,13 @@
     --bg-primary: #f8fafc;
     --bg-secondary: #ffffff;
     --bg-tertiary: #f1f5f9;
-    --bg-card: rgba(255, 255, 255, 0.9);
-    --bg-card-hover: rgba(255, 255, 255, 1);
-    --bg-glass: rgba(0, 0, 0, 0.02);
-    --bg-glass-hover: rgba(0, 0, 0, 0.04);
-    --bg-sidebar: rgba(255, 255, 255, 0.95);
-    --bg-input: rgba(0, 0, 0, 0.04);
-    --bg-input-focus: rgba(0, 0, 0, 0.06);
+    --bg-card: #ffffff;
+    --bg-card-hover: #f8fafc;
+    --bg-glass: #f1f5f9;
+    --bg-glass-hover: #e2e8f0;
+    --bg-sidebar: #ffffff;
+    --bg-input: #f1f5f9;
+    --bg-input-focus: #e2e8f0;
 
     --text-primary: #0f172a;
     --text-secondary: #475569;
@@ -115,6 +115,7 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    animation: none !important;
 }
 
 html {
@@ -138,11 +139,7 @@ body {
    ============================================ */
 
 .ambient-bg {
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
+    display: none;
 }
 
 .ambient-orb {
@@ -373,21 +370,20 @@ body {
 }
 
 .nav-item.active {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.15), rgba(168, 85, 247, 0.1));
-    color: var(--accent-primary-light);
-    box-shadow: inset 0 0 0 1px rgba(99, 102, 241, 0.2);
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--text-primary);
+    font-weight: 600;
 }
 
 .nav-item.active::before {
     content: '';
     position: absolute;
     left: 0;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 3px;
-    height: 60%;
-    background: linear-gradient(to bottom, var(--accent-primary), var(--accent-purple));
-    border-radius: 0 2px 2px 0;
+    top: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-primary);
+    border-radius: 0 4px 4px 0;
 }
 
 .nav-badge {
@@ -792,9 +788,9 @@ body {
    ============================================ */
 
 .welcome-banner {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.12), rgba(168, 85, 247, 0.08), rgba(6, 182, 212, 0.06));
-    border: 1px solid rgba(99, 102, 241, 0.15);
-    border-radius: var(--border-radius-xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--border-radius-lg);
     padding: 32px 36px;
     display: flex;
     align-items: center;
@@ -805,14 +801,7 @@ body {
 }
 
 .welcome-banner::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    width: 300px;
-    height: 100%;
-    background: linear-gradient(135deg, transparent, rgba(99, 102, 241, 0.05));
-    pointer-events: none;
+    display: none;
 }
 
 .welcome-content {
@@ -843,10 +832,7 @@ body {
 }
 
 .welcome-illustration {
-    position: relative;
-    width: 200px;
-    height: 120px;
-    flex-shrink: 0;
+    display: none;
 }
 
 .floating-books {
@@ -988,24 +974,17 @@ body {
 }
 
 .stat-card-bg {
-    position: absolute;
-    top: -30px;
-    right: -30px;
-    width: 120px;
-    height: 120px;
-    border-radius: 50%;
-    opacity: 0.08;
-    transition: opacity var(--transition-base);
+    display: none;
 }
 
 .stat-card:hover .stat-card-bg {
-    opacity: 0.12;
+    display: none;
 }
 
-.stat-card-books .stat-card-bg { background: var(--accent-primary); }
-.stat-card-digital .stat-card-bg { background: var(--accent-purple); }
-.stat-card-members .stat-card-bg { background: var(--accent-success); }
-.stat-card-borrows .stat-card-bg { background: var(--accent-warning); }
+.stat-card-books .stat-card-bg { display: none; }
+.stat-card-digital .stat-card-bg { display: none; }
+.stat-card-members .stat-card-bg { display: none; }
+.stat-card-borrows .stat-card-bg { display: none; }
 
 .stat-icon {
     width: 44px;
@@ -2863,4 +2842,38 @@ body {
         white-space: nowrap;
         flex-shrink: 0;
     }
+}
+
+/* ============================================
+   Animations & Enhancements
+   ============================================ */
+.fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.fade-in-up {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: fadeInUp 0.6s ease-out forwards;
+}
+
+@keyframes fadeInUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes dash {
+    to { stroke-dashoffset: 0; }
+}
+
+.book-card, .asset-card, .book-list-item {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.book-card:hover, .asset-card:hover, .book-list-item:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent-primary);
 }
