@@ -9,10 +9,10 @@ public class AuthManagerTest {
     public void testHashPassword() {
         AuthManager authManager = new AuthManager();
         String password = "test_password";
-        String hash = authManager.hashPassword(password);
+        byte[] salt = authManager.generateSalt();
+        String hash = authManager.hashPassword(password, salt);
 
         assertNotNull(hash);
         assertNotEquals(password, hash);
-        assertEquals(64, hash.length());
     }
 }

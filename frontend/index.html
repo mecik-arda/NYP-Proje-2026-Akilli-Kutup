@@ -1134,6 +1134,52 @@
         </div>
     </div>
 
+    <!-- Book Details Modal -->
+    <div class="modal-overlay" id="bookDetailsModal">
+        <div class="modal" style="max-width: 600px;">
+            <div class="modal-header">
+                <h2 id="detailsModalTitle"><i class="fas fa-book-open"></i> Kitap Detayları</h2>
+                <button class="modal-close" id="detailsModalClose" aria-label="Kapat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div style="display: flex; gap: 24px; align-items: flex-start;">
+                    <div style="width: 120px; height: 180px; background: rgba(255,255,255,0.05); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 40px; flex-shrink: 0; border: 1px solid rgba(255,255,255,0.1);">
+                        📚
+                    </div>
+                    <div style="flex: 1;">
+                        <h3 id="detailsBookTitle" style="font-size: 20px; font-weight: 700; margin-bottom: 8px; color: var(--text-primary);">Başlık</h3>
+                        <p id="detailsBookAuthor" style="font-size: 14px; color: var(--text-secondary); margin-bottom: 16px;">Yazar</p>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">Kategori</span>
+                                <div id="detailsBookCategory" style="font-size: 14px; color: var(--text-primary); font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">Fiyat</span>
+                                <div id="detailsBookPrice" style="font-size: 14px; color: var(--text-primary); font-weight: 500;">-</div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">Stok Durumu</span>
+                                <div style="margin-top: 4px;"><span id="detailsBookStock" class="badge badge-success">Mevcut</span></div>
+                            </div>
+                            <div>
+                                <span style="font-size: 11px; color: var(--text-tertiary); text-transform: uppercase; letter-spacing: 0.5px;">Ödünç Verilme</span>
+                                <div id="detailsBookBorrowCount" style="font-size: 14px; color: var(--text-primary); font-weight: 500;">-</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer" style="justify-content: flex-end;">
+                <button class="btn btn-ghost" id="detailsModalCancel">Kapat</button>
+                <button class="btn btn-primary"><i class="fas fa-hand-holding"></i> Ödünç Ver</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 

@@ -5,10 +5,22 @@ import com.akillikutup.core.*;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.*;
+import java.nio.file.attribute.*;
+import java.security.SecureRandom;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import javax.crypto.Cipher;
+import javax.crypto.KeyGenerator;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.GCMParameterSpec;
+import javax.crypto.spec.SecretKeySpec;
 
 public class DatabaseManager {
 
@@ -18,11 +30,14 @@ public class DatabaseManager {
     private final String YEDEK_KLASORU = "data" + File.separator + "backup";
     private final String KULLANICI_DOSYASI = "data" + File.separator + "users.json";
     private final String MATERYAL_DOSYASI = "data" + File.separator + "materials.json";
+    private final String ANAHTAR_DOSYASI = "data" + File.separator + "secret.key";
 
     private final String IZINLI_KOK_DIZIN;
 
     private List<Kullanici> kullaniciListesi;
     private List<Materyal> materyalListesi;
+    private SecretKey gizliAnahtar;
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
     private DatabaseManager() {
         kullaniciListesi = new ArrayList<>();
@@ -35,9 +50,10 @@ public class DatabaseManager {
         }
 
         klasorleriOlustur();
+        anahtarYukleVeyaOlustur();
     }
 
-    public static DatabaseManager tekOrnekAl() {
+    public static synchronized DatabaseManager tekOrnekAl() {
         if (tekOrnek == null) {
             tekOrnek = new DatabaseManager();
         }
@@ -57,6 +73,7 @@ public class DatabaseManager {
                 System.err.println("HATA: data/ klasoru olusturulamadi.");
             }
         }
+        dosyaErisiminiKisila(veriKlasoru.toPath());
 
         File yedekKlasoru = new File(YEDEK_KLASORU);
         if (!yedekKlasoru.exists()) {
@@ -65,6 +82,7 @@ public class DatabaseManager {
                 System.err.println("HATA: data/backup/ klasoru olusturulamadi.");
             }
         }
+        dosyaErisiminiKisila(yedekKlasoru.toPath());
     }
 
 
@@ -406,40 +424,40 @@ public class DatabaseManager {
     }
 
     public void kullanicilariKaydet() {
-        yolGuvenligi(KULLANICI_DOSYASI);
-
-        String jsonIcerik = kullaniciListesiniJsonaSerialize(kullaniciListesi);
-
-        try (BufferedWriter yazici = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(KULLANICI_DOSYASI), StandardCharsets.UTF_8))) {
-            yazici.write(jsonIcerik);
+        lock.writeLock().lock();
+        try {
+            yolGuvenligi(KULLANICI_DOSYASI);
+            String jsonIcerik = kullaniciListesiniJsonaSerialize(kullaniciListesi);
+            String sifreliIcerik = sifrele(jsonIcerik);
+            atomikYaz(KULLANICI_DOSYASI, sifreliIcerik);
             System.out.println("BASARILI: Kullanici verileri kaydedildi. (" + kullaniciListesi.size() + " kayit)");
-        } catch (FileNotFoundException e) {
-            System.err.println("HATA: Kullanici dosyasi olusturulamadi: " + e.getMessage());
-            throw new RuntimeException("Kullanici dosyasi yazma hatasi", e);
-        } catch (IOException e) {
-            System.err.println("HATA: Kullanici dosyasina yazarken hata olustu: " + e.getMessage());
-            throw new RuntimeException("Kullanici dosyasi I/O hatasi", e);
+        } finally {
+            lock.writeLock().unlock();
         }
     }
 
     public void materyallariKaydet() {
-        yolGuvenligi(MATERYAL_DOSYASI);
-
-        String jsonIcerik = materyalListesiniJsonaSerialize(materyalListesi);
-
-        try (BufferedWriter yazici = new BufferedWriter(
-                new OutputStreamWriter(
-                        new FileOutputStream(MATERYAL_DOSYASI), StandardCharsets.UTF_8))) {
-            yazici.write(jsonIcerik);
+        lock.writeLock().lock();
+        try {
+            yolGuvenligi(MATERYAL_DOSYASI);
+            String jsonIcerik = materyalListesiniJsonaSerialize(materyalListesi);
+            String sifreliIcerik = sifrele(jsonIcerik);
+            atomikYaz(MATERYAL_DOSYASI, sifreliIcerik);
             System.out.println("BASARILI: Materyal verileri kaydedildi. (" + materyalListesi.size() + " kayit)");
-        } catch (FileNotFoundException e) {
-            System.err.println("HATA: Materyal dosyasi olusturulamadi: " + e.getMessage());
-            throw new RuntimeException("Materyal dosyasi yazma hatasi", e);
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    private void atomikYaz(String hedefDosya, String icerik) {
+        try {
+            Path hedef = Paths.get(hedefDosya);
+            Path gecici = Paths.get(hedefDosya + ".tmp");
+            Files.writeString(gecici, icerik, StandardCharsets.UTF_8);
+            Files.move(gecici, hedef, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            dosyaErisiminiKisila(hedef);
         } catch (IOException e) {
-            System.err.println("HATA: Materyal dosyasina yazarken hata olustu: " + e.getMessage());
-            throw new RuntimeException("Materyal dosyasi I/O hatasi", e);
+            throw new RuntimeException("Atomik yazma sirasinda hata: " + e.getMessage(), e);
         }
     }
 
@@ -532,7 +550,13 @@ public class DatabaseManager {
             throw new RuntimeException("Dosya okuma hatasi: " + dosya.getAbsolutePath(), e);
         }
 
-        return icerik.toString();
+        String okunanVeri = icerik.toString().trim();
+        if (!okunanVeri.isEmpty() && !okunanVeri.startsWith("[")) {
+            // Şifreli veri olduğunu varsayıyoruz (Eski veriler '[' ile başlar)
+            return sifreCoz(okunanVeri);
+        }
+
+        return okunanVeri;
     }
 
 
@@ -635,6 +659,7 @@ public class DatabaseManager {
             System.err.println("HATA: Dosya kopyalama basarisiz: " + kaynak.getName() + " -> " + hedef.getName());
             throw new RuntimeException("Dosya kopyalama hatasi", e);
         }
+        dosyaErisiminiKisila(hedef.toPath());
     }
 
 
@@ -749,13 +774,105 @@ public class DatabaseManager {
         return rapor.toString();
     }
 
+    private void anahtarYukleVeyaOlustur() {
+        File anahtarDosya = new File(ANAHTAR_DOSYASI);
+        try {
+            if (anahtarDosya.exists()) {
+                byte[] anahtarBytes = Files.readAllBytes(anahtarDosya.toPath());
+                gizliAnahtar = new SecretKeySpec(anahtarBytes, "AES");
+            } else {
+                KeyGenerator keyGen = KeyGenerator.getInstance("AES");
+                keyGen.init(256);
+                gizliAnahtar = keyGen.generateKey();
+                Files.write(anahtarDosya.toPath(), gizliAnahtar.getEncoded());
+                dosyaErisiminiKisila(anahtarDosya.toPath());
+                System.out.println("BILGI: Yeni AES-256 anahtari olusturuldu ve kaydedildi.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("AES anahtari yuklenirken veya uretilirken hata olustu: " + e.getMessage(), e);
+        }
+    }
+
+    private String sifrele(String duzMetin) {
+        try {
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            byte[] iv = new byte[12];
+            new SecureRandom().nextBytes(iv);
+            GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv);
+            cipher.init(Cipher.ENCRYPT_MODE, gizliAnahtar, parameterSpec);
+            byte[] sifreliBytes = cipher.doFinal(duzMetin.getBytes(StandardCharsets.UTF_8));
+            byte[] birlesik = new byte[iv.length + sifreliBytes.length];
+            System.arraycopy(iv, 0, birlesik, 0, iv.length);
+            System.arraycopy(sifreliBytes, 0, birlesik, iv.length, sifreliBytes.length);
+            return Base64.getEncoder().encodeToString(birlesik);
+        } catch (Exception e) {
+            throw new RuntimeException("Veri sifrelenirken hata: " + e.getMessage(), e);
+        }
+    }
+
+    private String sifreCoz(String sifreliBase64) {
+        try {
+            byte[] birlesik = Base64.getDecoder().decode(sifreliBase64);
+            byte[] iv = new byte[12];
+            System.arraycopy(birlesik, 0, iv, 0, iv.length);
+            GCMParameterSpec parameterSpec = new GCMParameterSpec(128, iv);
+            Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
+            cipher.init(Cipher.DECRYPT_MODE, gizliAnahtar, parameterSpec);
+            byte[] sifreliBytes = new byte[birlesik.length - iv.length];
+            System.arraycopy(birlesik, iv.length, sifreliBytes, 0, sifreliBytes.length);
+            byte[] cozulmus = cipher.doFinal(sifreliBytes);
+            return new String(cozulmus, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            throw new RuntimeException("Veri deşifre edilirken hata: " + e.getMessage(), e);
+        }
+    }
+
+    private void dosyaErisiminiKisila(Path yol) {
+        if (!Files.exists(yol)) return;
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            if (os.contains("win")) {
+                AclFileAttributeView aclView = Files.getFileAttributeView(yol, AclFileAttributeView.class);
+                if (aclView != null) {
+                    UserPrincipal owner = Files.getOwner(yol);
+                    AclEntry entry = AclEntry.newBuilder()
+                            .setType(AclEntryType.ALLOW)
+                            .setPrincipal(owner)
+                            .setPermissions(AclEntryPermission.READ_DATA, AclEntryPermission.WRITE_DATA, 
+                                            AclEntryPermission.APPEND_DATA, AclEntryPermission.READ_NAMED_ATTRS,
+                                            AclEntryPermission.WRITE_NAMED_ATTRS, AclEntryPermission.EXECUTE,
+                                            AclEntryPermission.READ_ATTRIBUTES, AclEntryPermission.WRITE_ATTRIBUTES,
+                                            AclEntryPermission.DELETE, AclEntryPermission.READ_ACL, AclEntryPermission.SYNCHRONIZE)
+                            .build();
+                    aclView.setAcl(Collections.singletonList(entry));
+                }
+            } else {
+                Files.setPosixFilePermissions(yol, PosixFilePermissions.fromString("rwx------"));
+            }
+        } catch (UnsupportedOperationException e) {
+            // Desteklenmiyor, atla
+        } catch (IOException e) {
+            System.err.println("UYARI: Dosya erisimi kisitlanamadi (" + yol.toString() + "): " + e.getMessage());
+        }
+    }
+
 
     public List<Kullanici> getKullaniciListesi() {
-        return kullaniciListesi;
+        lock.readLock().lock();
+        try {
+            return new ArrayList<>(kullaniciListesi);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     public List<Materyal> getMateryalListesi() {
-        return materyalListesi;
+        lock.readLock().lock();
+        try {
+            return new ArrayList<>(materyalListesi);
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     public String getVeriKlasoru() {

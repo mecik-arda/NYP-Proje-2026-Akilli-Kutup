@@ -1,18 +1,9 @@
 const Auth = (() => {
   const SESSION_KEY = 'akilli_kutup_session';
 
-  async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  }
-
   async function login(tcNo, password) {
     try {
-      const passwordHash = await hashPassword(password);
-      const response = await API.login(tcNo, passwordHash);
+      const response = await API.login(tcNo, password);
 
       if (response && response.basarili) {
         const session = {
@@ -71,7 +62,6 @@ const Auth = (() => {
   }
 
   return {
-    hashPassword,
     login,
     logout,
     isAuthenticated,

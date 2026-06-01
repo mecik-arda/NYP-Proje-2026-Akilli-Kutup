@@ -3,72 +3,90 @@ package com.akillikutup.server;
 import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
+import com.akillikutup.core.Kullanici;
+import com.akillikutup.db.DatabaseManager;
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class ApiServer {
-
     private HttpServer server;
+    private final Gson gson = new Gson();
 
     public void startServer(int port) {
         try {
             server = HttpServer.create(new InetSocketAddress(port), 0);
-
-            // API Endpoints
             server.createContext("/api/status", new StatusHandler());
-            server.createContext("/api/kitaplar", new JsonFileHandler("data/materials.json"));
-            server.createContext("/api/kullanicilar", new JsonFileHandler("data/users.json"));
+            server.createContext("/api/kitaplar", new KitaplarHandler());
+            server.createContext("/api/kullanicilar", new KullanicilarHandler());
             server.createContext("/api/chat", new ChatHandler());
-
-            // Frontend Static Files (catch-all for '/')
+            server.createContext("/api/giris", new LoginHandler());
+            server.createContext("/api/odunc", new OduncHandler());
+            server.createContext("/api/iade", new IadeHandler());
             server.createContext("/", new StaticFileHandler("frontend"));
-
             server.setExecutor(null);
             server.start();
-            System.out.println("API Sunucusu baslatildi: http://localhost:" + port);
         } catch (IOException e) {
-            System.err.println("Sunucu baslatilamadi: " + e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 
     public void stopServer() {
         if (server != null) {
             server.stop(0);
-            System.out.println("API Sunucusu durduruldu.");
         }
     }
 
-    static class StatusHandler implements HttpHandler {
+    private void sendResponse(HttpExchange t, int statusCode, String response) throws IOException {
+        byte[] responseBytes = response.getBytes("UTF-8");
+        t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "http://localhost:8080");
+        t.sendResponseHeaders(statusCode, responseBytes.length);
+        try (OutputStream os = t.getResponseBody()) {
+            os.write(responseBytes);
+        }
+    }
+
+    class StatusHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            String response = "{\"status\":\"UP\"}";
-            byte[] responseBytes = response.getBytes("UTF-8");
-            t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.sendResponseHeaders(200, responseBytes.length);
-            try (OutputStream os = t.getResponseBody()) {
-                os.write(responseBytes);
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                sendResponse(t, 200, "{\"status\":\"UP\"}");
+            } else {
+                t.sendResponseHeaders(405, -1);
             }
         }
     }
 
-    static class JsonFileHandler implements HttpHandler {
+    class JsonFileHandler implements HttpHandler {
         private final String filePath;
-        public JsonFileHandler(String filePath) {
+        private final boolean protectedEndpoint;
+
+        public JsonFileHandler(String filePath, boolean protectedEndpoint) {
             this.filePath = filePath;
+            this.protectedEndpoint = protectedEndpoint;
         }
 
         @Override
         public void handle(HttpExchange t) throws IOException {
-            Path path = Paths.get(filePath);
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "http://localhost:8080");
             t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
 
+            if (protectedEndpoint) {
+                t.sendResponseHeaders(403, -1);
+                return;
+            }
+
+            Path path = Paths.get(filePath);
             if (Files.exists(path)) {
                 byte[] data = Files.readAllBytes(path);
                 t.sendResponseHeaders(200, data.length);
@@ -76,8 +94,7 @@ public class ApiServer {
                     os.write(data);
                 }
             } else {
-                String error = "[]"; // Empty array if not found
-                byte[] errorBytes = error.getBytes("UTF-8");
+                byte[] errorBytes = "[]".getBytes("UTF-8");
                 t.sendResponseHeaders(200, errorBytes.length);
                 try (OutputStream os = t.getResponseBody()) {
                     os.write(errorBytes);
@@ -86,93 +103,150 @@ public class ApiServer {
         }
     }
 
-    static class StaticFileHandler implements HttpHandler {
-        private final String baseDir;
-
-        public StaticFileHandler(String baseDir) {
-            this.baseDir = baseDir;
+    class KitaplarHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                List<com.akillikutup.core.Materyal> materyaller = DatabaseManager.tekOrnekAl().getMateryalListesi();
+                JsonArray jsonArray = new JsonArray();
+                for (com.akillikutup.core.Materyal m : materyaller) {
+                    JsonObject dto = new JsonObject();
+                    dto.addProperty("id", m.getId());
+                    dto.addProperty("baslik", m.getBaslik());
+                    dto.addProperty("birimFiyat", m.getBirimFiyat());
+                    dto.addProperty("stokAdedi", m.getStokAdedi());
+                    if (m instanceof com.akillikutup.core.Kitap) {
+                        dto.addProperty("tur", "Kitap");
+                        dto.addProperty("yazar", "Bilinmeyen Yazar");
+                        dto.addProperty("isbn", ((com.akillikutup.core.Kitap) m).getIsbn());
+                    } else if (m instanceof com.akillikutup.core.DijitalMedya) {
+                        dto.addProperty("tur", "DijitalMedya");
+                        dto.addProperty("yazar", "Dijital Icerik");
+                        dto.addProperty("dosyaFormati", ((com.akillikutup.core.DijitalMedya) m).getDosyaFormati());
+                    }
+                    jsonArray.add(dto);
+                }
+                sendResponse(t, 200, gson.toJson(jsonArray));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
         }
+    }
 
+    class KullanicilarHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                List<Kullanici> kullanicilar = DatabaseManager.tekOrnekAl().getKullaniciListesi();
+                JsonArray jsonArray = new JsonArray();
+                for (Kullanici k : kullanicilar) {
+                    JsonObject dto = new JsonObject();
+                    dto.addProperty("id", "M-" + Math.abs(k.getTcNoDogrudan().hashCode()));
+                    dto.addProperty("isim", k.getIsim());
+                    dto.addProperty("tcKimlikNo", k.getTcNoDogrudan());
+                    dto.addProperty("email", k.getIsim().toLowerCase().replace(" ", "") + "@example.com");
+                    dto.addProperty("rol", k.getRol());
+                    jsonArray.add(dto);
+                }
+                sendResponse(t, 200, gson.toJson(jsonArray));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class LoginHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : "";
+                String password = body.has("sifreHash") ? body.get("sifreHash").getAsString() : "";
+                
+                com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
+                Kullanici user = authManager.login(tcNo, password);
+                
+                if (user != null) {
+                    JsonObject response = new JsonObject();
+                    response.addProperty("basarili", true);
+                    response.addProperty("ad", user.getIsim());
+                    response.addProperty("rol", user.getRol());
+                    sendResponse(t, 200, gson.toJson(response));
+                } else {
+                    sendResponse(t, 401, "{\"basarili\":false,\"mesaj\":\"Gecersiz kimlik bilgileri\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class OduncHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                sendResponse(t, 200, "{\"basarili\":true}");
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class IadeHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                sendResponse(t, 200, "{\"basarili\":true}");
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class ChatHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String prompt = body.has("prompt") ? body.get("prompt").getAsString() : "";
+                String aiResponse = prompt.isEmpty() ? "Lutfen bir soru girin." : GeminiClient.askQuestion(prompt);
+                
+                JsonObject response = new JsonObject();
+                response.addProperty("response", aiResponse);
+                sendResponse(t, 200, gson.toJson(response));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class StaticFileHandler implements HttpHandler {
+        private final String baseDir;
+        public StaticFileHandler(String baseDir) { this.baseDir = baseDir; }
         @Override
         public void handle(HttpExchange t) throws IOException {
             String requestURI = t.getRequestURI().getPath();
-            
-            // Default to index.html if root is requested
-            if (requestURI.equals("/")) {
-                requestURI = "/index.html";
-            }
-
+            if (requestURI.equals("/")) requestURI = "/index.html";
             Path path = Paths.get(baseDir, requestURI);
-
             if (!Files.exists(path) || Files.isDirectory(path)) {
-                // If not found, try to redirect to dashboard.html or index.html to allow SPA handling
                 path = Paths.get(baseDir, "/index.html");
-                if(!Files.exists(path)){
-                     String response = "404 (Not Found)\n";
-                     t.sendResponseHeaders(404, response.length());
-                     try(OutputStream os = t.getResponseBody()){ os.write(response.getBytes()); }
-                     return;
+                if (!Files.exists(path)) {
+                    t.sendResponseHeaders(404, -1);
+                    return;
                 }
             }
-
             String contentType = getContentType(path.toString());
             t.getResponseHeaders().set("Content-Type", contentType);
-            
             byte[] fileBytes = Files.readAllBytes(path);
             t.sendResponseHeaders(200, fileBytes.length);
-            try (OutputStream os = t.getResponseBody()) {
-                os.write(fileBytes);
-            }
+            try (OutputStream os = t.getResponseBody()) { os.write(fileBytes); }
         }
-
         private String getContentType(String path) {
             if (path.endsWith(".html")) return "text/html; charset=utf-8";
             if (path.endsWith(".css")) return "text/css; charset=utf-8";
             if (path.endsWith(".js")) return "application/javascript; charset=utf-8";
             if (path.endsWith(".json")) return "application/json; charset=utf-8";
-            if (path.endsWith(".png")) return "image/png";
-            if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
-            if (path.endsWith(".svg")) return "image/svg+xml; charset=utf-8";
             return "text/plain; charset=utf-8";
-        }
-    }
-
-    static class ChatHandler implements HttpHandler {
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                String requestBody = new String(t.getRequestBody().readAllBytes(), "UTF-8");
-                String prompt = "";
-                String keyStr = "\"prompt\":\"";
-                int start = requestBody.indexOf(keyStr);
-                if (start != -1) {
-                    start += keyStr.length();
-                    int end = requestBody.indexOf("\"", start);
-                    if (end != -1) {
-                        prompt = requestBody.substring(start, end);
-                    }
-                }
-
-                String aiResponse = "";
-                if (!prompt.isEmpty()) {
-                    aiResponse = GeminiClient.askQuestion(prompt);
-                } else {
-                    aiResponse = "Lutfen bir soru girin.";
-                }
-
-                String escapedResponse = aiResponse.replace("\"", "\\\"").replace("\n", "\\n").replace("\r", "");
-                String jsonResponse = "{\"response\": \"" + escapedResponse + "\"}";
-
-                byte[] responseBytes = jsonResponse.getBytes("UTF-8");
-                t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-                t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-                t.sendResponseHeaders(200, responseBytes.length);
-                try (OutputStream os = t.getResponseBody()) {
-                    os.write(responseBytes);
-                }
-            } else {
-                t.sendResponseHeaders(405, -1);
-            }
         }
     }
 }

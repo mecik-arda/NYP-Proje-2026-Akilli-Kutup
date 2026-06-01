@@ -34,4 +34,17 @@ public abstract class Materyal implements IMateryal {
     public int getStokAdedi() { return stokAdedi; }
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Materyal materyal = (Materyal) o;
+        return java.util.Objects.equals(id, materyal.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id);
+    }
 }

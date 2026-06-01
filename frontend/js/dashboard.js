@@ -1,4 +1,14 @@
 let appData = { books: [], members: [], assets: [] };
+let catalogState = {
+  query: '',
+  category: '',
+  status: '',
+  language: '',
+  sort: 'newest',
+  view: 'grid',
+  currentPage: 1,
+  itemsPerPage: 12
+};
 
 document.addEventListener('DOMContentLoaded', async () => {
   initSidebar();
@@ -22,6 +32,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAddMemberModal();
   initAIChat();
   initDummyButtons();
+  initCatalogFilters();
 });
 
 async function loadDataFromAPI() {
@@ -156,12 +167,11 @@ function initSearch() {
   });
 
   searchInput.addEventListener('input', (e) => {
-    const query = e.target.value.toLowerCase().trim();
-    if (query.length < 2) return;
-    const results = appData.books.filter(b =>
-      (b.baslik && b.baslik.toLowerCase().includes(query)) || (b.yazar && b.yazar.toLowerCase().includes(query))
-    );
-    console.log('Arama sonuclari:', results.length);
+    let q = e.target.value.toLowerCase().trim();
+    if (q.length > 0 && q.length < 2) return;
+    catalogState.query = q.length >= 2 ? q : '';
+    catalogState.currentPage = 1;
+    if (typeof updateCatalog === 'function') updateCatalog();
   });
 }
 
@@ -422,16 +432,65 @@ function renderMembersTable() {
 }
 
 function renderBookGrid() {
+  updateCatalog();
+}
+
+function updateCatalog() {
   const grid = document.getElementById('bookGrid');
   if (!grid) return;
-  grid.innerHTML = appData.books.map((book, i) => `
-    <div class="book-card fade-in-up" data-id="${book.id}" style="animation-delay: ${i * 0.05}s">
+
+  let filtered = appData.books.filter(b => {
+    let matchQuery = true;
+    if (catalogState.query) {
+      const q = catalogState.query;
+      matchQuery = (b.baslik && b.baslik.toLowerCase().includes(q)) || 
+                   (b.yazar && b.yazar.toLowerCase().includes(q)) ||
+                   (b.isbn && b.isbn.includes(q));
+    }
+    
+    let matchCategory = true;
+    if (catalogState.category) {
+       matchCategory = (b.tur && b.tur.toLowerCase() === catalogState.category.toLowerCase()) || catalogState.category === '';
+    }
+
+    let matchStatus = true;
+    if (catalogState.status) {
+       if (catalogState.status === 'available') matchStatus = b.stokAdedi > 0;
+       if (catalogState.status === 'borrowed') matchStatus = b.stokAdedi <= 0;
+    }
+    
+    return matchQuery && matchCategory && matchStatus;
+  });
+
+  filtered.sort((a, b) => {
+    if (catalogState.sort === 'newest') return (b.id.toString().localeCompare(a.id.toString()));
+    if (catalogState.sort === 'oldest') return (a.id.toString().localeCompare(b.id.toString()));
+    if (catalogState.sort === 'title-asc') return (a.baslik || '').localeCompare(b.baslik || '');
+    if (catalogState.sort === 'title-desc') return (b.baslik || '').localeCompare(a.baslik || '');
+    if (catalogState.sort === 'popular') return (b.odunc || 0) - (a.odunc || 0);
+    return 0;
+  });
+
+  const countEl = document.getElementById('catalogCount');
+  if (countEl) countEl.textContent = `${filtered.length} kitap bulundu`;
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / catalogState.itemsPerPage));
+  if (catalogState.currentPage > totalPages) catalogState.currentPage = totalPages;
+  
+  const start = (catalogState.currentPage - 1) * catalogState.itemsPerPage;
+  const paginated = filtered.slice(start, start + catalogState.itemsPerPage);
+
+  grid.className = catalogState.view === 'list' ? 'book-grid list-view' : 'book-grid';
+  grid.innerHTML = paginated.map((book, i) => `
+    <div class="book-card" data-id="${book.id}">
       <div class="book-cover">
         <div class="cover-placeholder">📚</div>
       </div>
       <div class="book-card-body">
-        <h4 class="book-card-title">${book.baslik}</h4>
-        <p class="book-card-author">${book.yazar || 'Yazar Belirtilmemiş'}</p>
+        <div class="book-card-info">
+            <h4 class="book-card-title">${book.baslik}</h4>
+            <p class="book-card-author">${book.yazar || 'Yazar Belirtilmemiş'}</p>
+        </div>
         <div class="book-card-meta">
           <span class="badge ${book.stokAdedi > 0 ? 'badge-success' : 'badge-warning'}">${book.stokAdedi > 0 ? 'Mevcut' : 'Tükendi'}</span>
           <span class="book-year">${book.birimFiyat || 0} TL</span>
@@ -439,6 +498,91 @@ function renderBookGrid() {
       </div>
     </div>
   `).join('');
+
+  grid.querySelectorAll('.book-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const b = appData.books.find(x => x.id.toString() === card.dataset.id);
+        if (b) {
+            document.getElementById('detailsBookTitle').textContent = b.baslik || 'Bilinmeyen Başlık';
+            document.getElementById('detailsBookAuthor').textContent = b.yazar || 'Yazar Belirtilmemiş';
+            document.getElementById('detailsBookCategory').textContent = b.tur || 'Belirtilmemiş';
+            document.getElementById('detailsBookPrice').textContent = (b.birimFiyat || 0) + ' TL';
+            document.getElementById('detailsBookBorrowCount').textContent = (b.odunc || 0) + ' kez';
+            
+            const stockEl = document.getElementById('detailsBookStock');
+            if (b.stokAdedi > 0) {
+                stockEl.className = 'badge badge-success';
+                stockEl.textContent = b.stokAdedi + ' Adet Mevcut';
+            } else {
+                stockEl.className = 'badge badge-warning';
+                stockEl.textContent = 'Tükendi';
+            }
+            
+            document.getElementById('bookDetailsModal').classList.add('active');
+        }
+    });
+  });
+
+  renderPagination(totalPages);
+}
+
+function renderPagination(totalPages) {
+  const pag = document.getElementById('catalogPagination');
+  if (!pag) return;
+  
+  let html = `<button class="pagination-btn" ${catalogState.currentPage === 1 ? 'disabled' : ''} data-page="prev"><i class="fas fa-chevron-left"></i></button>`;
+  
+  for(let i = 1; i <= totalPages; i++) {
+     if (i === 1 || i === totalPages || (i >= catalogState.currentPage - 1 && i <= catalogState.currentPage + 1)) {
+        html += `<button class="pagination-btn ${i === catalogState.currentPage ? 'active' : ''}" data-page="${i}">${i}</button>`;
+     } else if (i === catalogState.currentPage - 2 || i === catalogState.currentPage + 2) {
+        html += `<span class="pagination-dots">...</span>`;
+     }
+  }
+  
+  html += `<button class="pagination-btn" ${catalogState.currentPage === totalPages ? 'disabled' : ''} data-page="next"><i class="fas fa-chevron-right"></i></button>`;
+  
+  pag.innerHTML = html;
+  
+  pag.querySelectorAll('.pagination-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+       if (btn.disabled) return;
+       let p = btn.dataset.page;
+       if (p === 'prev') catalogState.currentPage--;
+       else if (p === 'next') catalogState.currentPage++;
+       else catalogState.currentPage = parseInt(p);
+       updateCatalog();
+    });
+  });
+}
+
+function initCatalogFilters() {
+    const filterCategory = document.getElementById('filterCategory');
+    const filterStatus = document.getElementById('filterStatus');
+    const filterLanguage = document.getElementById('filterLanguage');
+    const filterSort = document.getElementById('filterSort');
+
+    if (filterCategory) filterCategory.addEventListener('change', (e) => { catalogState.category = e.target.value; catalogState.currentPage = 1; updateCatalog(); });
+    if (filterStatus) filterStatus.addEventListener('change', (e) => { catalogState.status = e.target.value; catalogState.currentPage = 1; updateCatalog(); });
+    if (filterLanguage) filterLanguage.addEventListener('change', (e) => { catalogState.language = e.target.value; catalogState.currentPage = 1; updateCatalog(); });
+    if (filterSort) filterSort.addEventListener('change', (e) => { catalogState.sort = e.target.value; catalogState.currentPage = 1; updateCatalog(); });
+
+    const btnGrid = document.getElementById('viewGridBtn');
+    const btnList = document.getElementById('viewListBtn');
+    
+    if (btnGrid) btnGrid.addEventListener('click', () => {
+        catalogState.view = 'grid';
+        btnGrid.classList.add('active');
+        if(btnList) btnList.classList.remove('active');
+        updateCatalog();
+    });
+    
+    if (btnList) btnList.addEventListener('click', () => {
+        catalogState.view = 'list';
+        btnList.classList.add('active');
+        if(btnGrid) btnGrid.classList.remove('active');
+        updateCatalog();
+    });
 }
 
 function renderAssetGrid() {
@@ -472,6 +616,22 @@ function initAddBookModal() {
   ];
   const form = document.getElementById('addBookForm');
   const saveBtn = document.getElementById('modalSaveBtn');
+  
+  // Book Details Modal kapatma işlemleri
+  const detailsModal = document.getElementById('bookDetailsModal');
+  const detailsCloseBtns = [
+      document.getElementById('detailsModalClose'),
+      document.getElementById('detailsModalCancel'),
+      detailsModal
+  ];
+  
+  detailsCloseBtns.forEach(btn => {
+      if(btn) btn.addEventListener('click', (e) => {
+          if (e.target === detailsModal || e.currentTarget !== detailsModal) {
+              detailsModal.classList.remove('active');
+          }
+      });
+  });
 
   openBtns.forEach(btn => {
     if (btn) {

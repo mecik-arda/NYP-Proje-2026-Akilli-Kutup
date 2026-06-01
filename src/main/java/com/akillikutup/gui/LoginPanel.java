@@ -55,10 +55,12 @@ public class LoginPanel extends JPanel {
                 List<Kullanici> users = LibraryManager.getInstance().getUsers();
                 Kullanici selectedUser = users.get(selectedIndex);
                 String enteredPassword = new String(passwordField.getPassword());
-                if (selectedUser.getSifre().equals(enteredPassword)) {
-                    LibraryManager.getInstance().setCurrentUser(selectedUser);
+                com.akillikutup.auth.AuthManager auth = new com.akillikutup.auth.AuthManager();
+                Kullanici loggedInUser = auth.login(selectedUser.getTcNoDogrudan(), enteredPassword);
+                if (loggedInUser != null) {
+                    LibraryManager.getInstance().setCurrentUser(loggedInUser);
                     passwordField.setText("");
-                    if (selectedUser.getRol().equals("ADMIN")) {
+                    if (loggedInUser.getRol().equals("ADMIN")) {
                         mainFrame.showPanel("ADMIN");
                     } else {
                         mainFrame.showPanel("USER");
@@ -153,11 +155,12 @@ public class LoginPanel extends JPanel {
                 return;
             }
 
+            String hashedPassword = new com.akillikutup.auth.AuthManager().registerPassword(password);
             Kullanici yeniKullanici;
             if ("Admin".equals(secilenRol)) {
-                yeniKullanici = new com.akillikutup.core.Admin(name, tc, password);
+                yeniKullanici = new com.akillikutup.core.Admin(name, tc, hashedPassword);
             } else {
-                yeniKullanici = new com.akillikutup.core.Uye(name, tc, password);
+                yeniKullanici = new com.akillikutup.core.Uye(name, tc, hashedPassword);
             }
 
             LibraryManager.getInstance().addUser(yeniKullanici);

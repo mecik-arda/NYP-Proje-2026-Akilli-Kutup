@@ -2877,3 +2877,10 @@ body {
     box-shadow: var(--shadow-lg);
     border-color: var(--accent-primary);
 }
+
+/* List View Styles */
+.book-grid.list-view { grid-template-columns: 1fr; }
+.book-grid.list-view .book-card { display: flex; align-items: center; height: 100px; padding: 10px; }
+.book-grid.list-view .book-cover { width: 60px; height: 80px; flex-shrink: 0; }
+.book-grid.list-view .book-card-body { padding: 0 0 0 20px; display: flex; flex: 1; justify-content: space-between; align-items: center; }
+.book-grid.list-view .book-card-meta { flex-direction: column; align-items: flex-end; gap: 8px; }
