@@ -7,7 +7,7 @@
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?logo=linux)
 ![License](https://img.shields.io/badge/License-MIT-brightgreen)
 
-### 📸 Uygulama Ekran Görüntüleri
+### Uygulama Ekran Görüntüleri
 
 <p align="center">
   <img src="ekran_goruntuleri/1.png" width="48%" />
