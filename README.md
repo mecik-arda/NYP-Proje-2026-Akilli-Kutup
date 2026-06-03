@@ -7,6 +7,23 @@
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?logo=linux)
 ![License](https://img.shields.io/badge/License-MIT-brightgreen)
 
+### 📸 Uygulama Ekran Görüntüleri
+
+<p align="center">
+  <img src="ekran_goruntuleri/1.png" width="48%" />
+  <img src="ekran_goruntuleri/2.png" width="48%" />
+</p>
+<p align="center">
+  <img src="ekran_goruntuleri/3.png" width="48%" />
+  <img src="ekran_goruntuleri/4.png" width="48%" />
+</p>
+<p align="center">
+  <img src="ekran_goruntuleri/5.png" width="48%" />
+  <img src="ekran_goruntuleri/6.png" width="48%" />
+</p>
+
+---
+
 ## 1. Proje Özeti
 Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştiren, Java tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, Java bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir. V2 sürümü ile birlikte Google Gemini 1.5 altyapısı entegre edilerek yapay zeka destekli akıllı asistan yetenekleri kazandırılmıştır.
 
