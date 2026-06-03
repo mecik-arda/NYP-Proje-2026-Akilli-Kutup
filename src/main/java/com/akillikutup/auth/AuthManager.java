@@ -48,7 +48,7 @@ public class AuthManager {
                                 byte[] salt = Base64.getDecoder().decode(parts[0]);
                                 String expectedHash = parts[1];
                                 String actualHash = hashPassword(plainPassword, salt);
-                                return MessageDigest.isEqual(expectedHash.getBytes(), actualHash.getBytes());
+                                return MessageDigest.isEqual(expectedHash.getBytes(java.nio.charset.StandardCharsets.UTF_8), actualHash.getBytes(java.nio.charset.StandardCharsets.UTF_8));
                             } catch (Exception e) {
                                 return false;
                             }

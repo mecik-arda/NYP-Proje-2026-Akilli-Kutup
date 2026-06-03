@@ -32,13 +32,16 @@ Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak t
 *   Kalıtım (Inheritance) ve Soyutlama (Abstraction): IMateryal arayüzü ve Materyal soyut sınıfı üzerinden Kitap ve DijitalMedya gibi alt sınıflar türetilerek, genişletilebilir (Scalable) bir yapı kurulmuştur.
 *   Çok Biçimlilik (Polymorphism): Her materyal türünün ceza hesaplama veya ödünç verilme mantığı çalışma zamanında (Runtime) dinamik olarak belirlenir.
 *   Kapsülleme (Encapsulation): Kritik iş mantığı, ceza puanları ve sistemin iç durumu dış müdahalelere kapatılarak nesne bütünlüğü korunmuştur.
+*   Tek Sorumluluk Prensibi (Single Responsibility Principle - SRP): Devasa DatabaseManager sınıfı parçalanarak sorumluluklar; yüksek performanslı JSON dönüşümü için JsonParser'a, zamanlanmış yedeklemeler ve otomatik temizlik için BackupManager'a, şifreleme ve anahtar yönetimi için FileEncryptionService sınıfına devredilmiştir.
 
 ## 3. Siber Güvenlik Katmanı (Cybersecurity Framework)
 Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları içerir:
 *   Kriptografik Şifreleme (Hashing & Salting): Kullanıcı parolaları veritabanında kesinlikle açık metin (plaintext) olarak saklanmaz. Parolalar, güvenlik standartlarına uygun olarak hash algoritmaları (SHA-256) kullanılarak şifrelenir. Ayrıca hassas konfigürasyon verileri AES-256 algoritmasıyla uçtan uca korunur.
 *   Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization): Frontend ile Backend arasındaki API iletişiminde yetkisiz erişimleri engellemek için güvenlik mekanizmaları devrededir. Sistemde En Az Ayrıcalık (Least Privilege) prensibi uygulanır; sıradan bir Uye sadece okuma yapabilirken, CRUD operasyonlarını yalnızca Admin yetkisine sahip kullanıcılar gerçekleştirebilir.
 *   Girdi Denetimi ve Sanitizasyon (Input Validation): İstemciden (Web arayüzünden) gelen her türlü veri, Backend tarafında işlenmeden önce süzgeçten geçirilir. Bu sayede JSON Injection ve XSS gibi saldırı vektörleri engellenir.
-*   Dosya Yolu Güvenliği (Path Traversal Protection): Sistem, yerel JSON dosyalarını kullandığından dışarıdan manipüle edilmiş dosya yolu isteklerine karşı sıkı bir dizin denetimi uygular. Dosya okuma/yazma işlemleri data/ klasörü dışına çıkamaz.
+*   Dosya Yolu Güvenliği (Path Traversal Protection): Sistem, yerel JSON dosyalarını kullandığından dışarıdan manipüle edilmiş dosya yolu isteklerine karşı sıkı bir dizin denetimi uygular. ApiServer statik dosya sunucusu, `getCanonicalPath()` kontrolü sayesinde isteklerin `frontend` klasörü dışına çıkmasını engeller.
+*   Gizli Anahtar Güvenliği (Key Management): Kaynak koda gömülü olan statik AES anahtarı kaldırılmış, bunun yerine otomatik oluşturulan ve güvenli bir şekilde saklanan `data/secret.key` yapısına geçilmiştir.
+*   Güvenli Şifre Kıyaslaması: AuthManager tarafında hash kıyaslamalarında platformlar arası byte dönüşüm hatalarını ve olası sızıntıları önlemek için UTF-8 standartları zorunlu kılınmıştır.
 
 ## 4. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
 *   Sistem, SQL kullanmak yerine kendi özel Dosya Tabanlı Veritabanı Motorunu (File-Based Database Engine) Java ile sıfırdan yönetir.
@@ -89,10 +92,14 @@ Yaptığı dosyalar:
 
 ```text
 src/main/java/com/akillikutup/db/DatabaseManager.java
+src/main/java/com/akillikutup/db/BackupManager.java
+src/main/java/com/akillikutup/db/JsonParser.java
+src/main/java/com/akillikutup/db/FileEncryptionService.java
 src/test/java/com/akillikutup/db/DatabaseManagerTest.java
 data/users.json
 data/materials.json
 data/backup/
+data/secret.key
 ```
 
 UI/UX Developer - Göktuğ Berke Kuzucu:
@@ -120,7 +127,6 @@ src/main/java/com/akillikutup/auth/AuthManager.java
 src/main/java/com/akillikutup/server/ApiServer.java
 src/main/java/com/akillikutup/server/GeminiClient.java
 src/main/java/com/akillikutup/core/ConfigManager.java
-src/main/java/com/akillikutup/core/AESUtil.java
 src/test/java/com/akillikutup/auth/AuthManagerTest.java
 frontend/js/api.js
 frontend/js/auth.js
@@ -159,7 +165,6 @@ NYP-Proje-2026-Akilli-Kutup/
     │   ├── auth/
     │   │   └── AuthManager.java
     │   ├── core/
-    │   │   ├── AESUtil.java
     │   │   ├── ConfigManager.java
     │   │   ├── IMateryal.java
     │   │   ├── Materyal.java
@@ -169,7 +174,10 @@ NYP-Proje-2026-Akilli-Kutup/
     │   │   ├── Admin.java
     │   │   └── Uye.java
     │   ├── db/
-    │   │   └── DatabaseManager.java
+    │   │   ├── DatabaseManager.java
+    │   │   ├── BackupManager.java
+    │   │   ├── JsonParser.java
+    │   │   └── FileEncryptionService.java
     │   ├── gui/
     │   │   ├── MainFrame.java
     │   │   ├── LoginPanel.java

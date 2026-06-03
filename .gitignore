@@ -36,3 +36,10 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+# User credentials
+kullanicilar.txt
+
+# Database backups and secret keys
+data/backup/
+data/secret.key

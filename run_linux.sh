@@ -9,7 +9,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # Renk sıfırlama
 
 echo -e "${CYAN}===================================================${NC}"
-echo -e "${CYAN}  Akilli Kutup Sistemi Baslatiliyor...${NC}"
+echo -e "${CYAN}  Akilli Kutup Sistemi Baslatiliyor (Linux)...${NC}"
 echo -e "${CYAN}===================================================${NC}"
 echo
 
@@ -29,7 +29,11 @@ fi
 echo -e "${GREEN}[OK] Java ve Maven yuklu.${NC}"
 
 # 2. Port Kontrolü (8080)
-PORT_PID=$(lsof -t -i:8080 -sTCP:LISTEN 2>/dev/null || netstat -vanp tcp 2>/dev/null | grep 8080 | grep LISTEN | awk '{print $9}' | cut -d'/' -f1)
+PORT_PID=$(ss -lptn 'sport = :8080' 2>/dev/null | grep -o 'pid=[0-9]*' | cut -d= -f2 | head -n1)
+if [ -z "$PORT_PID" ]; then
+    PORT_PID=$(lsof -t -i:8080 -sTCP:LISTEN 2>/dev/null)
+fi
+
 if [ -n "$PORT_PID" ]; then
     echo -e "${YELLOW}[UYARI] 8080 portu su anda kullanimda (PID: $PORT_PID).${NC}"
     read -p "Bu portu kullanan surec sonlandirilsin mi? (e/h): " kill_choice
@@ -52,11 +56,9 @@ BACKEND_PID=$!
 echo "Sunucunun hazirlanmasi bekleniyor..."
 sleep 5
 
-# 4. Tarayicida arayuzu ac (macOS için open, Linux için xdg-open)
+# 4. Tarayicida arayuzu ac
 echo -e "${BLUE}[2/2] Tarayici aciliyor...${NC}"
-if command -v open &> /dev/null; then
-    open http://localhost:8080/
-elif command -v xdg-open &> /dev/null; then
+if command -v xdg-open &> /dev/null; then
     xdg-open http://localhost:8080/
 else
     echo -e "${YELLOW}Lutfen tarayicinizdan http://localhost:8080/ adresine gidiniz.${NC}"

@@ -17,7 +17,7 @@ public class ConfigManager {
         try {
             if (!Files.exists(path)) {
                 // Sifrele ve kaydet
-                String encrypted = AESUtil.encrypt(DEFAULT_API_KEY);
+                String encrypted = com.akillikutup.db.FileEncryptionService.encrypt(DEFAULT_API_KEY);
                 String jsonContent = "{\n  \"gemini_api_key_encrypted\": \"" + encrypted + "\"\n}";
                 
                 // data klasoru yoksa olustur
@@ -39,8 +39,8 @@ public class ConfigManager {
                     int lastQuote = content.indexOf("\"", firstQuote + 1);
                     if (firstQuote != -1 && lastQuote != -1) {
                         String encrypted = content.substring(firstQuote + 1, lastQuote);
-                        geminiApiKey = AESUtil.decrypt(encrypted);
-                        System.out.println("API Anahtari config dosyasindan okundu ve deşifre edildi.");
+                        geminiApiKey = com.akillikutup.db.FileEncryptionService.decrypt(encrypted);
+                        System.out.println("API Anahtari config dosyasindan okundu ve desifre edildi.");
                     }
                 }
             }

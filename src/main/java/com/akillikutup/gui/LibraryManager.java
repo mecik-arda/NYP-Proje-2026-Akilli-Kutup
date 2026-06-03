@@ -18,13 +18,14 @@ public class LibraryManager {
         materials = com.akillikutup.db.DatabaseManager.tekOrnekAl().materyallariYukle();
 
         if (users.isEmpty()) {
-            users.add(new Admin("Ahmet Guler", "11122233344", "admin123"));
-            users.add(new Admin("Eren Gider", "1231602061", "TestSifresi"));
-            users.add(new Uye("Ayse Demir", "55544433322", "uye123"));
-            users.add(new Uye("Mehmet Yilmaz", "12345678901", "mehmet1"));
-            users.add(new Uye("Fatma Kaya", "98765432100", "fatma1"));
-            users.add(new Uye("Ali Celik", "11223344556", "ali1"));
-            users.add(new Uye("Zeynep Ozturk", "66778899001", "zeynep1"));
+            com.akillikutup.auth.AuthManager auth = new com.akillikutup.auth.AuthManager();
+            users.add(new Admin("Ahmet Guler", "11122233344", auth.registerPassword("admin123")));
+            users.add(new Admin("Eren Gider", "1231602061", auth.registerPassword("TestSifresi")));
+            users.add(new Uye("Ayse Demir", "55544433322", auth.registerPassword("uye123")));
+            users.add(new Uye("Mehmet Yilmaz", "12345678901", auth.registerPassword("mehmet1")));
+            users.add(new Uye("Fatma Kaya", "98765432100", auth.registerPassword("fatma1")));
+            users.add(new Uye("Ali Celik", "11223344556", auth.registerPassword("ali1")));
+            users.add(new Uye("Zeynep Ozturk", "66778899001", auth.registerPassword("zeynep1")));
             com.akillikutup.db.DatabaseManager.tekOrnekAl().kaydet(users, materials);
         }
 

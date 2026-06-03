@@ -228,6 +228,14 @@ public class ApiServer {
             String requestURI = t.getRequestURI().getPath();
             if (requestURI.equals("/")) requestURI = "/index.html";
             Path path = Paths.get(baseDir, requestURI);
+            
+            String canonicalBase = new java.io.File(baseDir).getCanonicalPath();
+            String canonicalPath = path.toFile().getCanonicalPath();
+            if (!canonicalPath.startsWith(canonicalBase)) {
+                t.sendResponseHeaders(403, -1);
+                return;
+            }
+
             if (!Files.exists(path) || Files.isDirectory(path)) {
                 path = Paths.get(baseDir, "/index.html");
                 if (!Files.exists(path)) {

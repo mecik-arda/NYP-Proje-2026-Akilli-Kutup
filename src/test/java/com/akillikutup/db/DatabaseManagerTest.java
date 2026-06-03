@@ -78,7 +78,7 @@ public class DatabaseManagerTest {
         db = DatabaseManager.tekOrnekAl();
 
         List<Kullanici> yuklenen = db.kullanicilariYukle();
-        assertEquals("gizliSifre!@#", yuklenen.get(0).getSifre(), "Sifre dogru yuklenmelí");
+        assertEquals("gizliSifre!@#", yuklenen.get(0).getSifre(), "Sifre dogru yuklenmeli");
     }
 
     @Test
@@ -324,9 +324,10 @@ public class DatabaseManagerTest {
 
         db.kaydet(kullanicilar, materyaller);
 
-        int oncekiYedekSayisi = db.yedekSayisi();
+        File backupDir = new File("data/backup");
+        int oncekiYedekSayisi = backupDir.exists() && backupDir.listFiles() != null ? backupDir.listFiles().length : 0;
         db.yedekle();
-        int sonrakiYedekSayisi = db.yedekSayisi();
+        int sonrakiYedekSayisi = backupDir.listFiles().length;
 
         assertTrue(sonrakiYedekSayisi > oncekiYedekSayisi, "Yedek sayisi artmali");
     }
@@ -368,7 +369,7 @@ public class DatabaseManagerTest {
             testDb.kaydet(liste, new ArrayList<>());
 
             File kotu = new File("data" + File.separator + ".." + File.separator + ".." + File.separator + "etc" + File.separator + "passwd");
-            testDb.kullanicilariJsondanYukle(dosyadanOkuTestYardimci(kotu));
+            JsonParser.deserializeKullanicilar(dosyadanOkuTestYardimci(kotu));
         });
     }
 
@@ -384,7 +385,7 @@ public class DatabaseManagerTest {
     @Order(22)
     public void bozukJsonKullaniciTesti() {
         assertThrows(RuntimeException.class, () -> {
-            db.kullanicilariJsondanYukle("BU GECERSIZ JSON");
+            JsonParser.deserializeKullanicilar("BU GECERSIZ JSON");
         });
     }
 
@@ -392,40 +393,28 @@ public class DatabaseManagerTest {
     @Order(23)
     public void bozukJsonMateryalTesti() {
         assertThrows(RuntimeException.class, () -> {
-            db.materyallariJsondanYukle("{bozuk veri}");
+            JsonParser.deserializeMateryaller("{bozuk veri}");
         });
     }
 
     @Test
     @Order(24)
     public void bosJsonTesti() {
-        List<Kullanici> kullanicilar = db.kullanicilariJsondanYukle("");
+        List<Kullanici> kullanicilar = JsonParser.deserializeKullanicilar("");
         assertEquals(0, kullanicilar.size());
 
-        List<Materyal> materyaller = db.materyallariJsondanYukle("");
+        List<Materyal> materyaller = JsonParser.deserializeMateryaller("");
         assertEquals(0, materyaller.size());
     }
 
     @Test
     @Order(25)
     public void bosDiziJsonTesti() {
-        List<Kullanici> kullanicilar = db.kullanicilariJsondanYukle("[]");
+        List<Kullanici> kullanicilar = JsonParser.deserializeKullanicilar("[]");
         assertEquals(0, kullanicilar.size());
 
-        List<Materyal> materyaller = db.materyallariJsondanYukle("[]");
+        List<Materyal> materyaller = JsonParser.deserializeMateryaller("[]");
         assertEquals(0, materyaller.size());
-    }
-
-
-    @Test
-    @Order(26)
-    public void durumRaporuTesti() {
-        db.kaydet(new ArrayList<>(), new ArrayList<>());
-
-        String rapor = db.durumRaporu();
-        assertNotNull(rapor);
-        assertTrue(rapor.contains("VERITABANI DURUM RAPORU"));
-        assertTrue(rapor.contains("MEVCUT"));
     }
 
 
@@ -452,17 +441,6 @@ public class DatabaseManagerTest {
         assertEquals(1, yuklenen.size());
         assertEquals("Test \"Ozel\" Karakter", yuklenen.get(0).getIsim());
         assertEquals("sifre\\test", yuklenen.get(0).getSifre());
-    }
-
-
-    @Test
-    @Order(29)
-    public void dosyaBoyutuTesti() {
-        List<Kullanici> liste = new ArrayList<>();
-        liste.add(new Admin("BoyutTest", "99988877766", "sifre"));
-        db.kaydet(liste, new ArrayList<>());
-
-        assertTrue(db.kullaniciDosyasiBoyutu() > 0, "Dosya boyutu 0'dan buyuk olmali");
     }
 
 
