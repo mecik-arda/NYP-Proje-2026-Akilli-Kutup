@@ -24,7 +24,15 @@ const Auth = (() => {
       if (err.message === 'SERVER_UNREACHABLE') {
         return { success: false, message: 'Sunucuya ulaşılamıyor.' };
       }
-      return { success: false, message: 'Bir hata oluştu.' };
+      try {
+        const errorObj = JSON.parse(err.message);
+        if (errorObj && errorObj.mesaj) {
+          return { success: false, message: errorObj.mesaj };
+        }
+      } catch (parseErr) {
+        // Not JSON
+      }
+      return { success: false, message: err.message || 'Bir hata oluştu.' };
     }
   }
 
@@ -60,7 +68,7 @@ const Auth = (() => {
 
   function isAdmin() {
     const session = getSession();
-    return session?.rol === 'admin';
+    return session?.rol?.toUpperCase() === 'ADMIN';
   }
 
   return {

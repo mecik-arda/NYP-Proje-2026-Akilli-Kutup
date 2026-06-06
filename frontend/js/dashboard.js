@@ -21,10 +21,13 @@ document.addEventListener('DOMContentLoaded', async () => {
               const nameEl = document.querySelector('.user-name');
               const roleEl = document.querySelector('.user-role');
               const avatarEl = document.querySelector('.user-avatar span:first-child');
+              const headerWelcomeEl = document.querySelector('h1.dashboard-welcome');
               if (nameEl) nameEl.textContent = u.ad + ' ' + (u.soyad || '');
-              if (roleEl) roleEl.textContent = u.rol === 'admin' ? 'Yönetici' : 'Üye';
+              if (roleEl) roleEl.textContent = u.rol.toUpperCase() === 'ADMIN' ? 'Yönetici' : 'Üye';
               if (avatarEl) avatarEl.textContent = (u.ad?.[0] || '') + (u.soyad?.[0] || '');
+              if (headerWelcomeEl) headerWelcomeEl.textContent = 'Hoş Geldin, ' + u.ad;
           }
+          applyRBAC();
       }
   }
 
@@ -98,6 +101,41 @@ async function loadDataFromAPI() {
         { id: 3, baslik: 'Klasik Türk Müziği Koleksiyonu', tur: 'Ses', boyut: '340 MB', format: 'MP3' },
         { id: 4, baslik: 'Python Programlama Rehberi', tur: 'E-Kitap', boyut: '8 MB', format: 'EPUB' }
     ];
+}
+
+function applyRBAC() {
+  if (!Auth.isAdmin()) {
+    // Üyeler, Raporlar ve Ayarlar sayfalarını gizle
+    const restrictedNavs = ['nav-members', 'nav-reports', 'nav-settings'];
+    restrictedNavs.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+
+    // Yeni Kitap Ekle, Yeni Üye, Düzenle, Sil butonlarını gizlemek için CSS
+    const style = document.createElement('style');
+    style.innerHTML = `
+      .admin-only,
+      button:has(i.fa-plus),
+      button:has(i.fa-user-plus),
+      button:has(i.fa-book-medical),
+      .action-btn.edit-btn,
+      .action-btn.delete-btn,
+      .action-btn[onclick*="delete"],
+      .action-btn[onclick*="edit"] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
+
+    // Eğer aktif sekme bunlardan biriyse Dashboard'a yönlendir
+    const restrictedPages = ['members', 'reports', 'settings'];
+    const activeNav = document.querySelector('.nav-item.active');
+    if (activeNav && restrictedPages.includes(activeNav.dataset.page)) {
+      const dashBtn = document.getElementById('nav-dashboard');
+      if (dashBtn) dashBtn.click();
+    }
+  }
 }
 
 function initSidebar() {
@@ -309,7 +347,7 @@ function updateUserInfo() {
     if (user) {
       const fullName = (user.ad + ' ' + user.soyad).trim();
       document.querySelectorAll('.user-name').forEach(span => span.textContent = fullName);
-      document.querySelectorAll('.user-role').forEach(span => span.textContent = user.rol === 'admin' ? 'Yönetici' : 'Üye');
+      document.querySelectorAll('.user-role').forEach(span => span.textContent = user.rol.toUpperCase() === 'ADMIN' ? 'Yönetici' : 'Üye');
       
       const welcomeHeader = document.querySelector('h1');
       if (welcomeHeader && welcomeHeader.textContent.includes('Hoş Geldin')) {
