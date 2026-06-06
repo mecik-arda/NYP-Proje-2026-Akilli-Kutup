@@ -269,10 +269,11 @@ public class DatabaseManagerTest {
     @Order(16)
     public void kullaniciBulTesti() {
         List<Kullanici> liste = new ArrayList<>();
-        liste.add(new Admin("Aranan Admin", "66666666666", "sifre"));
+        Admin admin = new Admin("Aranan Admin", "66666666666", "sifre");
+        liste.add(admin);
         db.kaydet(liste, new ArrayList<>());
 
-        Kullanici bulunan = db.kullaniciBul("Aranan Admin");
+        Kullanici bulunan = db.kullaniciBul(admin.getId());
         assertNotNull(bulunan);
         assertEquals("Aranan Admin", bulunan.getIsim());
 

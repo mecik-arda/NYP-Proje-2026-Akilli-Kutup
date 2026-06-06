@@ -11,6 +11,8 @@ const Auth = (() => {
           ad: response.ad || '',
           soyad: response.soyad || '',
           rol: response.rol || 'uye',
+          id: response.id || '',
+          token: response.token || '',
           girisZamani: Date.now()
         };
         sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
@@ -28,7 +30,7 @@ const Auth = (() => {
 
   function logout() {
     sessionStorage.removeItem(SESSION_KEY);
-    window.location.href = 'index.html';
+    window.location.href = 'login.html';
   }
 
   function isAuthenticated() {

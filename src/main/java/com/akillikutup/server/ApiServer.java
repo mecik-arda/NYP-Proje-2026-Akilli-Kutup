@@ -4,6 +4,7 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.akillikutup.core.Kullanici;
+import com.akillikutup.core.Materyal;
 import com.akillikutup.db.DatabaseManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -48,12 +49,24 @@ public class ApiServer {
 
     private void sendResponse(HttpExchange t, int statusCode, String response) throws IOException {
         byte[] responseBytes = response.getBytes("UTF-8");
-        t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-        t.getResponseHeaders().add("Access-Control-Allow-Origin", "http://localhost:8080");
+        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+        t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
         t.sendResponseHeaders(statusCode, responseBytes.length);
         try (OutputStream os = t.getResponseBody()) {
             os.write(responseBytes);
         }
+    }
+
+    private Kullanici verifyAuth(HttpExchange t) throws IOException {
+        String authHeader = t.getRequestHeaders().getFirst("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
+            Kullanici user = authManager.getUserByToken(token);
+            if (user != null) return user;
+        }
+        sendResponse(t, 401, "{\"basarili\":false, \"mesaj\":\"Yetkisiz islem. Lutfen giris yapin.\"}");
+        return null;
     }
 
     class StatusHandler implements HttpHandler {
@@ -137,6 +150,8 @@ public class ApiServer {
         @Override
         public void handle(HttpExchange t) throws IOException {
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                if (verifyAuth(t) == null) return;
+                
                 List<Kullanici> kullanicilar = DatabaseManager.tekOrnekAl().getKullaniciListesi();
                 JsonArray jsonArray = new JsonArray();
                 for (Kullanici k : kullanicilar) {
@@ -146,9 +161,44 @@ public class ApiServer {
                     dto.addProperty("tcKimlikNo", k.getTcNoDogrudan());
                     dto.addProperty("email", k.getIsim().toLowerCase().replace(" ", "") + "@example.com");
                     dto.addProperty("rol", k.getRol());
+                    
+                    JsonArray oduncArr = new JsonArray();
+                    for(String mid : k.getOduncAlinanMateryaller()) {
+                        oduncArr.add(mid);
+                    }
+                    dto.add("oduncAlinanMateryaller", oduncArr);
+                    
                     jsonArray.add(dto);
                 }
                 sendResponse(t, 200, gson.toJson(jsonArray));
+            } else if ("PUT".equalsIgnoreCase(t.getRequestMethod())) {
+                if (verifyAuth(t) == null) return;
+                
+                String uri = t.getRequestURI().getPath();
+                String[] parts = uri.split("/");
+                String userId = parts[parts.length - 1];
+                
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String isim = body.has("isim") ? body.get("isim").getAsString() : null;
+                String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : null;
+                
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                boolean found = false;
+                for (Kullanici k : db.getKullaniciListesi()) {
+                    if (k.getId().equals(userId) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(userId)) {
+                        if (isim != null) k.setIsim(isim);
+                        if (tcNo != null) k.setTcNo(tcNo);
+                        found = true;
+                        break;
+                    }
+                }
+                
+                if (found) {
+                    db.kullanicilariKaydet();
+                    sendResponse(t, 200, "{\"basarili\":true}");
+                } else {
+                    sendResponse(t, 404, "{\"basarili\":false, \"mesaj\":\"Kullanici bulunamadi\"}");
+                }
             } else {
                 t.sendResponseHeaders(405, -1);
             }
@@ -167,10 +217,13 @@ public class ApiServer {
                 Kullanici user = authManager.login(tcNo, password);
                 
                 if (user != null) {
+                    String token = authManager.createSession(user);
                     JsonObject response = new JsonObject();
                     response.addProperty("basarili", true);
                     response.addProperty("ad", user.getIsim());
                     response.addProperty("rol", user.getRol());
+                    response.addProperty("id", user.getId());
+                    response.addProperty("token", token);
                     sendResponse(t, 200, gson.toJson(response));
                 } else {
                     sendResponse(t, 401, "{\"basarili\":false,\"mesaj\":\"Gecersiz kimlik bilgileri\"}");
@@ -185,7 +238,40 @@ public class ApiServer {
         @Override
         public void handle(HttpExchange t) throws IOException {
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                sendResponse(t, 200, "{\"basarili\":true}");
+                if (verifyAuth(t) == null) return;
+                
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String userId = body.has("userId") ? body.get("userId").getAsString() : "";
+                String bookId = body.has("bookId") ? body.get("bookId").getAsString() : "";
+                
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                Kullanici targetUser = null;
+                for (Kullanici k : db.getKullaniciListesi()) {
+                    if (k.getId().equals(userId) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(userId) || k.getTcNoDogrudan().equals(userId)) {
+                        targetUser = k; break;
+                    }
+                }
+                
+                Materyal targetMat = null;
+                for (Materyal m : db.getMateryalListesi()) {
+                    if (m.getId().equals(bookId)) {
+                        targetMat = m; break;
+                    }
+                }
+
+                if (targetUser != null && targetMat != null) {
+                    if (targetMat.stoktaVarMi()) {
+                        targetMat.oduncVer();
+                        targetUser.materyalOduncAl(targetMat.getId());
+                        db.kullanicilariKaydet();
+                        db.materyallariKaydet();
+                        sendResponse(t, 200, "{\"basarili\":true}");
+                    } else {
+                        sendResponse(t, 200, "{\"basarili\":false, \"mesaj\":\"Stokta yok\"}");
+                    }
+                } else {
+                    sendResponse(t, 200, "{\"basarili\":false, \"mesaj\":\"Kullanici veya Materyal bulunamadi\"}");
+                }
             } else {
                 t.sendResponseHeaders(405, -1);
             }
@@ -196,7 +282,36 @@ public class ApiServer {
         @Override
         public void handle(HttpExchange t) throws IOException {
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                sendResponse(t, 200, "{\"basarili\":true}");
+                if (verifyAuth(t) == null) return;
+                
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String userId = body.has("userId") ? body.get("userId").getAsString() : "";
+                String bookId = body.has("bookId") ? body.get("bookId").getAsString() : "";
+                
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                Kullanici targetUser = null;
+                for (Kullanici k : db.getKullaniciListesi()) {
+                    if (k.getId().equals(userId) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(userId) || k.getTcNoDogrudan().equals(userId)) {
+                        targetUser = k; break;
+                    }
+                }
+                
+                Materyal targetMat = null;
+                for (Materyal m : db.getMateryalListesi()) {
+                    if (m.getId().equals(bookId)) {
+                        targetMat = m; break;
+                    }
+                }
+
+                if (targetUser != null && targetMat != null) {
+                    targetMat.iadeEt();
+                    targetUser.materyalIadeEt(targetMat.getId());
+                    db.kullanicilariKaydet();
+                    db.materyallariKaydet();
+                    sendResponse(t, 200, "{\"basarili\":true}");
+                } else {
+                    sendResponse(t, 200, "{\"basarili\":false, \"mesaj\":\"Kullanici veya Materyal bulunamadi\"}");
+                }
             } else {
                 t.sendResponseHeaders(405, -1);
             }

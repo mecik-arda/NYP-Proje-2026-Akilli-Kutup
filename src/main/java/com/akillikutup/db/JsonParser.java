@@ -17,11 +17,17 @@ public class JsonParser {
         JsonArray array = new JsonArray();
         for (Kullanici k : kullaniciListesi) {
             JsonObject obj = new JsonObject();
+            obj.addProperty("id", k.getId());
             obj.addProperty("isim", k.getIsim());
             obj.addProperty("tcNo", k.getTcNoDogrudan());
             obj.addProperty("rol", k.getRol());
             obj.addProperty("sifre", k.getSifre());
             obj.addProperty("krediPuani", k.getKrediPuani());
+            JsonArray oduncArray = new JsonArray();
+            for(String matId : k.getOduncAlinanMateryaller()) {
+                oduncArray.add(matId);
+            }
+            obj.add("oduncAlinanMateryaller", oduncArray);
             array.add(obj);
         }
         return gson.toJson(array);
@@ -58,6 +64,7 @@ public class JsonParser {
             JsonArray array = com.google.gson.JsonParser.parseString(json).getAsJsonArray();
             for (JsonElement element : array) {
                 JsonObject obj = element.getAsJsonObject();
+                String id = getAsString(obj, "id");
                 String isim = getAsString(obj, "isim");
                 String tcNo = getAsString(obj, "tcNo");
                 String rol = getAsString(obj, "rol");
@@ -74,6 +81,15 @@ public class JsonParser {
                         uye.puanGuncelle(fark);
                     }
                     kullanici = uye;
+                }
+                if (id != null) {
+                    kullanici.setId(id);
+                }
+                if (obj.has("oduncAlinanMateryaller") && !obj.get("oduncAlinanMateryaller").isJsonNull()) {
+                    JsonArray oduncArr = obj.getAsJsonArray("oduncAlinanMateryaller");
+                    for (JsonElement e : oduncArr) {
+                        kullanici.materyalOduncAl(e.getAsString());
+                    }
                 }
                 sonuc.add(kullanici);
             }

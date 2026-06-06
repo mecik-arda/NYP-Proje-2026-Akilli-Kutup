@@ -1696,7 +1696,7 @@ body {
 }
 
 .catalog-filters {
-    display: flex;
+    display: none;
     gap: 16px;
     flex-wrap: wrap;
     margin-bottom: 20px;

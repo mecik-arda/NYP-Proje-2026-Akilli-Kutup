@@ -8,10 +8,13 @@ import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthManager {
     private final DatabaseManager db;
+    private static final Map<String, Kullanici> aktifOturumlar = new ConcurrentHashMap<>();
 
     public AuthManager() {
         this.db = DatabaseManager.tekOrnekAl();
@@ -65,5 +68,16 @@ public class AuthManager {
         byte[] salt = generateSalt();
         String hash = hashPassword(plainPassword, salt);
         return Base64.getEncoder().encodeToString(salt) + ":" + hash;
+    }
+
+    public String createSession(Kullanici user) {
+        String token = java.util.UUID.randomUUID().toString();
+        aktifOturumlar.put(token, user);
+        return token;
+    }
+
+    public Kullanici getUserByToken(String token) {
+        if (token == null || token.trim().isEmpty()) return null;
+        return aktifOturumlar.get(token);
     }
 }

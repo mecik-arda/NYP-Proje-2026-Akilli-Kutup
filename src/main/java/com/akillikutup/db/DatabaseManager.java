@@ -41,9 +41,13 @@ public class DatabaseManager {
         FileEncryptionService.init();
     }
 
-    public static synchronized DatabaseManager tekOrnekAl() {
+    public static DatabaseManager tekOrnekAl() {
         if (tekOrnek == null) {
-            tekOrnek = new DatabaseManager();
+            synchronized (DatabaseManager.class) {
+                if (tekOrnek == null) {
+                    tekOrnek = new DatabaseManager();
+                }
+            }
         }
         return tekOrnek;
     }
@@ -207,18 +211,28 @@ public class DatabaseManager {
         if (materyalListesi.removeIf(m -> m.getId().equals(materyalId))) materyallariKaydet();
     }
 
-    public Kullanici kullaniciBul(String isim) {
-        for (Kullanici k : kullaniciListesi) {
-            if (k.getIsim().equals(isim)) return k;
+    public Kullanici kullaniciBul(String id) {
+        lock.readLock().lock();
+        try {
+            for (Kullanici k : kullaniciListesi) {
+                if (k.getId().equals(id)) return k;
+            }
+            return null;
+        } finally {
+            lock.readLock().unlock();
         }
-        return null;
     }
 
     public Materyal materyalBul(String id) {
-        for (Materyal m : materyalListesi) {
-            if (m.getId().equals(id)) return m;
+        lock.readLock().lock();
+        try {
+            for (Materyal m : materyalListesi) {
+                if (m.getId().equals(id)) return m;
+            }
+            return null;
+        } finally {
+            lock.readLock().unlock();
         }
-        return null;
     }
 
     public List<Materyal> materyalAra(String aramaKelimesi) {

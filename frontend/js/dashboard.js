@@ -11,6 +11,23 @@ let catalogState = {
 };
 
 document.addEventListener('DOMContentLoaded', async () => {
+  if (typeof Auth !== 'undefined') {
+      if (!Auth.isAuthenticated()) {
+          window.location.href = 'login.html';
+          return;
+      } else {
+          const u = Auth.getUser();
+          if (u) {
+              const nameEl = document.querySelector('.user-name');
+              const roleEl = document.querySelector('.user-role');
+              const avatarEl = document.querySelector('.user-avatar span:first-child');
+              if (nameEl) nameEl.textContent = u.ad + ' ' + (u.soyad || '');
+              if (roleEl) roleEl.textContent = u.rol === 'admin' ? 'Yönetici' : 'Üye';
+              if (avatarEl) avatarEl.textContent = (u.ad?.[0] || '') + (u.soyad?.[0] || '');
+          }
+      }
+  }
+
   initSidebar();
   initTheme();
   initSearch();
@@ -20,12 +37,15 @@ document.addEventListener('DOMContentLoaded', async () => {
   
   await loadDataFromAPI();
   
+  if (typeof updateDashboardStats === 'function') updateDashboardStats();
+  if (typeof updateUserInfo === 'function') updateUserInfo();
   animateStats();
   renderDonutChart();
   renderBarChart();
   renderRecentBooks();
   renderPopularBooks();
   renderMembersTable();
+  renderBorrowsTable();
   renderBookGrid();
   renderAssetGrid();
   initAddBookModal();
@@ -175,10 +195,35 @@ function initSearch() {
   });
 }
 
+let notificationsData = [
+    { id: 1, type: 'warning', icon: 'fa-exclamation-circle', text: '<strong>3 kitap</strong> iade tarihi geçmiş', time: '5 dakika önce', unread: true },
+    { id: 2, type: 'success', icon: 'fa-check-circle', text: '<strong>Dijital yedekleme</strong> tamamlandı', time: '1 saat önce', unread: true },
+    { id: 3, type: 'info', icon: 'fa-info-circle', text: 'Sistem güncellemesi <strong>v3.2.1</strong> mevcut', time: '3 saat önce', unread: false },
+    { id: 4, type: 'primary', icon: 'fa-user-plus', text: '<strong>Zeynep Aydın</strong> yeni üye olarak kaydoldu', time: 'Dün', unread: false }
+];
+
+function renderNotifications() {
+  const notifList = document.getElementById('notificationList');
+  if (!notifList) return;
+  notifList.innerHTML = notificationsData.map(n => `
+    <div class="notification-item ${n.unread ? 'unread' : ''}" data-id="${n.id}">
+      <div class="notification-icon ${n.type}"><i class="fas ${n.icon}"></i></div>
+      <div class="notification-content">
+        <p class="notification-text">${n.text}</p>
+        <span class="notification-time">${n.time}</span>
+      </div>
+    </div>
+  `).join('');
+  const dot = document.querySelector('.notification-dot');
+  if (dot) dot.style.display = notificationsData.some(n => n.unread) ? 'block' : 'none';
+}
+
 function initNotifications() {
   const notifBtn = document.getElementById('notificationBtn');
   const notifPanel = document.querySelector('.notification-panel');
   const markReadBtn = document.getElementById('markAllReadBtn');
+
+  renderNotifications();
 
   if (notifBtn && notifPanel) {
     notifBtn.addEventListener('click', (e) => {
@@ -194,11 +239,8 @@ function initNotifications() {
 
   if (markReadBtn) {
     markReadBtn.addEventListener('click', () => {
-      const unreadItems = document.querySelectorAll('.notification-item.unread');
-      unreadItems.forEach(item => {
-        item.classList.remove('unread');
-      });
-      // Optionally show a toast if available
+      notificationsData.forEach(n => n.unread = false);
+      renderNotifications();
       if (typeof showToast === 'function') {
         showToast('Tüm bildirimler okundu olarak işaretlendi.', 'success');
       }
@@ -241,6 +283,51 @@ function animateStats() {
     }, 20);
   });
 }
+
+function updateDashboardStats() {
+  const statBooks = document.querySelector('.stat-card .stat-value');
+  const statDigital = document.querySelector('.stat-card-digital .stat-value');
+  const statMembers = document.querySelector('.stat-card-members .stat-value');
+  const statBorrows = document.querySelector('.stat-card-borrows .stat-value');
+
+  if (statBooks) statBooks.dataset.target = appData.books ? appData.books.length : 0;
+  if (statDigital) statDigital.dataset.target = appData.assets ? appData.assets.length : 0;
+  if (statMembers) statMembers.dataset.target = appData.members ? appData.members.length : 0;
+  if (statBorrows) {
+    let totalBorrows = 0;
+    if (appData.books) {
+      totalBorrows = appData.books.reduce((sum, b) => sum + (b.odunc || 0), 0);
+    }
+    statBorrows.dataset.target = totalBorrows;
+  }
+
+}
+
+function updateUserInfo() {
+  if (typeof Auth !== 'undefined') {
+    const user = Auth.getUser();
+    if (user) {
+      const fullName = (user.ad + ' ' + user.soyad).trim();
+      document.querySelectorAll('.user-name').forEach(span => span.textContent = fullName);
+      document.querySelectorAll('.user-role').forEach(span => span.textContent = user.rol === 'admin' ? 'Yönetici' : 'Üye');
+      
+      const welcomeHeader = document.querySelector('h1');
+      if (welcomeHeader && welcomeHeader.textContent.includes('Hoş Geldin')) {
+        welcomeHeader.textContent = 'Hoş Geldin, ' + (user.ad || fullName) + ' 👋';
+      }
+      
+      const inputs = document.querySelectorAll('input[type="text"]');
+      inputs.forEach(input => {
+        if (input.value === 'Ahmet Yılmaz') input.value = fullName;
+      });
+
+      document.querySelectorAll('.timeline-user').forEach(span => {
+        if(span.innerHTML.includes('Ahmet Yılmaz')) span.innerHTML = `<i class="fas fa-user"></i> ${fullName}`;
+      });
+    }
+  }
+}
+
 
 function renderDonutChart() {
   const svg = document.getElementById('donutChart');
@@ -431,6 +518,71 @@ function renderMembersTable() {
   });
 }
 
+function renderBorrowsTable() {
+  const tbody = document.getElementById('borrowTableBody');
+  if (!tbody) return;
+
+  const borrows = [];
+  appData.members.forEach(m => {
+    if (m.oduncAlinanMateryaller && m.oduncAlinanMateryaller.length > 0) {
+      m.oduncAlinanMateryaller.forEach(bookId => {
+        const book = appData.books.find(b => b.id === bookId);
+        if (book) {
+          borrows.push({
+            book: book,
+            user: m,
+            // Mocking dates since backend doesn't return borrow date yet
+            date: new Date().toLocaleDateString('tr-TR')
+          });
+        }
+      });
+    }
+  });
+
+  tbody.innerHTML = borrows.map(b => `
+    <tr class="fade-in">
+        <td>${b.book.baslik}</td>
+        <td>${b.user.isim}</td>
+        <td>${b.date}</td>
+        <td>-</td>
+        <td><span class="badge badge-success">Aktif</span></td>
+        <td><button class="btn btn-sm btn-outline btn-return-book" data-bookid="${b.book.id}" data-userid="${b.user.id}">İade Al</button></td>
+    </tr>
+  `).join('');
+
+  if (borrows.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">Aktif ödünç işlemi bulunmamaktadır.</td></tr>';
+  }
+
+  tbody.querySelectorAll('.btn-return-book').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const bookId = btn.dataset.bookid;
+      const userId = btn.dataset.userid;
+      if (confirm('Kitabı iade almak istediğinize emin misiniz?')) {
+        btn.disabled = true;
+        btn.textContent = 'İşleniyor...';
+        try {
+            const res = await API.returnBook(bookId, userId);
+            if (res && res.basarili) {
+                if (typeof showToast === 'function') showToast('Kitap başarıyla iade alındı.', 'success');
+                await loadDataFromAPI();
+                renderBorrowsTable();
+                updateCatalog();
+            } else {
+                if (typeof showToast === 'function') showToast(res?.mesaj || 'İade işlemi başarısız.', 'error');
+                btn.disabled = false;
+                btn.textContent = 'İade Al';
+            }
+        } catch (e) {
+            if (typeof showToast === 'function') showToast('Bir hata oluştu.', 'error');
+            btn.disabled = false;
+            btn.textContent = 'İade Al';
+        }
+      }
+    });
+  });
+}
+
 function renderBookGrid() {
   updateCatalog();
 }
@@ -517,7 +669,11 @@ function updateCatalog() {
                 stockEl.className = 'badge badge-warning';
                 stockEl.textContent = 'Tükendi';
             }
-            
+            const borrowBtn = document.getElementById('detailsBorrowBtn');
+            if (borrowBtn) {
+                borrowBtn.dataset.id = b.id;
+                borrowBtn.style.display = b.stokAdedi > 0 ? 'inline-block' : 'none';
+            }
             document.getElementById('bookDetailsModal').classList.add('active');
         }
     });
@@ -557,6 +713,20 @@ function renderPagination(totalPages) {
 }
 
 function initCatalogFilters() {
+    const catalogFilterBtn = document.getElementById('catalogFilterBtn');
+    const catalogFilters = document.getElementById('catalogFilters');
+
+    if (catalogFilterBtn && catalogFilters) {
+        catalogFilterBtn.addEventListener('click', () => {
+            catalogFilters.classList.toggle('active');
+            if (catalogFilters.style.display === 'none' || catalogFilters.style.display === '') {
+                catalogFilters.style.display = 'flex';
+            } else {
+                catalogFilters.style.display = 'none';
+            }
+        });
+    }
+
     const filterCategory = document.getElementById('filterCategory');
     const filterStatus = document.getElementById('filterStatus');
     const filterLanguage = document.getElementById('filterLanguage');
@@ -632,6 +802,37 @@ function initAddBookModal() {
           }
       });
   });
+
+  const borrowBtn = document.getElementById('detailsBorrowBtn');
+  if (borrowBtn) {
+      borrowBtn.addEventListener('click', async () => {
+          if (!borrowBtn.dataset.id) return;
+          const user = typeof Auth !== 'undefined' ? Auth.getUser() : null;
+          if (!user) {
+              if (typeof showToast === 'function') showToast('Lütfen önce giriş yapın.', 'warning');
+              return;
+          }
+          borrowBtn.disabled = true;
+          borrowBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İşleniyor...';
+          try {
+              const res = await API.borrowBook(borrowBtn.dataset.id, user.tcNo);
+              if (res && res.basarili) {
+                  if (typeof showToast === 'function') showToast('Kitap başarıyla ödünç alındı.', 'success');
+                  detailsModal.classList.remove('active');
+                  await loadDataFromAPI();
+                  updateCatalog();
+                  renderRecentBooks();
+              } else {
+                  if (typeof showToast === 'function') showToast(res?.mesaj || 'Ödünç alma işlemi başarısız oldu.', 'error');
+              }
+          } catch (e) {
+              if (typeof showToast === 'function') showToast('Bir hata oluştu.', 'error');
+          } finally {
+              borrowBtn.disabled = false;
+              borrowBtn.innerHTML = '<i class="fas fa-hand-holding"></i> Ödünç Al';
+          }
+      });
+  }
 
   openBtns.forEach(btn => {
     if (btn) {
@@ -711,7 +912,7 @@ function initAddMemberModal() {
   });
 
   if (saveBtn && form) {
-    saveBtn.addEventListener('click', (e) => {
+    saveBtn.addEventListener('click', async (e) => {
       if (form.checkValidity()) {
         e.preventDefault();
         const name = document.getElementById('memberName').value;
@@ -720,12 +921,20 @@ function initAddMemberModal() {
         
         const editId = modal.dataset.editId;
         if (editId) {
-          const memberIndex = appData.members.findIndex(m => m.id === editId);
-          if (memberIndex !== -1) {
-            appData.members[memberIndex].isim = name;
-            appData.members[memberIndex].tcKimlikNo = tc;
-            appData.members[memberIndex].email = email;
-            showToast('Üye bilgileri güncellendi.', 'success');
+          try {
+              const res = await API.updateUser(editId, { isim: name, tcKimlikNo: tc, email: email });
+              if(res && res.basarili) {
+                  const memberIndex = appData.members.findIndex(m => m.id === editId);
+                  if (memberIndex !== -1) {
+                    appData.members[memberIndex].isim = name;
+                    appData.members[memberIndex].tcKimlikNo = tc;
+                    appData.members[memberIndex].email = email;
+                    if (typeof showToast === 'function') showToast('Üye bilgileri güncellendi.', 'success');
+                    renderMembersTable();
+                  }
+              }
+          } catch(err) {
+              if (typeof showToast === 'function') showToast('Güncelleme başarısız.', 'error');
           }
         } else {
           const newId = 'M-' + (1021 + appData.members.length);
@@ -733,9 +942,11 @@ function initAddMemberModal() {
             id: newId,
             isim: name,
             tcKimlikNo: tc,
-            email: email
+            email: email,
+            rol: 'uye'
           });
-          showToast('Yeni üye başarıyla kaydedildi.', 'success');
+          if (typeof showToast === 'function') showToast('Yeni üye başarıyla kaydedildi.', 'success');
+          renderMembersTable();
         }
 
         modal.classList.remove('active');
@@ -936,7 +1147,11 @@ function initDummyButtons() {
       userDropdownMenu.style.display = 'none';
       if (typeof showToast === 'function') showToast('Güvenli bir şekilde çıkış yapılıyor...', 'info');
       setTimeout(() => {
-        window.location.reload();
+        if (typeof Auth !== 'undefined') {
+            Auth.logout();
+        } else {
+            window.location.href = 'login.html';
+        }
       }, 1500);
     });
   }
@@ -963,8 +1178,39 @@ function initDummyButtons() {
   const downloadPdfBtn = document.getElementById('downloadPdfBtn');
   if (downloadPdfBtn) {
     downloadPdfBtn.addEventListener('click', () => {
+      const printWindow = window.open('', '_blank');
+      printWindow.document.write(`
+        <html>
+        <head>
+          <title>Kütüphane Raporu</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+          </style>
+        </head>
+        <body>
+          <h2>Akıllı Kütüphane - Güncel Durum Raporu</h2>
+          <p>Tarih: ${new Date().toLocaleDateString('tr-TR')}</p>
+          <h3>Kitaplar</h3>
+          <table>
+            <tr><th>Başlık</th><th>Yazar</th><th>Stok</th></tr>
+            ${appData.books.map(b => `<tr><td>${b.baslik}</td><td>${b.yazar || '-'}</td><td>${b.stokAdedi}</td></tr>`).join('')}
+          </table>
+          <h3>Üyeler</h3>
+          <table>
+            <tr><th>İsim</th><th>TC No</th><th>Rol</th></tr>
+            ${appData.members.map(m => `<tr><td>${m.isim}</td><td>${m.tcKimlikNo}</td><td>${m.rol}</td></tr>`).join('')}
+          </table>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+      printWindow.focus();
+      setTimeout(() => printWindow.print(), 500);
       if (typeof showToast === 'function') {
-        showToast('Rapor PDF olarak indiriliyor...', 'info');
+        showToast('Rapor PDF olarak hazırlanıyor...', 'info');
       }
     });
   }

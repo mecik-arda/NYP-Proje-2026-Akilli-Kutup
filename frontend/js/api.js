@@ -6,6 +6,15 @@ const API = (() => {
       method,
       headers: { 'Content-Type': 'application/json' }
     };
+    try {
+      const rawSession = sessionStorage.getItem('akilli_kutup_session');
+      if (rawSession) {
+        const session = JSON.parse(rawSession);
+        if (session.token) {
+          options.headers['Authorization'] = `Bearer ${session.token}`;
+        }
+      }
+    } catch(e) {}
     if (body) {
       options.body = JSON.stringify(body);
     }
@@ -63,11 +72,11 @@ const API = (() => {
   }
 
   async function borrowBook(bookId, userId) {
-    return post('/api/odunc', { kitapId: bookId, kullaniciId: userId });
+    return post('/api/odunc', { bookId: bookId, userId: userId });
   }
 
-  async function returnBook(bookId) {
-    return post('/api/iade', { kitapId: bookId });
+  async function returnBook(bookId, userId) {
+    return post('/api/iade', { bookId: bookId, userId: userId });
   }
 
   async function searchBooks(query) {
@@ -94,6 +103,10 @@ const API = (() => {
     return put(`/api/kitaplar/${bookId}`, data);
   }
 
+  async function updateUser(userId, data) {
+    return put(`/api/kullanicilar/${userId}`, data);
+  }
+
   return {
     checkServerStatus,
     getBooks,
@@ -106,6 +119,7 @@ const API = (() => {
     getStats,
     getDigitalAssets,
     deleteBook,
-    updateBook
+    updateBook,
+    updateUser
   };
 })();
