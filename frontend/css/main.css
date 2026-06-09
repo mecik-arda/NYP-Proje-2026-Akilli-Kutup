@@ -1,10 +1,8 @@
-/* ============================================
-   BiblioVault — Design System & Global Styles
-   ============================================ */
 
-/* CSS Custom Properties — Design Tokens */
+
+
 :root {
-    /* Color Palette — Dark Mode (Corporate) */
+    
     --bg-primary: #0f172a;
     --bg-secondary: #1e293b;
     --bg-tertiary: #334155;
@@ -16,13 +14,13 @@
     --bg-input: #334155;
     --bg-input-focus: #475569;
 
-    /* Text Colors */
+    
     --text-primary: #f8fafc;
     --text-secondary: #cbd5e1;
     --text-tertiary: #94a3b8;
     --text-muted: #64748b;
 
-    /* Accent Colors - Professional Blue */
+    
     --accent-primary: #2563eb;
     --accent-primary-light: #3b82f6;
     --accent-primary-dark: #1d4ed8;
@@ -48,19 +46,19 @@
     --accent-cyan-light: #06b6d4;
     --accent-cyan-glow: rgba(8, 145, 178, 0.15);
 
-    /* Borders */
+    
     --border-primary: rgba(255, 255, 255, 0.1);
     --border-secondary: rgba(255, 255, 255, 0.15);
     --border-active: rgba(37, 99, 235, 0.5);
 
-    /* Shadows */
+    
     --shadow-sm: none;
     --shadow-md: none;
     --shadow-lg: none;
     --shadow-xl: none;
     --shadow-glow: none;
 
-    /* Layout */
+    
     --sidebar-width: 280px;
     --sidebar-collapsed: 72px;
     --topbar-height: 60px;
@@ -69,18 +67,18 @@
     --border-radius-lg: 8px;
     --border-radius-xl: 12px;
 
-    /* Transitions */
+    
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 250ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 400ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
 
-    /* Typography */
+    
     --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Light Theme */
+
 [data-theme="light"] {
     --bg-primary: #f8fafc;
     --bg-secondary: #ffffff;
@@ -107,9 +105,7 @@
     --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.12);
 }
 
-/* ============================================
-   Reset & Base Styles
-   ============================================ */
+
 
 *, *::before, *::after {
     margin: 0;
@@ -134,9 +130,7 @@ body {
     min-height: 100vh;
 }
 
-/* ============================================
-   Ambient Background
-   ============================================ */
+
 
 .ambient-bg {
     display: none;
@@ -185,9 +179,7 @@ body {
     75% { transform: translate(40px, 20px) scale(1.02); }
 }
 
-/* ============================================
-   Scrollbar
-   ============================================ */
+
 
 ::-webkit-scrollbar {
     width: 6px;
@@ -207,9 +199,7 @@ body {
     background: var(--text-tertiary);
 }
 
-/* ============================================
-   Sidebar
-   ============================================ */
+
 
 .sidebar {
     position: fixed;
@@ -239,6 +229,15 @@ body {
     opacity: 0;
     visibility: hidden;
     width: 0;
+}
+
+.sidebar.collapsed .sidebar-header {
+    padding: 20px 0;
+    justify-content: center;
+}
+
+.sidebar.collapsed .logo {
+    display: none;
 }
 
 .sidebar-header {
@@ -314,7 +313,7 @@ body {
     color: var(--text-primary);
 }
 
-/* Sidebar Navigation */
+
 .sidebar-nav {
     flex: 1;
     overflow-y: auto;
@@ -412,7 +411,7 @@ body {
     50% { box-shadow: 0 0 12px 2px var(--accent-cyan-glow); }
 }
 
-/* Sidebar Footer */
+
 .sidebar-footer {
     padding: 16px;
     border-top: 1px solid var(--border-primary);
@@ -494,9 +493,7 @@ body {
     color: var(--text-primary);
 }
 
-/* ============================================
-   Main Content
-   ============================================ */
+
 
 .main-content {
     margin-left: var(--sidebar-width);
@@ -510,9 +507,7 @@ body {
     margin-left: var(--sidebar-collapsed);
 }
 
-/* ============================================
-   Top Bar
-   ============================================ */
+
 
 .topbar {
     position: sticky;
@@ -764,9 +759,7 @@ body {
     50% { transform: scale(1.2); opacity: 0.7; }
 }
 
-/* ============================================
-   Page Content
-   ============================================ */
+
 
 .page {
     display: none;
@@ -783,9 +776,7 @@ body {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* ============================================
-   Welcome Banner
-   ============================================ */
+
 
 .welcome-banner {
     background: var(--bg-card);
@@ -887,9 +878,7 @@ body {
     50% { transform: translateY(-12px); }
 }
 
-/* ============================================
-   Buttons
-   ============================================ */
+
 
 .btn {
     display: inline-flex;
@@ -945,9 +934,7 @@ body {
     color: var(--text-primary);
 }
 
-/* ============================================
-   Stats Grid
-   ============================================ */
+
 
 .stats-grid {
     display: grid;
@@ -1061,9 +1048,7 @@ body {
 .stat-card-members .sparkline { color: var(--accent-success); }
 .stat-card-borrows .sparkline { color: var(--accent-warning); }
 
-/* ============================================
-   Dashboard Grid
-   ============================================ */
+
 
 .dashboard-grid {
     display: grid;
@@ -1071,9 +1056,7 @@ body {
     gap: 20px;
 }
 
-/* ============================================
-   Cards
-   ============================================ */
+
 
 .card {
     background: var(--bg-card);
@@ -1138,9 +1121,7 @@ body {
     transform: translateX(3px);
 }
 
-/* ============================================
-   Chart Card
-   ============================================ */
+
 
 .chart-container {
     height: 220px;
@@ -1206,9 +1187,7 @@ body {
     border-radius: 50%;
 }
 
-/* ============================================
-   Category Card
-   ============================================ */
+
 
 .donut-container {
     position: relative;
@@ -1291,9 +1270,7 @@ body {
     text-align: right;
 }
 
-/* ============================================
-   Recent Books Card
-   ============================================ */
+
 
 .book-list {
     display: flex;
@@ -1394,9 +1371,7 @@ body {
     color: var(--accent-purple);
 }
 
-/* ============================================
-   Digital Assets Card
-   ============================================ */
+
 
 .storage-overview {
     margin-bottom: 24px;
@@ -1497,9 +1472,7 @@ body {
     font-family: var(--font-mono);
 }
 
-/* ============================================
-   Timeline
-   ============================================ */
+
 
 .timeline {
     position: relative;
@@ -1590,9 +1563,7 @@ body {
     gap: 6px;
 }
 
-/* ============================================
-   Popular Books
-   ============================================ */
+
 
 .popular-list {
     display: flex;
@@ -1665,9 +1636,7 @@ body {
     font-size: 10px;
 }
 
-/* ============================================
-   Catalog Page
-   ============================================ */
+
 
 .page-header {
     display: flex;
@@ -1788,7 +1757,7 @@ body {
     color: white;
 }
 
-/* Book Grid */
+
 .book-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
@@ -1909,7 +1878,7 @@ body {
     font-family: var(--font-mono);
 }
 
-/* Pagination */
+
 .pagination {
     display: flex;
     justify-content: center;
@@ -1956,9 +1925,7 @@ body {
     font-size: 14px;
 }
 
-/* ============================================
-   Digital Assets Page
-   ============================================ */
+
 
 .asset-tabs {
     display: flex;
@@ -2065,9 +2032,7 @@ body {
     color: var(--text-tertiary);
 }
 
-/* ============================================
-   Members Table
-   ============================================ */
+
 
 .members-table-container {
     background: var(--bg-card);
@@ -2196,9 +2161,7 @@ body {
     border-color: var(--border-secondary);
 }
 
-/* ============================================
-   Empty State
-   ============================================ */
+
 
 .empty-state {
     text-align: center;
@@ -2232,9 +2195,7 @@ body {
     margin: 0 auto;
 }
 
-/* ============================================
-   AI Assistant
-   ============================================ */
+
 
 .ai-assistant-container {
     background: var(--bg-card);
@@ -2393,9 +2354,7 @@ body {
     box-shadow: 0 4px 15px var(--accent-primary-glow);
 }
 
-/* ============================================
-   Modal
-   ============================================ */
+
 
 .modal-overlay {
     position: fixed;
@@ -2482,7 +2441,7 @@ body {
     border-top: 1px solid var(--border-primary);
 }
 
-/* Form Styles */
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2567,9 +2526,7 @@ body {
     color: var(--text-muted);
 }
 
-/* ============================================
-   Notification Panel
-   ============================================ */
+
 
 .notification-panel {
     position: fixed;
@@ -2666,9 +2623,7 @@ body {
     display: block;
 }
 
-/* ============================================
-   Toast Notifications
-   ============================================ */
+
 
 .toast-container {
     position: fixed;
@@ -2730,9 +2685,7 @@ body {
     color: var(--text-primary);
 }
 
-/* ============================================
-   Responsive Styles
-   ============================================ */
+
 
 @media (max-width: 1200px) {
     .stats-grid {
@@ -2844,9 +2797,7 @@ body {
     }
 }
 
-/* ============================================
-   Animations & Enhancements
-   ============================================ */
+
 .fade-in {
     animation: fadeIn 0.5s ease-out forwards;
 }
@@ -2878,7 +2829,7 @@ body {
     border-color: var(--accent-primary);
 }
 
-/* List View Styles */
+
 .book-grid.list-view { grid-template-columns: 1fr; }
 .book-grid.list-view .book-card { display: flex; align-items: center; height: 100px; padding: 10px; }
 .book-grid.list-view .book-cover { width: 60px; height: 80px; flex-shrink: 0; }

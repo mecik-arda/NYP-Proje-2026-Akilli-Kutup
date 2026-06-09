@@ -40,3 +40,6 @@ kullanicilar.txt
 # Database backups and secret keys
 data/backup/
 data/secret.key
+data/config.json
+data/users.json
+data/materials.json

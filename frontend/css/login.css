@@ -252,7 +252,7 @@ body.login-page {
   }
   .login-left {
     padding: 2rem;
-    display: none; /* Hide image on mobile for cleaner look */
+    display: none; 
   }
   .login-right {
     padding: 2.5rem 2rem;

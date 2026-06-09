@@ -19,13 +19,10 @@ public class LibraryManager {
 
         if (users.isEmpty()) {
             com.akillikutup.auth.AuthManager auth = new com.akillikutup.auth.AuthManager();
-            users.add(new Admin("Ahmet Guler", "11122233344", auth.registerPassword("admin123")));
-            users.add(new Admin("Eren Gider", "1231602061", auth.registerPassword("TestSifresi")));
-            users.add(new Uye("Ayse Demir", "55544433322", auth.registerPassword("uye123")));
-            users.add(new Uye("Mehmet Yilmaz", "12345678901", auth.registerPassword("mehmet1")));
-            users.add(new Uye("Fatma Kaya", "98765432100", auth.registerPassword("fatma1")));
-            users.add(new Uye("Ali Celik", "11223344556", auth.registerPassword("ali1")));
-            users.add(new Uye("Zeynep Ozturk", "66778899001", auth.registerPassword("zeynep1")));
+            users.add(new Admin("Ahmet Guler", "11111111111", auth.registerPassword("12345678")));
+            users.add(new Admin("Arda Mecik", "22222222222", auth.registerPassword("12345678")));
+            users.add(new Admin("Eren Gider", "33333333333", auth.registerPassword("12345678")));
+            users.add(new Uye("Goktug Berke Kuzucu", "44444444444", auth.registerPassword("12345678")));
             com.akillikutup.db.DatabaseManager.tekOrnekAl().kaydet(users, materials);
         }
 
@@ -55,11 +52,11 @@ public class LibraryManager {
     }
 
     public List<Kullanici> getUsers() {
-        return users;
+        return com.akillikutup.db.DatabaseManager.tekOrnekAl().getKullaniciListesi();
     }
 
     public List<Materyal> getMaterials() {
-        return materials;
+        return com.akillikutup.db.DatabaseManager.tekOrnekAl().getMateryalListesi();
     }
 
     public Kullanici getCurrentUser() {

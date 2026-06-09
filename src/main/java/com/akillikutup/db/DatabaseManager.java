@@ -23,6 +23,8 @@ public class DatabaseManager {
 
     private List<Kullanici> kullaniciListesi;
     private List<Materyal> materyalListesi;
+    private long sonKullaniciDosyaTarihi = 0;
+    private long sonMateryalDosyaTarihi = 0;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final BackupManager backupManager;
 
@@ -142,6 +144,7 @@ public class DatabaseManager {
                 kullaniciListesi = new ArrayList<>();
             }
         }
+        sonKullaniciDosyaTarihi = dosya.lastModified();
         return kullaniciListesi;
     }
 
@@ -165,6 +168,7 @@ public class DatabaseManager {
                 materyalListesi = new ArrayList<>();
             }
         }
+        sonMateryalDosyaTarihi = dosya.lastModified();
         return materyalListesi;
     }
 
@@ -251,6 +255,17 @@ public class DatabaseManager {
     }
 
     public List<Kullanici> getKullaniciListesi() {
+        File f = new File(KULLANICI_DOSYASI);
+        if (f.exists() && f.lastModified() > sonKullaniciDosyaTarihi) {
+            lock.writeLock().lock();
+            try {
+                if (f.exists() && f.lastModified() > sonKullaniciDosyaTarihi) {
+                    kullanicilariYukle();
+                }
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
         lock.readLock().lock();
         try {
             return new ArrayList<>(kullaniciListesi);
@@ -260,6 +275,17 @@ public class DatabaseManager {
     }
 
     public List<Materyal> getMateryalListesi() {
+        File f = new File(MATERYAL_DOSYASI);
+        if (f.exists() && f.lastModified() > sonMateryalDosyaTarihi) {
+            lock.writeLock().lock();
+            try {
+                if (f.exists() && f.lastModified() > sonMateryalDosyaTarihi) {
+                    materyallariYukle();
+                }
+            } finally {
+                lock.writeLock().unlock();
+            }
+        }
         lock.readLock().lock();
         try {
             return new ArrayList<>(materyalListesi);

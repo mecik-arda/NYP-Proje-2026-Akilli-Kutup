@@ -3,18 +3,17 @@ package com.akillikutup.auth;
 import com.akillikutup.core.Kullanici;
 import com.akillikutup.db.DatabaseManager;
 
-import java.security.MessageDigest;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
 import java.security.NoSuchAlgorithmException;
 import java.security.SecureRandom;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthManager {
     private final DatabaseManager db;
-    private static final Map<String, Kullanici> aktifOturumlar = new ConcurrentHashMap<>();
 
     public AuthManager() {
         this.db = DatabaseManager.tekOrnekAl();
@@ -22,12 +21,14 @@ public class AuthManager {
 
     public String hashPassword(String password, byte[] salt) {
         try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            digest.update(salt);
-            byte[] encodedhash = digest.digest(password.getBytes());
-            return Base64.getEncoder().encodeToString(encodedhash);
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            int iterations = 65536;
+            int keyLength = 256;
+            PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
+            SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            byte[] hash = skf.generateSecret(spec).getEncoded();
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            throw new RuntimeException("Parola hashlenirken hata: " + e.getMessage(), e);
         }
     }
 
@@ -51,7 +52,7 @@ public class AuthManager {
                                 byte[] salt = Base64.getDecoder().decode(parts[0]);
                                 String expectedHash = parts[1];
                                 String actualHash = hashPassword(plainPassword, salt);
-                                return MessageDigest.isEqual(expectedHash.getBytes(java.nio.charset.StandardCharsets.UTF_8), actualHash.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+                                return expectedHash.equals(actualHash);
                             } catch (Exception e) {
                                 return false;
                             }
@@ -72,12 +73,17 @@ public class AuthManager {
 
     public String createSession(Kullanici user) {
         String token = java.util.UUID.randomUUID().toString();
-        aktifOturumlar.put(token, user);
+        user.setToken(token);
+        db.kullanicilariKaydet();
         return token;
     }
 
     public Kullanici getUserByToken(String token) {
         if (token == null || token.trim().isEmpty()) return null;
-        return aktifOturumlar.get(token);
+        List<Kullanici> kullanicilar = db.getKullaniciListesi();
+        return kullanicilar.stream()
+                .filter(k -> token.equals(k.getToken()))
+                .findFirst()
+                .orElse(null);
     }
 }

@@ -33,6 +33,10 @@ public class ApiServer {
             server.createContext("/api/giris", new LoginHandler());
             server.createContext("/api/odunc", new OduncHandler());
             server.createContext("/api/iade", new IadeHandler());
+            server.createContext("/api/profil", new ProfilHandler());
+            server.createContext("/api/sifre", new SifreHandler());
+            server.createContext("/api/bildirimler", new BildirimlerHandler());
+            server.createContext("/api/bildirimler/okundu", new BildirimOkunduHandler());
             server.createContext("/", new StaticFileHandler("frontend"));
             server.setExecutor(null);
             server.start();
@@ -329,6 +333,87 @@ public class ApiServer {
                 JsonObject response = new JsonObject();
                 response.addProperty("response", aiResponse);
                 sendResponse(t, 200, gson.toJson(response));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class ProfilHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici user = verifyAuth(t);
+                if (user == null) return;
+                
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String isim = body.has("isim") ? body.get("isim").getAsString() : null;
+                
+                if (isim != null && !isim.isEmpty()) {
+                    user.setIsim(isim);
+                    DatabaseManager.tekOrnekAl().kullanicilariKaydet();
+                    sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Profil guncellendi\"}");
+                } else {
+                    sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Gecersiz veri\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class SifreHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici user = verifyAuth(t);
+                if (user == null) return;
+                
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                String eskiSifre = body.has("eskiSifre") ? body.get("eskiSifre").getAsString() : "";
+                String yeniSifre = body.has("yeniSifre") ? body.get("yeniSifre").getAsString() : "";
+                
+                com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
+                if (authManager.login(user.getTcNoDogrudan(), eskiSifre) != null) {
+                    user.setSifre(authManager.registerPassword(yeniSifre));
+                    DatabaseManager.tekOrnekAl().kullanicilariKaydet();
+                    sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Sifre degistirildi\"}");
+                } else {
+                    sendResponse(t, 401, "{\"basarili\":false, \"mesaj\":\"Mevcut sifre hatali\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class BildirimlerHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici user = verifyAuth(t);
+                if (user == null) return;
+                
+                List<com.akillikutup.core.Bildirim> bildirimler = user.getBildirimler();
+                sendResponse(t, 200, gson.toJson(bildirimler));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class BildirimOkunduHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici user = verifyAuth(t);
+                if (user == null) return;
+                
+                for (com.akillikutup.core.Bildirim b : user.getBildirimler()) {
+                    b.setUnread(false);
+                }
+                DatabaseManager.tekOrnekAl().kullanicilariKaydet();
+                sendResponse(t, 200, "{\"basarili\":true}");
             } else {
                 t.sendResponseHeaders(405, -1);
             }

@@ -326,7 +326,13 @@ public class DatabaseManagerTest {
         db.kaydet(kullanicilar, materyaller);
 
         File backupDir = new File("data/backup");
+        if (backupDir.exists() && backupDir.listFiles() != null) {
+            for (File f : backupDir.listFiles()) {
+                f.delete();
+            }
+        }
         int oncekiYedekSayisi = backupDir.exists() && backupDir.listFiles() != null ? backupDir.listFiles().length : 0;
+        try { Thread.sleep(1000); } catch (InterruptedException e) {}
         db.yedekle();
         int sonrakiYedekSayisi = backupDir.listFiles().length;
 

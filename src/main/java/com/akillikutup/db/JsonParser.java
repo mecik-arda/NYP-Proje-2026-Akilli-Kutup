@@ -22,6 +22,9 @@ public class JsonParser {
             obj.addProperty("tcNo", k.getTcNoDogrudan());
             obj.addProperty("rol", k.getRol());
             obj.addProperty("sifre", k.getSifre());
+            if (k.getToken() != null) {
+                obj.addProperty("token", k.getToken());
+            }
             obj.addProperty("krediPuani", k.getKrediPuani());
             JsonArray oduncArray = new JsonArray();
             for(String matId : k.getOduncAlinanMateryaller()) {
@@ -85,6 +88,10 @@ public class JsonParser {
                 if (id != null) {
                     kullanici.setId(id);
                 }
+                String token = getAsString(obj, "token");
+                if (token != null) {
+                    kullanici.setToken(token);
+                }
                 if (obj.has("oduncAlinanMateryaller") && !obj.get("oduncAlinanMateryaller").isJsonNull()) {
                     JsonArray oduncArr = obj.getAsJsonArray("oduncAlinanMateryaller");
                     for (JsonElement e : oduncArr) {
@@ -120,9 +127,9 @@ public class JsonParser {
                 } else if ("DijitalMedya".equals(tur)) {
                     String dosyaFormati = getAsString(obj, "dosyaFormati");
                     materyal = new DijitalMedya(baslik, birimFiyat, dosyaFormati);
-                    // Internal state restore (Optional based on constructor, but we'll try to set what we can)
+                    
                 } else {
-                    continue; // Skip unknown
+                    continue; 
                 }
                 materyal.setId(id);
                 sonuc.add(materyal);

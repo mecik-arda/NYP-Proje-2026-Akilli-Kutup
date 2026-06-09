@@ -28,6 +28,18 @@ public class DataInserter {
         materials.add(new DijitalMedya("Data Structures & Algorithms", 110.0, "PDF"));
         materials.add(new Kitap("Clean Code", 4, 250.0, "978-0132350884"));
         materials.add(new Kitap("Design Patterns", 2, 200.0, "978-0201633610"));
+
+        Materyal m1 = materials.get(0); 
+        Materyal m2 = materials.get(1); 
+        Materyal m3 = materials.get(5); 
+
+        m1.oduncVer();
+        users.get(2).materyalOduncAl(m1.getId()); 
+
+        m2.oduncVer();
+        m3.oduncVer();
+        users.get(3).materyalOduncAl(m2.getId()); 
+        users.get(3).materyalOduncAl(m3.getId()); 
         
         db.senkronizeEt(users, materials);
         

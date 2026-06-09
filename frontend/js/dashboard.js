@@ -69,9 +69,16 @@ async function loadDataFromAPI() {
         }
     } catch (e) {
         console.error("API baglanti hatasi", e);
+        if (e.message && (e.message.includes('Yetkisiz') || e.message.includes('401'))) {
+            if (typeof showToast === 'function') showToast('Oturumunuzun süresi doldu. Lütfen tekrar giriş yapın.', 'error');
+            setTimeout(() => {
+                if (typeof Auth !== 'undefined') Auth.logout();
+                window.location.href = 'login.html';
+            }, 1500);
+            return;
+        }
     }
     
-    // UI'in bos ve anlamsiz kalmamasi adina (API kapaliysa vs.) Gercekci Dummy veriler:
     if (!appData.books || appData.books.length === 0) {
         appData.books = [
             { id: 1, baslik: 'Kürk Mantolu Madonna', yazar: 'Sabahattin Ali', stokAdedi: 5, birimFiyat: 45, odunc: 15 },
@@ -105,14 +112,13 @@ async function loadDataFromAPI() {
 
 function applyRBAC() {
   if (!Auth.isAdmin()) {
-    // Üyeler, Raporlar ve Ayarlar sayfalarını gizle
+    
     const restrictedNavs = ['nav-members', 'nav-reports', 'nav-settings'];
     restrictedNavs.forEach(id => {
       const el = document.getElementById(id);
       if (el) el.style.display = 'none';
     });
 
-    // Yeni Kitap Ekle, Yeni Üye, Düzenle, Sil butonlarını gizlemek için CSS
     const style = document.createElement('style');
     style.innerHTML = `
       .admin-only,
@@ -128,7 +134,6 @@ function applyRBAC() {
     `;
     document.head.appendChild(style);
 
-    // Eğer aktif sekme bunlardan biriyse Dashboard'a yönlendir
     const restrictedPages = ['members', 'reports', 'settings'];
     const activeNav = document.querySelector('.nav-item.active');
     if (activeNav && restrictedPages.includes(activeNav.dataset.page)) {
@@ -233,16 +238,17 @@ function initSearch() {
   });
 }
 
-let notificationsData = [
-    { id: 1, type: 'warning', icon: 'fa-exclamation-circle', text: '<strong>3 kitap</strong> iade tarihi geçmiş', time: '5 dakika önce', unread: true },
-    { id: 2, type: 'success', icon: 'fa-check-circle', text: '<strong>Dijital yedekleme</strong> tamamlandı', time: '1 saat önce', unread: true },
-    { id: 3, type: 'info', icon: 'fa-info-circle', text: 'Sistem güncellemesi <strong>v3.2.1</strong> mevcut', time: '3 saat önce', unread: false },
-    { id: 4, type: 'primary', icon: 'fa-user-plus', text: '<strong>Zeynep Aydın</strong> yeni üye olarak kaydoldu', time: 'Dün', unread: false }
-];
+let notificationsData = [];
 
 function renderNotifications() {
   const notifList = document.getElementById('notificationList');
   if (!notifList) return;
+  if (!notificationsData || notificationsData.length === 0) {
+      notifList.innerHTML = '<div style="padding: 15px; text-align: center; color: var(--text-tertiary);">Bildiriminiz yok.</div>';
+      const dot = document.querySelector('.notification-dot');
+      if (dot) dot.style.display = 'none';
+      return;
+  }
   notifList.innerHTML = notificationsData.map(n => `
     <div class="notification-item ${n.unread ? 'unread' : ''}" data-id="${n.id}">
       <div class="notification-icon ${n.type}"><i class="fas ${n.icon}"></i></div>
@@ -256,12 +262,21 @@ function renderNotifications() {
   if (dot) dot.style.display = notificationsData.some(n => n.unread) ? 'block' : 'none';
 }
 
+async function fetchNotifications() {
+  try {
+    notificationsData = await API.getNotifications() || [];
+    renderNotifications();
+  } catch(e) {
+    console.error("Bildirimler alinamadi", e);
+  }
+}
+
 function initNotifications() {
   const notifBtn = document.getElementById('notificationBtn');
   const notifPanel = document.querySelector('.notification-panel');
   const markReadBtn = document.getElementById('markAllReadBtn');
 
-  renderNotifications();
+  fetchNotifications();
 
   if (notifBtn && notifPanel) {
     notifBtn.addEventListener('click', (e) => {
@@ -276,11 +291,16 @@ function initNotifications() {
   }
 
   if (markReadBtn) {
-    markReadBtn.addEventListener('click', () => {
-      notificationsData.forEach(n => n.unread = false);
-      renderNotifications();
-      if (typeof showToast === 'function') {
-        showToast('Tüm bildirimler okundu olarak işaretlendi.', 'success');
+    markReadBtn.addEventListener('click', async () => {
+      try {
+        await API.markAllNotificationsRead();
+        notificationsData.forEach(n => n.unread = false);
+        renderNotifications();
+        if (typeof showToast === 'function') {
+          showToast('Tüm bildirimler okundu olarak işaretlendi.', 'success');
+        }
+      } catch (e) {
+        if (typeof showToast === 'function') showToast('Hata oluştu.', 'error');
       }
     });
   }
@@ -366,7 +386,6 @@ function updateUserInfo() {
   }
 }
 
-
 function renderDonutChart() {
   const svg = document.getElementById('donutChart');
   if (!svg) return;
@@ -400,7 +419,7 @@ function renderDonutChart() {
     circle.setAttribute('stroke-dasharray', `${dashLength} ${circumference - dashLength}`);
     circle.setAttribute('stroke-dashoffset', `${-offset}`);
     circle.setAttribute('transform', `rotate(-90 ${cx} ${cy})`);
-    circle.style.animation = 'dash 1.5s ease-out forwards'; // CSS Animasyon entegrasyonu
+    circle.style.animation = 'dash 1.5s ease-out forwards'; 
     svg.appendChild(circle);
     offset += dashLength;
   });
@@ -524,7 +543,6 @@ function renderMembersTable() {
     memberBadge.textContent = appData.members.length;
   }
 
-  // Bind event listeners to delete buttons
   tbody.querySelectorAll('.btn-delete-member').forEach(btn => {
     btn.addEventListener('click', () => {
       const memberId = btn.dataset.id;
@@ -536,7 +554,6 @@ function renderMembersTable() {
     });
   });
 
-  // Bind event listeners to edit buttons
   tbody.querySelectorAll('.btn-edit-member').forEach(btn => {
     btn.addEventListener('click', () => {
       const memberId = btn.dataset.id;
@@ -560,16 +577,21 @@ function renderBorrowsTable() {
   const tbody = document.getElementById('borrowTableBody');
   if (!tbody) return;
 
+  const bookMap = new Map();
+  if (appData.books && appData.books.length > 0) {
+      appData.books.forEach(b => bookMap.set(b.id, b));
+  }
+
   const borrows = [];
   appData.members.forEach(m => {
     if (m.oduncAlinanMateryaller && m.oduncAlinanMateryaller.length > 0) {
       m.oduncAlinanMateryaller.forEach(bookId => {
-        const book = appData.books.find(b => b.id === bookId);
+        const book = bookMap.get(bookId);
         if (book) {
           borrows.push({
             book: book,
             user: m,
-            // Mocking dates since backend doesn't return borrow date yet
+            
             date: new Date().toLocaleDateString('tr-TR')
           });
         }
@@ -825,7 +847,6 @@ function initAddBookModal() {
   const form = document.getElementById('addBookForm');
   const saveBtn = document.getElementById('modalSaveBtn');
   
-  // Book Details Modal kapatma işlemleri
   const detailsModal = document.getElementById('bookDetailsModal');
   const detailsCloseBtns = [
       document.getElementById('detailsModalClose'),
@@ -1125,7 +1146,6 @@ function initDummyButtons() {
     });
   }
 
-  // Profil Düzenle Modal
   const editProfileBtn = document.getElementById('editProfileBtn');
   const profileModal = document.getElementById('profileModal');
   const profileModalClose = document.getElementById('profileModalClose');
@@ -1136,6 +1156,13 @@ function initDummyButtons() {
     editProfileBtn.addEventListener('click', (e) => {
       e.preventDefault();
       userDropdownMenu.style.display = 'none';
+      const currentUser = typeof Auth !== 'undefined' ? Auth.getUser() : null;
+      if (currentUser) {
+          const profileNameInput = document.getElementById('profileNameInput');
+          const profileRoleInput = document.getElementById('profileRoleInput');
+          if (profileNameInput) profileNameInput.value = currentUser.ad || currentUser.isim || '';
+          if (profileRoleInput) profileRoleInput.value = currentUser.rol || '';
+      }
       profileModal.classList.add('active');
     });
 
@@ -1144,14 +1171,21 @@ function initDummyButtons() {
     });
 
     if (profileSaveBtn) {
-      profileSaveBtn.addEventListener('click', () => {
-        if (typeof showToast === 'function') showToast('Profil başarıyla güncellendi.', 'success');
-        profileModal.classList.remove('active');
+      profileSaveBtn.addEventListener('click', async () => {
+        const profileNameInput = document.getElementById('profileNameInput');
+        if (profileNameInput) {
+            try {
+                await API.updateProfile({ isim: profileNameInput.value });
+                if (typeof showToast === 'function') showToast('Profil başarıyla güncellendi. Lütfen tekrar giriş yapın.', 'success');
+                profileModal.classList.remove('active');
+            } catch (err) {
+                if (typeof showToast === 'function') showToast('Profil güncellenirken hata oluştu.', 'error');
+            }
+        }
       });
     }
   }
 
-  // Şifre Değiştir Modal
   const changePasswordBtn = document.getElementById('changePasswordBtn');
   const passwordModal = document.getElementById('passwordModal');
   const passwordModalClose = document.getElementById('passwordModalClose');
@@ -1170,14 +1204,32 @@ function initDummyButtons() {
     });
 
     if (passwordSaveBtn) {
-      passwordSaveBtn.addEventListener('click', () => {
-        if (typeof showToast === 'function') showToast('Şifreniz başarıyla değiştirildi.', 'success');
-        passwordModal.classList.remove('active');
+      passwordSaveBtn.addEventListener('click', async () => {
+        const oldPw = document.getElementById('oldPasswordInput')?.value;
+        const newPw = document.getElementById('newPasswordInput')?.value;
+        const confirmPw = document.getElementById('newPasswordConfirmInput')?.value;
+        
+        if (!oldPw || !newPw || !confirmPw) {
+            if (typeof showToast === 'function') showToast('Tüm alanları doldurun.', 'error');
+            return;
+        }
+        if (newPw !== confirmPw) {
+            if (typeof showToast === 'function') showToast('Yeni şifreler eşleşmiyor.', 'error');
+            return;
+        }
+        
+        try {
+            await API.updatePassword({ eskiSifre: oldPw, yeniSifre: newPw });
+            if (typeof showToast === 'function') showToast('Şifreniz başarıyla değiştirildi.', 'success');
+            passwordModal.classList.remove('active');
+            document.getElementById('passwordForm')?.reset();
+        } catch (err) {
+            if (typeof showToast === 'function') showToast('Mevcut şifre hatalı veya bir hata oluştu.', 'error');
+        }
       });
     }
   }
 
-  // Çıkış Yap
   const logoutBtn = document.getElementById('logoutBtn');
   if (logoutBtn) {
     logoutBtn.addEventListener('click', (e) => {
@@ -1207,10 +1259,63 @@ function initDummyButtons() {
   const newBorrowBtn = document.getElementById('newBorrowBtn');
   if (newBorrowBtn) {
     newBorrowBtn.addEventListener('click', () => {
-      if (typeof showToast === 'function') {
-        showToast('Yeni ödünç verme paneli açılıyor...', 'info');
+      const modal = document.getElementById('borrowManualModal');
+      const userSelect = document.getElementById('borrowManualUserSelect');
+      const bookSelect = document.getElementById('borrowManualBookSelect');
+      
+      if (modal && userSelect && bookSelect) {
+          userSelect.innerHTML = appData.members.map(u => `<option value="${u.id}">${u.isim} (${u.tcKimlikNo})</option>`).join('');
+          bookSelect.innerHTML = appData.books.filter(b => b.stokAdedi > 0).map(b => `<option value="${b.id}">${b.baslik}</option>`).join('');
+          modal.classList.add('active');
       }
     });
+  }
+
+  const borrowManualModalClose = document.getElementById('borrowManualModalClose');
+  const borrowManualModalCancel = document.getElementById('borrowManualModalCancel');
+  const borrowManualSaveBtn = document.getElementById('borrowManualSaveBtn');
+
+  const closeBorrowManualModal = () => {
+      const modal = document.getElementById('borrowManualModal');
+      if (modal) modal.classList.remove('active');
+  };
+
+  if (borrowManualModalClose) borrowManualModalClose.addEventListener('click', closeBorrowManualModal);
+  if (borrowManualModalCancel) borrowManualModalCancel.addEventListener('click', closeBorrowManualModal);
+  
+  if (borrowManualSaveBtn) {
+      borrowManualSaveBtn.addEventListener('click', async () => {
+          const userId = document.getElementById('borrowManualUserSelect').value;
+          const bookId = document.getElementById('borrowManualBookSelect').value;
+          if (!userId || !bookId) {
+              if (typeof showToast === 'function') showToast('Lütfen kullanıcı ve kitap seçin.', 'error');
+              return;
+          }
+          
+          borrowManualSaveBtn.disabled = true;
+          borrowManualSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> İşleniyor...';
+          
+          try {
+              if (typeof API !== 'undefined') {
+                  const res = await API.borrowBook(bookId, userId);
+                  if (res && res.basarili) {
+                      if (typeof showToast === 'function') showToast('Kitap başarıyla ödünç verildi.', 'success');
+                      closeBorrowManualModal();
+                      await loadDataFromAPI();
+                      renderBorrowsTable();
+                      updateCatalog();
+                      renderRecentBooks();
+                  } else {
+                      if (typeof showToast === 'function') showToast(res?.mesaj || 'İşlem başarısız.', 'error');
+                  }
+              }
+          } catch(e) {
+              if (typeof showToast === 'function') showToast('Bir hata oluştu.', 'error');
+          } finally {
+              borrowManualSaveBtn.disabled = false;
+              borrowManualSaveBtn.innerHTML = '<i class="fas fa-check"></i> Ödünç Ver';
+          }
+      });
   }
 
   const downloadPdfBtn = document.getElementById('downloadPdfBtn');

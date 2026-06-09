@@ -110,7 +110,7 @@ public class FileEncryptionService {
                 Files.setPosixFilePermissions(yol, PosixFilePermissions.fromString("rwx------"));
             }
         } catch (UnsupportedOperationException e) {
-            // Desteklenmiyor, atla
+            
         } catch (Exception e) {
             System.err.println("UYARI: Dosya erisimi kisitlanamadi (" + yol.toString() + "): " + e.getMessage());
         }

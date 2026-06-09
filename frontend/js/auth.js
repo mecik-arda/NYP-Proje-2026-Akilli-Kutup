@@ -30,7 +30,7 @@ const Auth = (() => {
           return { success: false, message: errorObj.mesaj };
         }
       } catch (parseErr) {
-        // Not JSON
+        
       }
       return { success: false, message: err.message || 'Bir hata oluştu.' };
     }

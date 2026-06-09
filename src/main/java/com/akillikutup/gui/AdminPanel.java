@@ -22,7 +22,6 @@ public class AdminPanel extends JPanel {
         this.mainFrame = mainFrame;
         setLayout(new BorderLayout());
 
-
         JPanel topPanel = new JPanel(new BorderLayout());
         JPanel leftTop = new JPanel(new GridLayout(2, 1));
         welcomeLabel = new JLabel("Admin Paneli");
@@ -42,7 +41,6 @@ public class AdminPanel extends JPanel {
         add(topPanel, BorderLayout.NORTH);
 
         JTabbedPane tabbedPane = new JTabbedPane();
-
 
         JPanel materyalPanel = new JPanel(new BorderLayout());
 
@@ -162,7 +160,6 @@ public class AdminPanel extends JPanel {
         materyalPanel.add(matBottomPanel, BorderLayout.SOUTH);
         tabbedPane.addTab("Materyal Yönetimi", materyalPanel);
 
-
         JPanel uyePanel = new JPanel(new BorderLayout());
 
         String[] userColumnNames = {"İsim", "Rol", "TC Kimlik No", "Kredi Puanı"};
@@ -176,7 +173,6 @@ public class AdminPanel extends JPanel {
 
         JPanel userButtonPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         userButtonPanel.setBorder(BorderFactory.createTitledBorder("Üye İşlemleri"));
-
 
         JButton detailButton = new JButton("Detay Görüntüle");
         detailButton.addActionListener(e -> {
@@ -193,7 +189,6 @@ public class AdminPanel extends JPanel {
             JOptionPane.showMessageDialog(this, detay, "Kullanıcı Detay", JOptionPane.INFORMATION_MESSAGE);
         });
         userButtonPanel.add(detailButton);
-
 
         JButton deleteUserButton = new JButton("Üyeyi Sil");
         deleteUserButton.addActionListener(e -> {
@@ -216,7 +211,6 @@ public class AdminPanel extends JPanel {
             }
         });
         userButtonPanel.add(deleteUserButton);
-
 
         JButton updatePointsButton = new JButton("Kredi Güncelle");
         updatePointsButton.addActionListener(e -> {
@@ -243,7 +237,6 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(updatePointsButton);
 
-
         JButton changeTcButton = new JButton("TC Değiştir");
         changeTcButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -265,7 +258,6 @@ public class AdminPanel extends JPanel {
         });
         userButtonPanel.add(changeTcButton);
 
-
         JButton resetPassButton = new JButton("Şifre Sıfırla");
         resetPassButton.addActionListener(e -> {
             Kullanici secilen = getSelectedUser();
@@ -280,7 +272,6 @@ public class AdminPanel extends JPanel {
             }
         });
         userButtonPanel.add(resetPassButton);
-
 
         JButton changeNameButton = new JButton("İsim Değiştir");
         changeNameButton.addActionListener(e -> {
@@ -335,7 +326,6 @@ public class AdminPanel extends JPanel {
             welcomeLabel.setText("Hoş geldiniz, " + currentUser.getIsim() + " (Admin)");
         }
 
-
         int toplamUye = 0, toplamAdmin = 0;
         for (Kullanici k : LibraryManager.getInstance().getUsers()) {
             if (k.getRol().equals("ADMIN")) toplamAdmin++;
@@ -344,7 +334,6 @@ public class AdminPanel extends JPanel {
         int toplamMateryal = LibraryManager.getInstance().getMaterials().size();
         statsLabel.setText("Toplam: " + toplamAdmin + " Admin, " + toplamUye + " Üye, " + toplamMateryal + " Materyal");
 
-
         materialTableModel.setRowCount(0);
         List<Materyal> materials = LibraryManager.getInstance().getMaterials();
         for (Materyal m : materials) {
@@ -352,7 +341,6 @@ public class AdminPanel extends JPanel {
             String stok = m instanceof Kitap ? String.valueOf(m.getStokAdedi()) : "Sınırsız";
             materialTableModel.addRow(new Object[]{m.getId(), m.getBaslik(), tur, stok, m.getBirimFiyat()});
         }
-
 
         userTableModel.setRowCount(0);
         Kullanici admin = LibraryManager.getInstance().getCurrentUser();

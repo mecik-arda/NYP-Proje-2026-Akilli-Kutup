@@ -6,8 +6,10 @@ public abstract class Kullanici {
     private String tcNo;
     private String rol;
     private String sifre;
+    private String token;
     protected int krediPuani;
     protected java.util.List<String> oduncAlinanMateryaller;
+    protected java.util.List<Bildirim> bildirimler;
 
     public Kullanici(String isim, String tcNo, String rol, String sifre) {
         this.id = java.util.UUID.randomUUID().toString();
@@ -17,6 +19,10 @@ public abstract class Kullanici {
         this.sifre = sifre;
         this.krediPuani = 100;
         this.oduncAlinanMateryaller = new java.util.ArrayList<>();
+        this.bildirimler = new java.util.ArrayList<>();
+        
+        // Hoş geldin bildirimi
+        this.bildirimler.add(new Bildirim("primary", "fa-user-plus", "Sisteme hoş geldiniz!", "Şimdi"));
     }
 
     public String getTcNo(Kullanici talepEden) {
@@ -28,6 +34,9 @@ public abstract class Kullanici {
 
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
+    
+    public String getToken() { return token; }
+    public void setToken(String token) { this.token = token; }
 
     public abstract void goreviniYap();
 
@@ -41,6 +50,12 @@ public abstract class Kullanici {
     public void setSifre(String sifre) { this.sifre = sifre; }
     public void setIsim(String isim) { this.isim = isim; }
     public java.util.List<String> getOduncAlinanMateryaller() { return oduncAlinanMateryaller; }
+    public java.util.List<Bildirim> getBildirimler() { 
+        if (bildirimler == null) {
+            bildirimler = new java.util.ArrayList<>();
+        }
+        return bildirimler; 
+    }
     public void materyalOduncAl(String materyalId) { if(!oduncAlinanMateryaller.contains(materyalId)) oduncAlinanMateryaller.add(materyalId); }
     public void materyalIadeEt(String materyalId) { oduncAlinanMateryaller.remove(materyalId); }
 }

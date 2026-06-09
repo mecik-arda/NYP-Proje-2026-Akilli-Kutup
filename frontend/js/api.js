@@ -107,6 +107,22 @@ const API = (() => {
     return put(`/api/kullanicilar/${userId}`, data);
   }
 
+  async function updateProfile(data) {
+    return post('/api/profil', data);
+  }
+
+  async function updatePassword(data) {
+    return post('/api/sifre', data);
+  }
+
+  async function getNotifications() {
+    return get('/api/bildirimler');
+  }
+
+  async function markAllNotificationsRead() {
+    return post('/api/bildirimler/okundu', {});
+  }
+
   return {
     checkServerStatus,
     getBooks,
@@ -120,6 +136,10 @@ const API = (() => {
     getDigitalAssets,
     deleteBook,
     updateBook,
-    updateUser
+    updateUser,
+    updateProfile,
+    updatePassword,
+    getNotifications,
+    markAllNotificationsRead
   };
 })();
