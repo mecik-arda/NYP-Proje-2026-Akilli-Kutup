@@ -1081,7 +1081,7 @@ function initAIChat() {
     chatBody.scrollTop = chatBody.scrollHeight;
 
     try {
-      const res = await fetch('http://localhost:8080/api/chat', {
+      const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: text })
@@ -1089,10 +1089,15 @@ function initAIChat() {
       const data = await res.json();
       
       document.getElementById(loadingId)?.remove();
-      addMessage(data.response, 'assistant');
+      if (res.ok) {
+        addMessage(data.response, 'assistant');
+      } else {
+        addMessage('Sunucu hatası: ' + (data.response || data.error || 'Bilinmeyen hata'), 'assistant');
+      }
     } catch (e) {
       document.getElementById(loadingId)?.remove();
-      addMessage('Bağlantı hatası: Sunucuya ulaşılamadı.', 'assistant');
+      addMessage('Bağlantı hatası: Sunucuya ulaşılamadı. CORS veya ağ sorunu.', 'assistant');
+      console.error("AI Chat Fetch Error:", e);
     }
   }
 

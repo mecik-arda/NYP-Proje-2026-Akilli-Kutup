@@ -325,6 +325,15 @@ public class ApiServer {
     class ChatHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(204, -1);
+                return;
+            }
+
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 String prompt = body.has("prompt") ? body.get("prompt").getAsString() : "";

@@ -66,6 +66,7 @@ Projeye V2 sürümü ile birlikte kazandırılan ve sistemin temelini oluşturan
 *   Simüle Edilmiş Barkod/Hızlı Tarama Sistemi: Ön yüz (Dashboard) üzerinde yer alan hızlı işlemler menüsü ile kütüphane barkod sistemi simüle edilerek tek tıkla en çok okunanlara erişim imkanı tanınır.
 *   Dinamik Bildirimler ve Gerçek Zamanlı Profil Senkronizasyonu: Kullanıcıların web paneli üzerinden anlık profil güncellemeleri ve bildirim yönetimi yapabilmesi sağlanmıştır. Bu güncellemeler eşzamanlı olarak Java Desktop GUI ile de senkronize edilir.
 *   Asenkron Çalışan Arka Plan Sunucusu: Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
+*   Gelişmiş AI Hata Yönetimi ve Model Fallback: Google Gemini API tarafındaki aşırı yüklenmeler (503 High Demand) ve hatalara karşı otomatik yedek (fallback) modeller (`gemini-1.5-pro-latest`, `gemini-pro`) denenir. Ayrıca çapraz alan (CORS) sorunları Native Java HTTP sunucusunda çözülmüştür.
 *   Felaket Kurtarma ve Otomatik Yedekleme: Sistemde yapılan her kritik okuma/yazma işlemi öncesinde `DatabaseManager` modülü tüm veritabanı (JSON) dosyalarının tam yedeğini alır.
 
 ## EKİP GÖREV DAĞILIMI
