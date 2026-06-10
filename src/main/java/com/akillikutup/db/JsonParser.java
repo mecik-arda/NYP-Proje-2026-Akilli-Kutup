@@ -25,6 +25,9 @@ public class JsonParser {
             if (k.getToken() != null) {
                 obj.addProperty("token", k.getToken());
             }
+            if (k.getGeminiApiKey() != null) {
+                obj.addProperty("geminiApiKey", k.getGeminiApiKey());
+            }
             obj.addProperty("krediPuani", k.getKrediPuani());
             JsonArray oduncArray = new JsonArray();
             for(String matId : k.getOduncAlinanMateryaller()) {
@@ -91,6 +94,10 @@ public class JsonParser {
                 String token = getAsString(obj, "token");
                 if (token != null) {
                     kullanici.setToken(token);
+                }
+                String geminiApiKey = getAsString(obj, "geminiApiKey");
+                if (geminiApiKey != null) {
+                    kullanici.setGeminiApiKey(geminiApiKey);
                 }
                 if (obj.has("oduncAlinanMateryaller") && !obj.get("oduncAlinanMateryaller").isJsonNull()) {
                     JsonArray oduncArr = obj.getAsJsonArray("oduncAlinanMateryaller");

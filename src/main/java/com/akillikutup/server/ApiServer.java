@@ -185,6 +185,7 @@ public class ApiServer {
                 String userId = parts[parts.length - 1];
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String isim = body.has("isim") ? body.get("isim").getAsString() : null;
                 String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : null;
                 
@@ -216,6 +217,7 @@ public class ApiServer {
         public void handle(HttpExchange t) throws IOException {
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : "";
                 String password = body.has("sifreHash") ? body.get("sifreHash").getAsString() : "";
                 
@@ -250,6 +252,7 @@ public class ApiServer {
                 if (verifyAuth(t) == null) return;
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String userId = body.has("userId") ? body.get("userId").getAsString() : "";
                 String bookId = body.has("bookId") ? body.get("bookId").getAsString() : "";
                 
@@ -294,6 +297,7 @@ public class ApiServer {
                 if (verifyAuth(t) == null) return;
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String userId = body.has("userId") ? body.get("userId").getAsString() : "";
                 String bookId = body.has("bookId") ? body.get("bookId").getAsString() : "";
                 
@@ -352,6 +356,7 @@ public class ApiServer {
                 }
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String prompt = body.has("prompt") ? body.get("prompt").getAsString() : "";
                 String aiResponse = prompt.isEmpty() ? "Lutfen bir soru girin." : GeminiClient.askQuestion(prompt, userApiKey);
                 
@@ -372,6 +377,7 @@ public class ApiServer {
                 if (user == null) return;
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String isim = body.has("isim") ? body.get("isim").getAsString() : null;
                 String geminiApiKey = body.has("geminiApiKey") ? body.get("geminiApiKey").getAsString() : null;
                 
@@ -409,6 +415,7 @@ public class ApiServer {
                 if (user == null) return;
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
                 String eskiSifre = body.has("eskiSifre") ? body.get("eskiSifre").getAsString() : "";
                 String yeniSifre = body.has("yeniSifre") ? body.get("yeniSifre").getAsString() : "";
                 
@@ -464,10 +471,17 @@ public class ApiServer {
         public void handle(HttpExchange t) throws IOException {
             t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
             t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
             if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
                 t.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            Kullanici user = verifyAuth(t);
+            if (user == null) return;
+            if (!"ADMIN".equals(user.getRol())) {
+                sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Bu islem icin yonetici yetkisi gerekiyor.\"}");
                 return;
             }
 
@@ -479,6 +493,7 @@ public class ApiServer {
             } else if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 try {
                     JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                    if (body == null) body = new JsonObject();
                     com.akillikutup.core.ConfigManager.updateConfigData(body);
                     sendResponse(t, 200, "{\"basarili\":true}");
                 } catch (Exception e) {
@@ -494,6 +509,21 @@ public class ApiServer {
         @Override
         public void handle(HttpExchange t) throws IOException {
             t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            Kullanici user = verifyAuth(t);
+            if (user == null) return;
+            if (!"ADMIN".equals(user.getRol())) {
+                sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Bu islem icin yonetici yetkisi gerekiyor.\"}");
+                return;
+            }
+
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
                 t.getResponseHeaders().add("Content-Type", "application/zip");
                 t.getResponseHeaders().add("Content-Disposition", "attachment; filename=\"kutuphane_yedek.zip\"");

@@ -48,10 +48,7 @@ public class Main {
         });
         
         try {
-            Object lock = new Object();
-            synchronized (lock) {
-                lock.wait();
-            }
+            Thread.currentThread().join();
         } catch (InterruptedException e) {
             System.out.println("Sunucu sonlandirildi.");
         }
