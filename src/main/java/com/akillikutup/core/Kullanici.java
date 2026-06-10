@@ -10,6 +10,8 @@ public abstract class Kullanici {
     protected int krediPuani;
     protected java.util.List<String> oduncAlinanMateryaller;
     protected java.util.List<Bildirim> bildirimler;
+    protected String geminiApiKey;
+
 
     public Kullanici(String isim, String tcNo, String rol, String sifre) {
         this.id = java.util.UUID.randomUUID().toString();
@@ -58,4 +60,6 @@ public abstract class Kullanici {
     }
     public void materyalOduncAl(String materyalId) { if(!oduncAlinanMateryaller.contains(materyalId)) oduncAlinanMateryaller.add(materyalId); }
     public void materyalIadeEt(String materyalId) { oduncAlinanMateryaller.remove(materyalId); }
+    public String getGeminiApiKey() { return geminiApiKey; }
+    public void setGeminiApiKey(String geminiApiKey) { this.geminiApiKey = geminiApiKey; }
 }

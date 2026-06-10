@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   initAIChat();
   initDummyButtons();
   initCatalogFilters();
+  initSettings();
 });
 
 async function loadDataFromAPI() {
@@ -1119,19 +1120,6 @@ function initAIChat() {
 }
 
 function initDummyButtons() {
-  const saveSettingsBtn = document.getElementById('saveSettingsBtn');
-  if (saveSettingsBtn) {
-    saveSettingsBtn.addEventListener('click', () => {
-      if (typeof showToast === 'function') {
-        saveSettingsBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
-        setTimeout(() => {
-          saveSettingsBtn.innerHTML = '<i class="fas fa-save"></i> Ayarları Kaydet';
-          showToast('Sistem ayarları başarıyla kaydedildi.', 'success');
-        }, 800);
-      }
-    });
-  }
-
   const userMenuBtn = document.getElementById('userMenuBtn');
   const userDropdownMenu = document.getElementById('userDropdownMenu');
   if (userMenuBtn && userDropdownMenu) {
@@ -1165,8 +1153,10 @@ function initDummyButtons() {
       if (currentUser) {
           const profileNameInput = document.getElementById('profileNameInput');
           const profileRoleInput = document.getElementById('profileRoleInput');
+          const profileApiKeyInput = document.getElementById('profileApiKeyInput');
           if (profileNameInput) profileNameInput.value = currentUser.ad || currentUser.isim || '';
           if (profileRoleInput) profileRoleInput.value = currentUser.rol || '';
+          if (profileApiKeyInput) profileApiKeyInput.value = currentUser.geminiApiKey || '';
       }
       profileModal.classList.add('active');
     });
@@ -1175,13 +1165,32 @@ function initDummyButtons() {
       if (btn) btn.addEventListener('click', () => profileModal.classList.remove('active'));
     });
 
-    if (profileSaveBtn) {
+      if (profileSaveBtn) {
       profileSaveBtn.addEventListener('click', async () => {
         const profileNameInput = document.getElementById('profileNameInput');
+        const profileApiKeyInput = document.getElementById('profileApiKeyInput');
         if (profileNameInput) {
             try {
-                await API.updateProfile({ isim: profileNameInput.value });
-                if (typeof showToast === 'function') showToast('Profil başarıyla güncellendi. Lütfen tekrar giriş yapın.', 'success');
+                await API.updateProfile({ 
+                    isim: profileNameInput.value, 
+                    geminiApiKey: profileApiKeyInput ? profileApiKeyInput.value : undefined 
+                });
+                
+                // Update session
+                if (typeof Auth !== 'undefined') {
+                    let user = Auth.getUser();
+                    if (user) {
+                        user.isim = profileNameInput.value;
+                        user.ad = profileNameInput.value;
+                        if (profileApiKeyInput) user.geminiApiKey = profileApiKeyInput.value;
+                        sessionStorage.setItem('akilli_kutup_session', JSON.stringify({
+                            token: Auth.getToken(),
+                            user: user
+                        }));
+                    }
+                }
+                
+                if (typeof showToast === 'function') showToast('Profil başarıyla güncellendi.', 'success');
                 profileModal.classList.remove('active');
             } catch (err) {
                 if (typeof showToast === 'function') showToast('Profil güncellenirken hata oluştu.', 'error');
@@ -1394,4 +1403,86 @@ function initDummyButtons() {
       btn.style.opacity = '0.5';
     });
   });
+}
+
+async function initSettings() {
+  const saveBtn = document.getElementById('saveSettingsBtn');
+  const backupBtn = document.getElementById('backupBtn');
+  const tempSlider = document.getElementById('aiTempSlider');
+  const tempDisp = document.getElementById('tempValDisp');
+
+  if(tempSlider && tempDisp) {
+      tempSlider.addEventListener('input', () => {
+          tempDisp.textContent = tempSlider.value;
+      });
+  }
+
+  // Load Settings
+  try {
+      const res = await fetch('/api/settings');
+      if (res.ok) {
+          const config = await res.json();
+          if (document.getElementById('sessionTimeoutSelect')) document.getElementById('sessionTimeoutSelect').value = config.sessionTimeout || 30;
+          if (document.getElementById('keyRotationCheckbox')) document.getElementById('keyRotationCheckbox').checked = config.keyRotationNotify || false;
+          if (document.getElementById('auditTrailCheckbox')) document.getElementById('auditTrailCheckbox').checked = config.auditTrail || true;
+          if (document.getElementById('aiTempSlider')) {
+              document.getElementById('aiTempSlider').value = config.aiTemperature || 0.7;
+              if (tempDisp) tempDisp.textContent = config.aiTemperature || 0.7;
+          }
+          if (document.getElementById('maxTokensInput')) document.getElementById('maxTokensInput').value = config.maxTokens || 800;
+          if (document.getElementById('systemPromptTextarea')) document.getElementById('systemPromptTextarea').value = config.systemPrompt || '';
+          if (document.getElementById('backupPeriodSelect')) document.getElementById('backupPeriodSelect').value = config.backupPeriod || 'daily';
+          if (document.getElementById('lateFeeInput')) document.getElementById('lateFeeInput').value = config.lateFee || 5;
+          if (document.getElementById('maxPenaltyInput')) document.getElementById('maxPenaltyInput').value = config.maxPenalty || 100;
+          if (document.getElementById('gracePeriodInput')) document.getElementById('gracePeriodInput').value = config.gracePeriod || 2;
+          if (document.getElementById('geminiApiKeyInput')) document.getElementById('geminiApiKeyInput').value = config.geminiApiKeyRaw || '********';
+      }
+  } catch(e) {
+      console.error("Ayarlar yuklenemedi", e);
+  }
+
+  // Save Settings
+  if (saveBtn) {
+      saveBtn.addEventListener('click', async () => {
+          saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kaydediliyor...';
+          const payload = {
+              sessionTimeout: parseInt(document.getElementById('sessionTimeoutSelect').value),
+              keyRotationNotify: document.getElementById('keyRotationCheckbox').checked,
+              auditTrail: document.getElementById('auditTrailCheckbox').checked,
+              aiTemperature: parseFloat(document.getElementById('aiTempSlider').value),
+              maxTokens: parseInt(document.getElementById('maxTokensInput').value),
+              systemPrompt: document.getElementById('systemPromptTextarea').value,
+              backupPeriod: document.getElementById('backupPeriodSelect').value,
+              lateFee: parseInt(document.getElementById('lateFeeInput').value),
+              maxPenalty: parseInt(document.getElementById('maxPenaltyInput').value),
+              gracePeriod: parseInt(document.getElementById('gracePeriodInput').value),
+              geminiApiKeyRaw: document.getElementById('geminiApiKeyInput').value
+          };
+          
+          try {
+              const res = await fetch('/api/settings', {
+                  method: 'POST',
+                  headers: {'Content-Type': 'application/json'},
+                  body: JSON.stringify(payload)
+              });
+              
+              if (res.ok) {
+                  if (typeof showToast === 'function') showToast('Sistem ayarları başarıyla kaydedildi.', 'success');
+              } else {
+                  if (typeof showToast === 'function') showToast('Ayarlar kaydedilirken hata oluştu.', 'error');
+              }
+          } catch(e) {
+              if (typeof showToast === 'function') showToast('Sunucu bağlantı hatası.', 'error');
+          } finally {
+              saveBtn.innerHTML = '<i class="fas fa-save"></i> Ayarları Kaydet';
+          }
+      });
+  }
+
+  // Backup Zip
+  if (backupBtn) {
+      backupBtn.addEventListener('click', () => {
+          window.location.href = '/api/backup';
+      });
+  }
 }

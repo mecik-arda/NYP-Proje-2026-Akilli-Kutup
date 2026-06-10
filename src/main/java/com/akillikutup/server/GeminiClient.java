@@ -26,8 +26,11 @@ public class GeminiClient {
             .build();
     private static final Gson gson = new Gson();
 
-    public static String askQuestion(String prompt) {
-        String apiKey = ConfigManager.getGeminiApiKey();
+    public static String askQuestion(String prompt, String userApiKey) {
+        String apiKey = userApiKey;
+        if (apiKey == null || apiKey.isEmpty()) {
+            apiKey = ConfigManager.getGeminiApiKey();
+        }
         if (apiKey == null || apiKey.isEmpty()) {
             return "API_KEY_ERROR";
         }

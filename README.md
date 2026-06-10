@@ -1,4 +1,4 @@
-# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi V2 - 2026 Nesneye Yönelik Programlama Proje Ödevi
+# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi V3 - 2026 Nesneye Yönelik Programlama Proje Ödevi
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?logo=java&logoColor=white)
 ![Frontend](https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JS-E34F26?logo=html5&logoColor=white)
@@ -25,7 +25,7 @@
 ---
 
 ## 1. Proje Özeti
-Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştiren, Java tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, Java bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir. V2 sürümü ile birlikte Google Gemini 1.5 altyapısı entegre edilerek yapay zeka destekli akıllı asistan yetenekleri kazandırılmıştır.
+Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştiren, Java tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, Java bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir. V3 sürümü ile birlikte sisteme Kişisel Gemini API Anahtarı desteği, Gelişmiş Yönetici Ayarları Paneli, Veritabanı Dışa Aktarma/Zip ve PostgreSQL geçiş hazırlığı entegre edilerek sistemin yetenekleri ve yönetilebilirliği üst düzeye taşınmıştır.
 
 ## 2. Çekirdek Mimari ve OOP Uygulamaları
 Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak tasarlanmıştır:
@@ -55,19 +55,26 @@ Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla geli
 
 ## 6. Sistemin Temel Özellikleri (Features)
 
-Projeye V2 sürümü ile birlikte kazandırılan ve sistemin temelini oluşturan tüm fonksiyonel yetenekler aşağıda detaylandırılmıştır:
+Projeye V3 sürümü ile birlikte kazandırılan ve yapılan son geliştirmelerle sistemin temelini oluşturan tüm fonksiyonel yetenekler aşağıda detaylandırılmıştır:
 
-*   Kapsamlı Materyal Yönetimi: Admin kullanıcıları sisteme Kitap veya Dijital Medya gibi farklı özelliklere sahip materyaller ekleyebilir, güncelleyebilir, stok durumlarını kontrol edebilir ve silebilir.
-*   Rol Tabanlı Gelişmiş Kimlik Doğrulama: Admin ve standart Üye rolleri birbirinden ayrılmıştır. SHA-256 ile şifrelenen hesaplara giriş yapıldığında, yetkilendirmeye göre sadece ilgili butonlar ve işlemler (CRUD) açılır.
-*   Ödünç Alma ve İade Süreçleri: Kullanıcılar kütüphane materyallerini ödünç alabilir. Ödünç alma limitleri (Admin için sınırsız, Üye için belirli limitler) nesneye yönelik programlama kurallarıyla dinamik olarak yönetilir.
-*   Dinamik Ceza Puanı ve Kredi Sistemi: Zamanında iade edilmeyen materyaller için sisteme entegre algoritma sayesinde dinamik ceza puanı hesaplanır. Kredisi eksilere düşen üyeler otomatik olarak kısıtlanır.
-*   Google Gemini Yapay Zeka Desteği: Sisteme AES-256 ile şifrelenerek entegre edilen Gemini 3.5 Flash altyapısı sayesinde; kullanıcılara akıllı kitap/medya önerileri yapılır ve genel okuma alışkanlıkları analiz edilir.
-*   Finansal Analiz ve Otomatik PDF Raporlama: Sistemin finansal durumu, kesilen cezalar ve genel istatistikler admin paneli üzerinden anlık olarak PDF formatında (veya ekranda tablo olarak) raporlanabilir.
-*   Simüle Edilmiş Barkod/Hızlı Tarama Sistemi: Ön yüz (Dashboard) üzerinde yer alan hızlı işlemler menüsü ile kütüphane barkod sistemi simüle edilerek tek tıkla en çok okunanlara erişim imkanı tanınır.
-*   Dinamik Bildirimler ve Gerçek Zamanlı Profil Senkronizasyonu: Kullanıcıların web paneli üzerinden anlık profil güncellemeleri ve bildirim yönetimi yapabilmesi sağlanmıştır. Bu güncellemeler eşzamanlı olarak Java Desktop GUI ile de senkronize edilir.
-*   Asenkron Çalışan Arka Plan Sunucusu: Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
-*   Gelişmiş AI Hata Yönetimi ve Model Fallback: Google Gemini API tarafındaki aşırı yüklenmeler (503 High Demand) ve hatalara karşı otomatik yedek (fallback) modeller (`gemini-1.5-pro-latest`, `gemini-pro`) denenir. Ayrıca çapraz alan (CORS) sorunları Native Java HTTP sunucusunda çözülmüştür.
-*   Felaket Kurtarma ve Otomatik Yedekleme: Sistemde yapılan her kritik okuma/yazma işlemi öncesinde `DatabaseManager` modülü tüm veritabanı (JSON) dosyalarının tam yedeğini alır.
+*   **Kapsamlı Materyal Yönetimi:** Admin kullanıcıları sisteme Kitap veya Dijital Medya gibi farklı özelliklere sahip materyaller ekleyebilir, güncelleyebilir, stok durumlarını kontrol edebilir ve silebilir.
+*   **Rol Tabanlı Gelişmiş Kimlik Doğrulama:** Admin ve standart Üye rolleri birbirinden tamamen ayrılmıştır. SHA-256 ile şifrelenen hesaplara giriş yapıldığında, yetkilendirmeye göre sadece ilgili butonlar, menüler ve işlemler (CRUD) aktif hale gelir.
+*   **Ödünç Alma ve İade Süreçleri:** Kullanıcılar kütüphane materyallerini ödünç alabilir. Ödünç alma limitleri (Admin için sınırsız, Üye için belirli limitler) nesneye yönelik programlama kurallarıyla dinamik olarak yönetilir.
+*   **Dinamik Ceza Puanı ve Kredi Sistemi:** Zamanında iade edilmeyen materyaller için sisteme entegre algoritma sayesinde dinamik ceza puanı hesaplanır. Kredisi eksilere düşen üyeler otomatik olarak ödünç alma işlemlerinden kısıtlanır.
+*   **Kişisel Gemini API Anahtarı Desteği:** Üyeler, profil düzenleme ekranından kendi kişisel Google Gemini API anahtarlarını sisteme tanımlayabilirler. Tanımlanan anahtarlar veritabanında güvenli bir şekilde saklanır. Bu sayede kullanıcılar kendi kotaları üzerinden AI Asistanı kullanabilirler.
+*   **Yedekli Yapay Zeka İstek Mekanizması (Fallback):** Yapay zeka asistanı ile yapılan sohbetlerde sistem, öncelikle istek atan üyenin kendi kişisel API anahtarının olup olmadığını kontrol eder. Eğer kişisel anahtar tanımlanmamışsa, sistem otomatik olarak admin tarafından belirlenen global (sistem) API anahtarını kullanır. Bu sayede kesintisiz bir AI deneyimi sağlanır.
+*   **Gelişmiş Yönetici Ayarları Paneli:** Admin yetkisine sahip kullanıcılar, dashboard üzerinden tüm sistem konfigürasyonlarını gerçek zamanlı olarak yönetebilir:
+    *   *Güvenlik Ayarları:* Oturum zaman aşımı süresi, anahtar rotasyon bildirimleri ve detaylı log izleme (Audit Trail).
+    *   *Yapay Zeka Konfigürasyonu:* Model sıcaklık değeri (Temperature), maksimum token sınırı (Max Tokens), asistan sistem promptu (System Prompt) ve global Gemini API anahtarı.
+    *   *Kütüphane Kuralları:* Günlük gecikme cezası puanı, maksimum ceza puanı sınırı ve iade tolerans süresi (Grace Period).
+*   **Tek Tıkla Veritabanı Dışa Aktarma (Export):** Yönetici ayarlarında bulunan "Veritabanını Dışa Aktar" butonu sayesinde, sistemdeki güncel JSON veritabanı dosyaları (`users.json`, `materials.json`, `config.json`) sunucu tarafında dinamik olarak zip formatında paketlenir ve `kutuphane_yedek.zip` adıyla anında indirilir.
+*   **PostgreSQL Geçiş Hazırlığı:** Gelecek sürümlerde sunulması planlanan SQL veritabanı geçişi için gerekli bağlantı ayarları arayüzü (Host, Port, Veritabanı Adı, Kullanıcı Adı ve Şifre) ayarlar paneline eklenmiş ve gelecek entegrasyonlar için mimari altyapı hazırlanmıştır (Mevcut sürümde pasif/disabled olarak yer almaktadır).
+*   **Finansal Analiz ve Otomatik PDF Raporlama:** Sistemin finansal durumu, kesilen cezalar ve genel istatistikler admin paneli üzerinden anlık olarak PDF formatında (veya ekranda tablo olarak) raporlanabilir.
+*   **Simüle Edilmiş Barkod/Hızlı Tarama Sistemi:** Ön yüz (Dashboard) üzerinde yer alan hızlı işlemler menüsü ile kütüphane barkod sistemi simüle edilerek tek tıkla en çok okunanlara erişim imkanı tanınır.
+*   **Dinamik Bildirimler ve Gerçek Zamanlı Profil Senkronizasyonu:** Kullanıcıların web paneli üzerinden anlık profil güncellemeleri ve bildirim yönetimi yapabilmesi sağlanmıştır. Bu güncellemeler eşzamanlı olarak Java Desktop GUI ile de senkronize edilir.
+*   **Asenkron Çalışan Arka Plan Sunucusu:** Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
+*   **Gelişmiş AI Hata Yönetimi ve Model Fallback:** Google Gemini API tarafındaki aşırı yüklenmeler (503 High Demand) ve hatalara karşı otomatik yedek (fallback) modeller (`gemini-1.5-pro-latest`, `gemini-pro`) denenir. Ayrıca çapraz alan (CORS) sorunları Native Java HTTP sunucusunda çözülmüştür.
+*   **Felaket Kurtarma ve Otomatik Yedekleme:** Sistemde yapılan her kritik okuma/yazma işlemi öncesinde `DatabaseManager` modülü tüm veritabanı (JSON) dosyalarının tam yedeğini alır.
 
 ## EKİP GÖREV DAĞILIMI
 
@@ -142,19 +149,33 @@ docs/Proje_Raporu.md
 ```text
 NYP-Proje-2026-Akilli-Kutup/
 ├── .gitignore
+├── LICENSE
 ├── README.md
 ├── pom.xml
+├── run.sh
+├── run_linux.sh
+├── run_mac.sh
+├── run_win.bat
 ├── data/
 │   ├── config.json
-│   ├── users.json
 │   ├── materials.json
+│   ├── users.json
+│   ├── secret.key
 │   └── backup/
 ├── docs/
 │   ├── UML_Sema.md
 │   └── Proje_Raporu.md
+├── ekran_goruntuleri/
+│   ├── 1.png
+│   ├── 2.png
+│   ├── 3.png
+│   ├── 4.png
+│   ├── 5.png
+│   └── 6.png
 ├── frontend/
 │   ├── index.html
 │   ├── dashboard.html
+│   ├── login.html
 │   ├── css/
 │   │   ├── login.css
 │   │   └── main.css
@@ -204,12 +225,12 @@ NYP-Proje-2026-Akilli-Kutup/
 Yukarıdaki şemada belirtilen dosyalardan tamamlananlar ve güncellenen modüller aşağıda listelenmiştir:
 
 Tamamlanan Kısımlar:
-*   src/main/java/com/akillikutup/core/ (Çekirdek OOP Modelleri, AES-256 Konfigürasyon Şifreleme Eklendi)
-*   src/main/java/com/akillikutup/db/ (Veritabanı Motoru, JSON İşlemleri ve Otomatik Yedekleme Mekanizması Eklendi)
-*   src/main/java/com/akillikutup/gui/ (Swing Masaüstü Arayüzü)
-*   src/main/java/com/akillikutup/auth/ (SHA-256 Şifreleme ve Kimlik Doğrulama)
-*   src/main/java/com/akillikutup/server/ (REST API Sunucu Altyapısı ve Gemini AI İstekcisi Eklendi)
-*   src/test/ (Birim Testler - Tüm testler başarıyla geçmektedir)
-*   frontend/ (Karanlık Temalı Modern Web Arayüzü - HTML/CSS/JS Eklendi)
-*   docs/UML_Sema.md (UML sınıf diyagramı)
-*   docs/Proje_Raporu.md (Proje raporu)
+*   **src/main/java/com/akillikutup/core/** (Çekirdek OOP Modelleri; `Kullanici.java` sınıfına kişisel API anahtarı desteği; `ConfigManager.java` sınıfına dinamik konfigürasyon güncelleme ve AES-256 şifrelemeli depolama eklendi)
+*   **src/main/java/com/akillikutup/db/** (Veritabanı Motoru, JSON İşlemleri, Güvenli AES-256 Dosya Şifreleme ve Otomatik Yedekleme Mekanizması)
+*   **src/main/java/com/akillikutup/gui/** (Swing Masaüstü Arayüzü)
+*   **src/main/java/com/akillikutup/auth/** (SHA-256 Şifreleme, Oturum Yönetimi ve Kimlik Doğrulama)
+*   **src/main/java/com/akillikutup/server/** (REST API Sunucu Altyapısı; `/api/settings` ve `/api/backup` endpoint'leri eklendi; `/api/profil`, `/api/chat` ve `/api/login` modülleri kişisel API anahtarı desteği ve yedekli AI sorgulama mimarisi ile güncellendi)
+*   **src/test/** (Birim Testler - Çekirdek iş mantığı, veritabanı ve kimlik doğrulama testleri başarıyla geçmektedir)
+*   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi)
+*   **docs/UML_Sema.md** (UML sınıf diyagramı ve nesne ilişkileri)
+*   **docs/Proje_Raporu.md** (Detaylı proje raporu ve OOP prensipleri dokümantasyonu)

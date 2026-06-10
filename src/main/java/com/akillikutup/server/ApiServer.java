@@ -37,6 +37,8 @@ public class ApiServer {
             server.createContext("/api/sifre", new SifreHandler());
             server.createContext("/api/bildirimler", new BildirimlerHandler());
             server.createContext("/api/bildirimler/okundu", new BildirimOkunduHandler());
+            server.createContext("/api/settings", new SettingsHandler());
+            server.createContext("/api/backup", new BackupHandler());
             server.createContext("/", new StaticFileHandler("frontend"));
             server.setExecutor(null);
             server.start();
@@ -228,6 +230,9 @@ public class ApiServer {
                     response.addProperty("rol", user.getRol());
                     response.addProperty("id", user.getId());
                     response.addProperty("token", token);
+                    if (user.getGeminiApiKey() != null) {
+                        response.addProperty("geminiApiKey", user.getGeminiApiKey());
+                    }
                     sendResponse(t, 200, gson.toJson(response));
                 } else {
                     sendResponse(t, 401, "{\"basarili\":false,\"mesaj\":\"Gecersiz kimlik bilgileri\"}");
@@ -327,7 +332,7 @@ public class ApiServer {
         public void handle(HttpExchange t) throws IOException {
             t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
             t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
             if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
                 t.sendResponseHeaders(204, -1);
@@ -335,9 +340,20 @@ public class ApiServer {
             }
 
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                String userApiKey = null;
+                String authHeader = t.getRequestHeaders().getFirst("Authorization");
+                if (authHeader != null && authHeader.startsWith("Bearer ")) {
+                    String token = authHeader.substring(7);
+                    com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
+                    Kullanici user = authManager.getUserByToken(token);
+                    if (user != null) {
+                        userApiKey = user.getGeminiApiKey();
+                    }
+                }
+                
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 String prompt = body.has("prompt") ? body.get("prompt").getAsString() : "";
-                String aiResponse = prompt.isEmpty() ? "Lutfen bir soru girin." : GeminiClient.askQuestion(prompt);
+                String aiResponse = prompt.isEmpty() ? "Lutfen bir soru girin." : GeminiClient.askQuestion(prompt, userApiKey);
                 
                 JsonObject response = new JsonObject();
                 response.addProperty("response", aiResponse);
@@ -357,9 +373,23 @@ public class ApiServer {
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 String isim = body.has("isim") ? body.get("isim").getAsString() : null;
+                String geminiApiKey = body.has("geminiApiKey") ? body.get("geminiApiKey").getAsString() : null;
                 
+                boolean updated = false;
                 if (isim != null && !isim.isEmpty()) {
                     user.setIsim(isim);
+                    updated = true;
+                }
+                if (geminiApiKey != null) {
+                    if (geminiApiKey.isEmpty()) {
+                        user.setGeminiApiKey(null);
+                    } else {
+                        user.setGeminiApiKey(geminiApiKey);
+                    }
+                    updated = true;
+                }
+                
+                if (updated) {
                     DatabaseManager.tekOrnekAl().kullanicilariKaydet();
                     sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Profil guncellendi\"}");
                 } else {
@@ -423,6 +453,66 @@ public class ApiServer {
                 }
                 DatabaseManager.tekOrnekAl().kullanicilariKaydet();
                 sendResponse(t, 200, "{\"basarili\":true}");
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class SettingsHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type");
+
+            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+                t.sendResponseHeaders(204, -1);
+                return;
+            }
+
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                JsonObject config = com.akillikutup.core.ConfigManager.getConfigData().deepCopy();
+                config.remove("gemini_api_key_encrypted");
+                config.addProperty("geminiApiKeyRaw", "********");
+                sendResponse(t, 200, gson.toJson(config));
+            } else if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                try {
+                    JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                    com.akillikutup.core.ConfigManager.updateConfigData(body);
+                    sendResponse(t, 200, "{\"basarili\":true}");
+                } catch (Exception e) {
+                    sendResponse(t, 500, "{\"basarili\":false, \"mesaj\":\"Ayarlar kaydedilemedi\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class BackupHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                t.getResponseHeaders().add("Content-Type", "application/zip");
+                t.getResponseHeaders().add("Content-Disposition", "attachment; filename=\"kutuphane_yedek.zip\"");
+                t.sendResponseHeaders(200, 0);
+
+                try (java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(t.getResponseBody())) {
+                    String[] files = {"data/users.json", "data/materials.json", "data/config.json"};
+                    for (String file : files) {
+                        Path p = Paths.get(file);
+                        if (Files.exists(p)) {
+                            java.util.zip.ZipEntry entry = new java.util.zip.ZipEntry(p.getFileName().toString());
+                            zos.putNextEntry(entry);
+                            Files.copy(p, zos);
+                            zos.closeEntry();
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             } else {
                 t.sendResponseHeaders(405, -1);
             }
