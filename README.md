@@ -82,7 +82,7 @@ Projeye V3 sürümü ile birlikte kazandırılan ve yapılan son geliştirmelerl
 *   **Tek Tıkla Veritabanı Dışa Aktarma (Export):** JSON veritabanı dosyalarını sunucu tarafında zip formatında paketleyen ve anında indirme imkanı sunan buton.
 *   **PostgreSQL Geçiş Hazırlığı:** SQL veritabanı geçişi için bağlantı ayarları arayüzü (Host, Port, DB Adı, Kullanıcı Adı ve Şifre) ayarlar paneline eklenmiştir (Mevcut sürümde pasif/disabled olarak yer almaktadır).
 *   **Finansal Analiz ve Raporlama:** Sistemin finansal durumu, kesilen cezalar ve genel istatistiklerin PDF formatında raporlanabilmesi.
-*   **Simüle Edilmiş Barkod Arayüzü**: Dashboard üzerinden barkod tarama sistemini simüle eden hızlı işlem aracı.
+*   **Gerçek Zamanlı Kamera Tabanlı Barkod Tarayıcı (Yeni):** `html5-qrcode` kütüphanesi entegrasyonu ile cihazın kamerasını (varsayılan olarak arka kamerayı) kullanarak EAN-13 ve EAN-8 standartlarındaki barkodları/ISBN kodlarını gerçek zamanlı okuma yeteneği. Başarılı okumalarda Web Audio API üzerinden sentezlenen bip sesi ve haptik titreşim (`navigator.vibrate`) desteği ile zenginleştirilmiş kullanıcı deneyimi.
 *   **Dinamik Bildirimler ve Profil Senkronizasyonu:** Web paneli profil güncellemelerinin anında Java Desktop GUI ile senkronize edilmesi.
 *   **Asenkron Çalışan Arka Plan Sunucusu:** Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
 *   **Gelişmiş AI Hata Yönetimi ve Model Fallback:** Gemini API aşırı yüklenmelerinde otomatik yedek modellerin (`gemini-1.5-pro-latest`, `gemini-pro`) denenmesi.
@@ -134,11 +134,13 @@ frontend/index.html
 frontend/dashboard.html
 frontend/css/login.css
 frontend/css/main.css
+frontend/css/scanner.css
 frontend/js/main.js
 frontend/js/ui.js
 frontend/js/charts.js
 frontend/js/store.js
 frontend/js/utils.js
+frontend/js/scanner.js
 ```
 
 Security & Integration Specialist - Eren Gider:
@@ -194,7 +196,8 @@ NYP-Proje-2026-Akilli-Kutup/
 │   ├── login.html
 │   ├── css/
 │   │   ├── login.css
-│   │   └── main.css
+│   │   ├── main.css
+│   │   └── scanner.css
 │   └── js/
 │       ├── api.js
 │       ├── auth.js
@@ -202,7 +205,8 @@ NYP-Proje-2026-Akilli-Kutup/
 │       ├── main.js
 │       ├── store.js
 │       ├── ui.js
-│       └── utils.js
+│       ├── utils.js
+│       └── scanner.js
 └── src/
     ├── main/java/com/akillikutup/
     │   ├── auth/
@@ -251,6 +255,6 @@ Tamamlanan Kısımlar:
 *   **src/main/java/com/akillikutup/auth/** (SHA-256 Şifreleme, Oturum Yönetimi, Kimlik Doğrulama; IP/İstemci bazlı in-memory Brute-Force lockout kilit mekanizması eklendi)
 *   **src/main/java/com/akillikutup/server/** (REST API Sunucu Altyapısı; `/api/settings` ve `/api/backup` endpoint'leri eklendi; `/api/profil`, `/api/chat` ve `/api/login` modülleri kişisel API anahtarı desteği ve yedekli AI sorgulama mimarisi ile güncellendi; API keylerin HTTP Header üzerinden taşınması, IDOR zafiyeti kontrolü ve login yanıtlarında hassas anahtarların sızdırılmasının engellenmesi sağlandı)
 *   **src/test/** (Birim Testler - Çekirdek iş mantığı, veritabanı, kimlik doğrulama testleri başarıyla geçmektedir. Seed data üretimi sadece test modunda çalıştırılacak şekilde ayrıştırıldı)
-*   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi. JavaScript dosyaları ES6 modüler yapısına bölünerek döngüsel bağımlılıklar giderildi. Çakışmayan ID üretimi, XSS sanitizasyonu (`escapeHtml`), TC Kimlik maskeleme ve SVG render optimizasyonları yapıldı)
+*   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi. JavaScript dosyaları ES6 modüler yapısına bölünerek döngüsel bağımlılıklar giderildi. Çakışmayan ID üretimi, XSS sanitizasyonu (`escapeHtml`), TC Kimlik maskeleme ve SVG render optimizasyonları yapıldı. Ayrıca **Kamera Tabanlı Gerçek Zamanlı Barkod Tarayıcı** modülü eklendi: Yeşil lazer tarama animasyonu, ses sentezlemeli bip geri bildirimi ve tarama sonrası otomatik kitap getirme özellikleri entegre edildi.)
 *   **docs/UML_Sema.md** (UML sınıf diyagramı ve nesne ilişkileri)
 *   **docs/Proje_Raporu.md** (Detaylı proje raporu ve OOP prensipleri dokümantasyonu)

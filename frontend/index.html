@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi - Kitaplarınızı, e-kitaplarınızı ve dijital varlıklarınızı tek platformda yönetin.">
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi - Kitaplarınızı, e-kitaplarınızı ve dijital varlıklarınızı tek platformda yönetin.">
     <title>Akıllı Kütüphane & Dijital Varlık Yönetimi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,6 +18,8 @@
     <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"></noscript>
     <link rel="stylesheet" href="css/login.css">
     <link rel="stylesheet" href="css/main.css">
+    <link rel="stylesheet" href="css/scanner.css">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body>
     
@@ -763,20 +771,21 @@
             </section>
             <div style="display: flex; gap: 24px; flex-wrap: wrap; margin-top: 20px;">
                 <div class="card" style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 24px; text-align: center;">
-                    <div style="width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; margin-bottom: 20px;">
-                        <div style="position: absolute; top: 0; left: 0; right: 0; height: 2px; background: var(--accent-danger); box-shadow: 0 0 15px 3px var(--accent-danger); animation: scanLine 2.5s infinite linear;"></div>
-                        <i class="fas fa-camera" style="font-size: 40px; color: rgba(255,255,255,0.1);"></i>
-                        <style>@keyframes scanLine { 0% { top: 10%; } 50% { top: 90%; } 100% { top: 10%; } }</style>
+                    <div id="scanner-wrapper" style="width: 100%; aspect-ratio: 4/3; background: #000; border-radius: 8px; border: 2px dashed rgba(255,255,255,0.2); position: relative; overflow: hidden; margin-bottom: 20px;">
+                        <div id="barcode-scanner-container"></div>
+                        <div class="scanner-reticle"></div>
+                        <div class="scanner-laser"></div>
+                        <div class="scanner-overlay-text">ISBN'i Hizalayın</div>
                     </div>
-                    <button class="btn btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-video"></i> Kamerayı Aç</button>
+                    <button id="toggleScannerBtn" class="btn btn-primary" style="width: 100%; justify-content: center;"><i class="fas fa-video"></i> Kamerayı Aç</button>
                 </div>
                 <div class="card" style="flex: 1; min-width: 300px; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 24px;">
                     <h3 style="font-size: 16px; margin-bottom: 20px; color: var(--text-primary);"><i class="fas fa-keyboard" style="color: var(--accent-primary-light);"></i> Manuel Giriş</h3>
                     <div class="form-group" style="margin-bottom: 20px;">
                         <label style="display: block; margin-bottom: 8px; color: var(--text-secondary); font-size: 13px;">ISBN Numarası</label>
-                        <input type="text" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;" placeholder="Örn: 978-605-423-12-34">
+                        <input type="text" id="isbnInputText" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;" placeholder="Örn: 978-605-423-12-34">
                     </div>
-                    <button class="btn btn-glass" style="width: 100%; justify-content: center; margin-bottom: 20px;"><i class="fas fa-search"></i> Veritabanında Ara</button>
+                    <button id="searchDatabaseBtn" class="btn btn-glass" style="width: 100%; justify-content: center; margin-bottom: 20px;"><i class="fas fa-search"></i> Veritabanında Ara</button>
                     <hr style="border: none; border-top: 1px solid rgba(255,255,255,0.05); margin: 0 0 20px 0;">
                     <div style="font-size: 13px; color: var(--text-tertiary); display: flex; align-items: flex-start; gap: 12px; line-height: 1.5;">
                         <i class="fas fa-info-circle" style="margin-top: 3px; font-size: 14px; color: var(--accent-primary);"></i> 
@@ -1243,5 +1252,6 @@
     <div class="toast-container" id="toastContainer"></div>
     
     <script type="module" src="js/main.js"></script>
+    <script src="js/scanner.js"></script>
 </body>
 </html>
