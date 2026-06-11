@@ -15,15 +15,36 @@ public class DatabaseManagerTest {
 
     private DatabaseManager db;
 
+    @BeforeAll
+    public static void globalKurulum() {
+        DatabaseManager.isTestMode = true;
+    }
+
     @BeforeEach
     public void kurulum() {
+        DatabaseManager.isTestMode = true;
+        temizle();
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
     }
 
     @AfterEach
     public void temizlik() {
+        temizle();
         DatabaseManager.tekOrnekSifirla();
+    }
+
+    private void temizle() {
+        File f1 = new File("test-data/users.json");
+        if (f1.exists()) f1.delete();
+        File f2 = new File("test-data/materials.json");
+        if (f2.exists()) f2.delete();
+        File f3 = new File("test-data/database.db");
+        if (f3.exists()) f3.delete();
+        File tmp1 = new File("test-data/users.json.tmp");
+        if (tmp1.exists()) tmp1.delete();
+        File tmp2 = new File("test-data/materials.json.tmp");
+        if (tmp2.exists()) tmp2.delete();
     }
 
 
@@ -174,7 +195,7 @@ public class DatabaseManagerTest {
     @Test
     @Order(9)
     public void dosyaYokkenKullaniciYuklemeTesti() {
-        File dosya = new File("data" + File.separator + "users.json");
+        File dosya = new File("test-data" + File.separator + "users.json");
         if (dosya.exists()) dosya.delete();
 
         List<Kullanici> sonuc = db.kullanicilariYukle();
@@ -185,7 +206,7 @@ public class DatabaseManagerTest {
     @Test
     @Order(10)
     public void dosyaYokkenMateryalYuklemeTesti() {
-        File dosya = new File("data" + File.separator + "materials.json");
+        File dosya = new File("test-data" + File.separator + "materials.json");
         if (dosya.exists()) dosya.delete();
 
         List<Materyal> sonuc = db.materyallariYukle();
@@ -325,7 +346,7 @@ public class DatabaseManagerTest {
 
         db.kaydet(kullanicilar, materyaller);
 
-        File backupDir = new File("data/backup");
+        File backupDir = new File("test-data/backup");
         if (backupDir.exists() && backupDir.listFiles() != null) {
             for (File f : backupDir.listFiles()) {
                 f.delete();
@@ -375,7 +396,7 @@ public class DatabaseManagerTest {
             liste.add(new Admin("Hacker", "00000000000", "x"));
             testDb.kaydet(liste, new ArrayList<>());
 
-            File kotu = new File("data" + File.separator + ".." + File.separator + ".." + File.separator + "etc" + File.separator + "passwd");
+            File kotu = new File("test-data" + File.separator + ".." + File.separator + ".." + File.separator + "etc" + File.separator + "passwd");
             JsonParser.deserializeKullanicilar(dosyadanOkuTestYardimci(kotu));
         });
     }

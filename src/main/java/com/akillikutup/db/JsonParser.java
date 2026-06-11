@@ -11,6 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class JsonParser {
+    public static String serializeKullanici(Kullanici k) {
+        return serializeKullanicilar(java.util.Collections.singletonList(k));
+    }
+    
+    public static String serializeMateryal(Materyal m) {
+        return serializeMateryaller(java.util.Collections.singletonList(m));
+    }
+    
+    public static Kullanici deserializeKullanici(String json) {
+        List<Kullanici> list = deserializeKullanicilar(json);
+        return list.isEmpty() ? null : list.get(0);
+    }
+    
+    public static Materyal deserializeMateryal(String json) {
+        List<Materyal> list = deserializeMateryaller(json);
+        return list.isEmpty() ? null : list.get(0);
+    }
+
     private static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
 
     public static String serializeKullanicilar(List<Kullanici> kullaniciListesi) {
@@ -34,6 +52,22 @@ public class JsonParser {
                 oduncArray.add(matId);
             }
             obj.add("oduncAlinanMateryaller", oduncArray);
+            
+            JsonArray bildirimlerArray = new JsonArray();
+            if (k.getBildirimler() != null) {
+                for(Bildirim b : k.getBildirimler()) {
+                    JsonObject bObj = new JsonObject();
+                    bObj.addProperty("id", b.getId());
+                    bObj.addProperty("type", b.getType());
+                    bObj.addProperty("icon", b.getIcon());
+                    bObj.addProperty("text", b.getText());
+                    bObj.addProperty("time", b.getTime());
+                    bObj.addProperty("unread", b.isUnread());
+                    bildirimlerArray.add(bObj);
+                }
+            }
+            obj.add("bildirimler", bildirimlerArray);
+
             array.add(obj);
         }
         return gson.toJson(array);
@@ -105,6 +139,24 @@ public class JsonParser {
                         kullanici.materyalOduncAl(e.getAsString());
                     }
                 }
+                if (obj.has("bildirimler") && !obj.get("bildirimler").isJsonNull()) {
+                    JsonArray bArr = obj.getAsJsonArray("bildirimler");
+                    kullanici.getBildirimler().clear();
+                    for (JsonElement e : bArr) {
+                        JsonObject bObj = e.getAsJsonObject();
+                        Bildirim b = new Bildirim(
+                            getAsString(bObj, "type"),
+                            getAsString(bObj, "icon"),
+                            getAsString(bObj, "text"),
+                            getAsString(bObj, "time")
+                        );
+                        b.setId(getAsString(bObj, "id"));
+                        if (bObj.has("unread")) {
+                            b.setUnread(bObj.get("unread").getAsBoolean());
+                        }
+                        kullanici.getBildirimler().add(b);
+                    }
+                }
                 sonuc.add(kullanici);
             }
         } catch (Exception e) {
@@ -134,7 +186,9 @@ public class JsonParser {
                 } else if ("DijitalMedya".equals(tur)) {
                     String dosyaFormati = getAsString(obj, "dosyaFormati");
                     materyal = new DijitalMedya(baslik, birimFiyat, dosyaFormati);
-                    
+                    if (obj.has("toplamErisimSayisi") && !obj.get("toplamErisimSayisi").isJsonNull()) {
+                        ((DijitalMedya) materyal).setToplamErisimSayisi(getAsInt(obj, "toplamErisimSayisi"));
+                    }
                 } else {
                     continue; 
                 }

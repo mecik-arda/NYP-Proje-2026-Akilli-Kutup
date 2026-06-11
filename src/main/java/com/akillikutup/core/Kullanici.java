@@ -7,6 +7,7 @@ public abstract class Kullanici {
     private String rol;
     private String sifre;
     private String token;
+    private long tokenExpiry;
     protected int krediPuani;
     protected java.util.List<String> oduncAlinanMateryaller;
     protected java.util.List<Bildirim> bildirimler;
@@ -39,6 +40,9 @@ public abstract class Kullanici {
     
     public String getToken() { return token; }
     public void setToken(String token) { this.token = token; }
+    
+    public long getTokenExpiry() { return tokenExpiry; }
+    public void setTokenExpiry(long tokenExpiry) { this.tokenExpiry = tokenExpiry; }
 
     public abstract void goreviniYap();
 
@@ -62,4 +66,17 @@ public abstract class Kullanici {
     public void materyalIadeEt(String materyalId) { oduncAlinanMateryaller.remove(materyalId); }
     public String getGeminiApiKey() { return geminiApiKey; }
     public void setGeminiApiKey(String geminiApiKey) { this.geminiApiKey = geminiApiKey; }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Kullanici kullanici = (Kullanici) o;
+        return java.util.Objects.equals(id, kullanici.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return java.util.Objects.hash(id);
+    }
 }

@@ -12,8 +12,14 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
+import java.util.concurrent.ConcurrentHashMap;
+
 public class AuthManager {
     private final DatabaseManager db;
+    private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Long> lockoutTimes = new ConcurrentHashMap<>();
+    private static final int MAX_FAILED_ATTEMPTS = 5;
+    private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
     public AuthManager() {
         this.db = DatabaseManager.tekOrnekAl();
@@ -38,7 +44,19 @@ public class AuthManager {
         return salt;
     }
 
-    public Kullanici login(String tcNo, String plainPassword) {
+    public Kullanici login(String tcNo, String plainPassword, String ipAddress) {
+        if (ipAddress != null) {
+            Long lockoutTime = lockoutTimes.get(ipAddress);
+            if (lockoutTime != null) {
+                if (System.currentTimeMillis() < lockoutTime) {
+                    throw new SecurityException("Çok fazla başarısız giriş denemesi. Lütfen daha sonra tekrar deneyin.");
+                } else {
+                    lockoutTimes.remove(ipAddress);
+                    failedAttempts.remove(ipAddress);
+                }
+            }
+        }
+
         List<Kullanici> kullanicilar = db.getKullaniciListesi();
 
         Optional<Kullanici> eslesenKullanici = kullanicilar.stream()
@@ -62,7 +80,22 @@ public class AuthManager {
                 })
                 .findFirst();
 
-        return eslesenKullanici.orElse(null);
+        if (eslesenKullanici.isPresent()) {
+            if (ipAddress != null) {
+                failedAttempts.remove(ipAddress);
+                lockoutTimes.remove(ipAddress);
+            }
+            return eslesenKullanici.get();
+        } else {
+            if (ipAddress != null) {
+                int attempts = failedAttempts.getOrDefault(ipAddress, 0) + 1;
+                failedAttempts.put(ipAddress, attempts);
+                if (attempts >= MAX_FAILED_ATTEMPTS) {
+                    lockoutTimes.put(ipAddress, System.currentTimeMillis() + LOCKOUT_DURATION_MS);
+                }
+            }
+            return null;
+        }
     }
     
     public String registerPassword(String plainPassword) {
@@ -74,6 +107,7 @@ public class AuthManager {
     public String createSession(Kullanici user) {
         String token = java.util.UUID.randomUUID().toString();
         user.setToken(token);
+        user.setTokenExpiry(System.currentTimeMillis() + (2 * 60 * 60 * 1000)); // 2 hours
         db.kullanicilariKaydet();
         return token;
     }
@@ -82,7 +116,7 @@ public class AuthManager {
         if (token == null || token.trim().isEmpty()) return null;
         List<Kullanici> kullanicilar = db.getKullaniciListesi();
         return kullanicilar.stream()
-                .filter(k -> token.equals(k.getToken()))
+                .filter(k -> token.equals(k.getToken()) && System.currentTimeMillis() < k.getTokenExpiry())
                 .findFirst()
                 .orElse(null);
     }

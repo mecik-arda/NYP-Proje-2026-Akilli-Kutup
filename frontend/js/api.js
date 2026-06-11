@@ -1,4 +1,6 @@
-const API = (() => {
+import { showToast } from './utils.js';
+
+export const API = (() => {
   const BASE_URL = 'http://localhost:8080';
 
   async function request(method, endpoint, body = null) {
@@ -83,8 +85,8 @@ const API = (() => {
     return get(`/api/kitaplar/ara?q=${encodeURIComponent(query)}`);
   }
 
-  async function login(tcNo, passwordHash) {
-    return post('/api/giris', { tcKimlikNo: tcNo, sifreHash: passwordHash });
+  async function login(tcNo, password) {
+    return post('/api/giris', { tcKimlikNo: tcNo, sifre: password });
   }
 
   async function getStats() {

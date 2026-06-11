@@ -1,46 +1,57 @@
 package com.akillikutup.db;
 
 import com.akillikutup.core.*;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.*;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import com.zaxxer.hikari.HikariConfig;
+import com.zaxxer.hikari.HikariDataSource;
 
 public class DatabaseManager {
 
-    private static DatabaseManager tekOrnek;
+    private static volatile DatabaseManager tekOrnek;
 
-    private final String VERI_KLASORU = "data";
-    private final String YEDEK_KLASORU = "data" + File.separator + "backup";
-    private final String KULLANICI_DOSYASI = "data" + File.separator + "users.json";
-    private final String MATERYAL_DOSYASI = "data" + File.separator + "materials.json";
+    public static boolean isTestMode = false;
 
-    private final String IZINLI_KOK_DIZIN;
+    private String getVeriKlasoru() { return isTestMode ? "test-data" : "data"; }
+    private String getDbYolu() { return "jdbc:sqlite:" + getVeriKlasoru() + "/database.db"; }
+    private String getYedekKlasoru() { return getVeriKlasoru() + File.separator + "backup"; }
 
     private List<Kullanici> kullaniciListesi;
     private List<Materyal> materyalListesi;
-    private long sonKullaniciDosyaTarihi = 0;
-    private long sonMateryalDosyaTarihi = 0;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
-    private final BackupManager backupManager;
+    private HikariDataSource dataSource;
+    private ScheduledExecutorService scheduler;
+    private Thread shutdownHook;
 
     private DatabaseManager() {
         kullaniciListesi = new ArrayList<>();
         materyalListesi = new ArrayList<>();
-        backupManager = new BackupManager(YEDEK_KLASORU, KULLANICI_DOSYASI, MATERYAL_DOSYASI);
-
-        try {
-            IZINLI_KOK_DIZIN = new File(VERI_KLASORU).getCanonicalPath();
-        } catch (IOException e) {
-            throw new RuntimeException("Veri klasoru yolu cozumlenemedi: " + e.getMessage());
-        }
-
-        klasorleriOlustur();
+        
+        File veriKlasoru = new File(getVeriKlasoru());
+        if (!veriKlasoru.exists()) veriKlasoru.mkdirs();
+        
+        File yedekKlasoru = new File(getYedekKlasoru());
+        if (!yedekKlasoru.exists()) yedekKlasoru.mkdirs();
+        
         FileEncryptionService.init();
+        
+        HikariConfig config = new HikariConfig();
+        config.setJdbcUrl(getDbYolu());
+        config.setMaximumPoolSize(10);
+        this.dataSource = new HikariDataSource(config);
+
+        initDb();
+        baslatYedeklemeZamanlayici();
     }
 
     public static DatabaseManager tekOrnekAl() {
@@ -55,27 +66,46 @@ public class DatabaseManager {
     }
 
     public static void tekOrnekSifirla() {
+        if (tekOrnek != null) {
+            if (tekOrnek.dataSource != null && !tekOrnek.dataSource.isClosed()) {
+                tekOrnek.dataSource.close();
+            }
+            if (tekOrnek.scheduler != null && !tekOrnek.scheduler.isShutdown()) {
+                tekOrnek.scheduler.shutdownNow();
+            }
+            if (tekOrnek.shutdownHook != null) {
+                try {
+                    Runtime.getRuntime().removeShutdownHook(tekOrnek.shutdownHook);
+                } catch (IllegalStateException e) {
+                    // Shutdown in progress, ignore
+                }
+            }
+        }
         tekOrnek = null;
     }
 
-    private void klasorleriOlustur() {
-        File veriKlasoru = new File(VERI_KLASORU);
-        if (!veriKlasoru.exists()) veriKlasoru.mkdirs();
-        FileEncryptionService.dosyaErisiminiKisila(veriKlasoru.toPath());
-
-        File yedekKlasoru = new File(YEDEK_KLASORU);
-        if (!yedekKlasoru.exists()) yedekKlasoru.mkdirs();
-        FileEncryptionService.dosyaErisiminiKisila(yedekKlasoru.toPath());
+    private Connection getConnection() throws SQLException {
+        return dataSource.getConnection();
+    }
+    
+    private void baslatYedeklemeZamanlayici() {
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(this::yedekle, 1, 1, TimeUnit.HOURS);
+        
+        shutdownHook = new Thread(() -> {
+            yedekle();
+            if (dataSource != null && !dataSource.isClosed()) dataSource.close();
+            if (scheduler != null && !scheduler.isShutdown()) scheduler.shutdown();
+        });
+        Runtime.getRuntime().addShutdownHook(shutdownHook);
     }
 
-    private void yolGuvenligi(String dosyaYolu) {
-        try {
-            String gercekYol = new File(dosyaYolu).getCanonicalPath();
-            if (!gercekYol.startsWith(IZINLI_KOK_DIZIN)) {
-                throw new SecurityException("GUVENLIK IHLALI: Dosya yolu izinli dizin disina cikiyor!");
-            }
-        } catch (IOException e) {
-            throw new SecurityException("Dosya yolu cozumlenirken hata olustu: " + e.getMessage());
+    private void initDb() {
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+            stmt.execute("CREATE TABLE IF NOT EXISTS kullanicilar (id TEXT PRIMARY KEY, tcNo TEXT, json TEXT)");
+            stmt.execute("CREATE TABLE IF NOT EXISTS materyaller (id TEXT PRIMARY KEY, json TEXT)");
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
@@ -88,110 +118,124 @@ public class DatabaseManager {
 
     public void kullanicilariKaydet() {
         lock.writeLock().lock();
+        Connection conn = null;
         try {
-            yolGuvenligi(KULLANICI_DOSYASI);
-            String jsonIcerik = JsonParser.serializeKullanicilar(kullaniciListesi);
-            String sifreliIcerik = FileEncryptionService.encrypt(jsonIcerik);
-            atomikYaz(KULLANICI_DOSYASI, sifreliIcerik);
-            System.out.println("BASARILI: Kullanici verileri kaydedildi. (" + kullaniciListesi.size() + " kayit)");
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("DELETE FROM kullanicilar");
+            }
+            String sql = "INSERT INTO kullanicilar (id, tcNo, json) VALUES (?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Kullanici k : kullaniciListesi) {
+                    ps.setString(1, k.getId());
+                    ps.setString(2, k.getTcNoDogrudan());
+                    String json = JsonParser.serializeKullanici(k);
+                    ps.setString(3, FileEncryptionService.encrypt(json));
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
         } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
             lock.writeLock().unlock();
         }
     }
 
     public void materyallariKaydet() {
         lock.writeLock().lock();
+        Connection conn = null;
         try {
-            yolGuvenligi(MATERYAL_DOSYASI);
-            String jsonIcerik = JsonParser.serializeMateryaller(materyalListesi);
-            String sifreliIcerik = FileEncryptionService.encrypt(jsonIcerik);
-            atomikYaz(MATERYAL_DOSYASI, sifreliIcerik);
-            System.out.println("BASARILI: Materyal verileri kaydedildi. (" + materyalListesi.size() + " kayit)");
+            conn = getConnection();
+            conn.setAutoCommit(false);
+            try (Statement stmt = conn.createStatement()) {
+                stmt.execute("DELETE FROM materyaller");
+            }
+            String sql = "INSERT INTO materyaller (id, json) VALUES (?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(sql)) {
+                for (Materyal m : materyalListesi) {
+                    ps.setString(1, m.getId());
+                    String json = JsonParser.serializeMateryal(m);
+                    ps.setString(2, FileEncryptionService.encrypt(json));
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+            conn.commit();
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (conn != null) {
+                try { conn.rollback(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
         } finally {
+            if (conn != null) {
+                try { conn.close(); } catch (SQLException ex) { ex.printStackTrace(); }
+            }
             lock.writeLock().unlock();
         }
     }
 
-    private void atomikYaz(String hedefDosya, String icerik) {
-        try {
-            Path hedef = Paths.get(hedefDosya);
-            Path gecici = Paths.get(hedefDosya + ".tmp");
-            Files.writeString(gecici, icerik, StandardCharsets.UTF_8);
-            Files.move(gecici, hedef, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-            FileEncryptionService.dosyaErisiminiKisila(hedef);
-        } catch (IOException e) {
-            throw new RuntimeException("Atomik yazma sirasinda hata: " + e.getMessage(), e);
-        }
-    }
-
     public List<Kullanici> kullanicilariYukle() {
-        yolGuvenligi(KULLANICI_DOSYASI);
-        File dosya = new File(KULLANICI_DOSYASI);
-
-        if (!dosya.exists()) {
-            kullaniciListesi = new ArrayList<>();
-            return kullaniciListesi;
-        }
-
-        String okunan = dosyadanOku(dosya);
-        try {
-            kullaniciListesi = JsonParser.deserializeKullanicilar(okunan);
-        } catch (Exception e) {
-            if (backupManager.yedektenKurtar(KULLANICI_DOSYASI)) {
-                okunan = dosyadanOku(dosya);
-                kullaniciListesi = JsonParser.deserializeKullanicilar(okunan);
-            } else {
-                kullaniciListesi = new ArrayList<>();
+        kullaniciListesi.clear();
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT json FROM kullanicilar")) {
+            while (rs.next()) {
+                String encryptedJson = rs.getString("json");
+                String json = FileEncryptionService.decrypt(encryptedJson);
+                Kullanici k = JsonParser.deserializeKullanici(json);
+                if (k != null) kullaniciListesi.add(k);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        sonKullaniciDosyaTarihi = dosya.lastModified();
         return kullaniciListesi;
     }
 
     public List<Materyal> materyallariYukle() {
-        yolGuvenligi(MATERYAL_DOSYASI);
-        File dosya = new File(MATERYAL_DOSYASI);
-
-        if (!dosya.exists()) {
-            materyalListesi = new ArrayList<>();
-            return materyalListesi;
-        }
-
-        String okunan = dosyadanOku(dosya);
-        try {
-            materyalListesi = JsonParser.deserializeMateryaller(okunan);
-        } catch (Exception e) {
-            if (backupManager.yedektenKurtar(MATERYAL_DOSYASI)) {
-                okunan = dosyadanOku(dosya);
-                materyalListesi = JsonParser.deserializeMateryaller(okunan);
-            } else {
-                materyalListesi = new ArrayList<>();
+        materyalListesi.clear();
+        try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT json FROM materyaller")) {
+            while (rs.next()) {
+                String encryptedJson = rs.getString("json");
+                String json = FileEncryptionService.decrypt(encryptedJson);
+                Materyal m = JsonParser.deserializeMateryal(json);
+                if (m != null) materyalListesi.add(m);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-        sonMateryalDosyaTarihi = dosya.lastModified();
         return materyalListesi;
     }
 
-    private String dosyadanOku(File dosya) {
-        try {
-            String icerik = Files.readString(dosya.toPath(), StandardCharsets.UTF_8).trim();
-            if (!icerik.isEmpty() && !icerik.startsWith("[")) {
-                return FileEncryptionService.decrypt(icerik);
-            }
-            return icerik;
-        } catch (IOException e) {
-            throw new RuntimeException("Dosya okuma hatasi: " + dosya.getAbsolutePath(), e);
-        }
-    }
-
     public void yedekle() {
-        backupManager.yedekle();
+        try {
+            File dbFile = new File(getVeriKlasoru() + "/database.db");
+            if (dbFile.exists()) {
+                String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
+                Path backupPath = Path.of(getYedekKlasoru(), "database_" + timestamp + ".db");
+                
+                // SQLite JDBC backup command
+                try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
+                    stmt.executeUpdate("backup to '" + backupPath.toString().replace("\\", "/") + "'");
+                }
+                
+                System.out.println("YEDEK: Veritabani yedeklendi -> " + backupPath);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void senkronizeEt(List<Kullanici> kullanicilar, List<Materyal> materyaller) {
         yedekle();
         kaydet(kullanicilar, materyaller);
-        System.out.println("SENKRONIZASYON TAMAMLANDI: Veriler yedeklendi ve kaydedildi.");
+        System.out.println("SENKRONIZASYON TAMAMLANDI: Veriler yedeklendi ve SQLite'a kaydedildi.");
     }
 
     public void kullaniciEkle(Kullanici yeniKullanici) {
@@ -251,15 +295,14 @@ public class DatabaseManager {
     }
 
     public boolean veritabaniMevcutMu() {
-        return new File(KULLANICI_DOSYASI).exists() && new File(MATERYAL_DOSYASI).exists();
+        return new File(getVeriKlasoru() + "/database.db").exists();
     }
 
     public List<Kullanici> getKullaniciListesi() {
-        File f = new File(KULLANICI_DOSYASI);
-        if (f.exists() && f.lastModified() > sonKullaniciDosyaTarihi) {
+        if (kullaniciListesi.isEmpty() && veritabaniMevcutMu()) {
             lock.writeLock().lock();
             try {
-                if (f.exists() && f.lastModified() > sonKullaniciDosyaTarihi) {
+                if (kullaniciListesi.isEmpty() && veritabaniMevcutMu()) {
                     kullanicilariYukle();
                 }
             } finally {
@@ -275,11 +318,10 @@ public class DatabaseManager {
     }
 
     public List<Materyal> getMateryalListesi() {
-        File f = new File(MATERYAL_DOSYASI);
-        if (f.exists() && f.lastModified() > sonMateryalDosyaTarihi) {
+        if (materyalListesi.isEmpty() && veritabaniMevcutMu()) {
             lock.writeLock().lock();
             try {
-                if (f.exists() && f.lastModified() > sonMateryalDosyaTarihi) {
+                if (materyalListesi.isEmpty() && veritabaniMevcutMu()) {
                     materyallariYukle();
                 }
             } finally {

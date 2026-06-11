@@ -1,4 +1,6 @@
-const Auth = (() => {
+import { API } from './api.js';
+
+export const Auth = (() => {
   const SESSION_KEY = 'akilli_kutup_session';
 
   async function login(tcNo, password) {

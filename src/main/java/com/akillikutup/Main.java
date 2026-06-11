@@ -12,7 +12,7 @@ public class Main {
         
         java.util.List<com.akillikutup.core.Kullanici> users = com.akillikutup.db.DatabaseManager.tekOrnekAl().getKullaniciListesi();
         java.util.List<com.akillikutup.core.Materyal> materials = com.akillikutup.db.DatabaseManager.tekOrnekAl().getMateryalListesi();
-        if (users.isEmpty()) {
+        if (users.isEmpty() && com.akillikutup.db.DatabaseManager.isTestMode) {
             com.akillikutup.auth.AuthManager auth = new com.akillikutup.auth.AuthManager();
             users.add(new com.akillikutup.core.Admin("Ahmet Guler", "11111111111", auth.registerPassword("12345678")));
             users.add(new com.akillikutup.core.Admin("Arda Mecik", "22222222222", auth.registerPassword("12345678")));
@@ -20,7 +20,7 @@ public class Main {
             users.add(new com.akillikutup.core.Uye("Goktug Berke Kuzucu", "44444444444", auth.registerPassword("12345678")));
             com.akillikutup.db.DatabaseManager.tekOrnekAl().kaydet(users, materials);
         }
-        if (materials.isEmpty()) {
+        if (materials.isEmpty() && com.akillikutup.db.DatabaseManager.isTestMode) {
             materials.add(new com.akillikutup.core.Kitap("1984", 5, 25.0, "978-0451524935"));
             materials.add(new com.akillikutup.core.Kitap("Seker Portakali", 3, 15.0, "978-9750719387"));
             materials.add(new com.akillikutup.core.Kitap("Kucuk Prens", 7, 20.0, "978-9750726439"));

@@ -31,8 +31,8 @@ public class GeminiClient {
         if (apiKey == null || apiKey.isEmpty()) {
             apiKey = ConfigManager.getGeminiApiKey();
         }
-        if (apiKey == null || apiKey.isEmpty()) {
-            return "API_KEY_ERROR";
+        if (apiKey == null || apiKey.isEmpty() || "YOUR_GEMINI_API_KEY_HERE".equals(apiKey) || apiKey.startsWith("YOUR_GEMINI")) {
+            return "API_KEY_ERROR: Lutfen gecerli bir Gemini API Anahtari ayarlayin.";
         }
 
         try {
@@ -53,8 +53,9 @@ public class GeminiClient {
 
             for (String model : MODELS) {
                 HttpRequest request = HttpRequest.newBuilder()
-                        .uri(URI.create(API_BASE_URL + model + ":generateContent?key=" + apiKey))
+                        .uri(URI.create(API_BASE_URL + model + ":generateContent"))
                         .header("Content-Type", "application/json")
+                        .header("x-goog-api-key", apiKey)
                         .timeout(Duration.ofSeconds(30))
                         .POST(HttpRequest.BodyPublishers.ofString(requestJson))
                         .build();

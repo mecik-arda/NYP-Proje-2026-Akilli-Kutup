@@ -56,17 +56,21 @@ public class LoginPanel extends JPanel {
                 Kullanici selectedUser = users.get(selectedIndex);
                 String enteredPassword = new String(passwordField.getPassword());
                 com.akillikutup.auth.AuthManager auth = new com.akillikutup.auth.AuthManager();
-                Kullanici loggedInUser = auth.login(selectedUser.getTcNoDogrudan(), enteredPassword);
-                if (loggedInUser != null) {
-                    LibraryManager.getInstance().setCurrentUser(loggedInUser);
-                    passwordField.setText("");
-                    if (loggedInUser.getRol().equals("ADMIN")) {
-                        mainFrame.showPanel("ADMIN");
+                try {
+                    Kullanici loggedInUser = auth.login(selectedUser.getTcNoDogrudan(), enteredPassword, "desktop-app");
+                    if (loggedInUser != null) {
+                        LibraryManager.getInstance().setCurrentUser(loggedInUser);
+                        passwordField.setText("");
+                        if (loggedInUser.getRol().equals("ADMIN")) {
+                            mainFrame.showPanel("ADMIN");
+                        } else {
+                            mainFrame.showPanel("USER");
+                        }
                     } else {
-                        mainFrame.showPanel("USER");
+                        JOptionPane.showMessageDialog(this, "Hatali sifre!", "Hata", JOptionPane.ERROR_MESSAGE);
                     }
-                } else {
-                    JOptionPane.showMessageDialog(this, "Hatali sifre!", "Hata", JOptionPane.ERROR_MESSAGE);
+                } catch (SecurityException ex) {
+                    JOptionPane.showMessageDialog(this, ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
                 }
             }
         });

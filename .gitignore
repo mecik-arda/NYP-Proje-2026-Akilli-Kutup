@@ -43,3 +43,13 @@ data/secret.key
 data/config.json
 data/users.json
 data/materials.json
+
+# SQLite Database files
+*.db
+data/database.db
+
+# Test and temporary directories
+test-data/
+scratch/
+*.py
+

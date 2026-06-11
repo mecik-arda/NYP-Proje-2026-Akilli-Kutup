@@ -107,6 +107,10 @@ public class ConfigManager {
     }
 
     public static void updateConfigData(JsonObject newData) throws Exception {
+        java.util.List<String> allowedKeys = java.util.Arrays.asList(
+            "sessionTimeout", "keyRotationNotify", "auditTrail", "aiTemperature", 
+            "maxTokens", "systemPrompt", "backupPeriod", "lateFee", "maxPenalty", "gracePeriod"
+        );
         for (String key : newData.keySet()) {
             if (key.equals("geminiApiKeyRaw")) {
                 String rawKey = newData.get(key).getAsString();
@@ -114,7 +118,7 @@ public class ConfigManager {
                     geminiApiKey = rawKey;
                     configData.addProperty("gemini_api_key_encrypted", com.akillikutup.db.FileEncryptionService.encrypt(rawKey));
                 }
-            } else {
+            } else if (allowedKeys.contains(key)) {
                 configData.add(key, newData.get(key));
             }
         }

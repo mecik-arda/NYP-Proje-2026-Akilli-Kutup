@@ -22,6 +22,7 @@ import java.util.List;
 public class ApiServer {
     private HttpServer server;
     private final Gson gson = new Gson();
+    private final com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
 
     public void startServer(int port) {
         try {
@@ -55,7 +56,6 @@ public class ApiServer {
 
     private void sendResponse(HttpExchange t, int statusCode, String response) throws IOException {
         byte[] responseBytes = response.getBytes("UTF-8");
-        t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
         t.getResponseHeaders().add("Content-Type", "application/json; charset=UTF-8");
         t.sendResponseHeaders(statusCode, responseBytes.length);
         try (OutputStream os = t.getResponseBody()) {
@@ -67,7 +67,6 @@ public class ApiServer {
         String authHeader = t.getRequestHeaders().getFirst("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
-            com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
             Kullanici user = authManager.getUserByToken(token);
             if (user != null) return user;
         }
@@ -75,9 +74,47 @@ public class ApiServer {
         return null;
     }
 
+    private boolean handleCors(HttpExchange t, String allowedMethods) throws IOException {
+        String origin = t.getRequestHeaders().getFirst("Origin");
+        if (origin != null && (origin.startsWith("http://localhost:") || origin.startsWith("http://127.0.0.1:"))) {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", origin);
+        } else {
+            t.getResponseHeaders().add("Access-Control-Allow-Origin", "http://localhost:8080");
+        }
+        t.getResponseHeaders().add("Access-Control-Allow-Methods", allowedMethods);
+        t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        
+        if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
+            t.sendResponseHeaders(204, -1);
+            return true;
+        }
+        return false;
+    }
+
+    private Kullanici findUserById(DatabaseManager db, String id) {
+        if (id == null) return null;
+        for (Kullanici k : db.getKullaniciListesi()) {
+            if (k.getId().equals(id) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(id) || k.getTcNoDogrudan().equals(id)) {
+                return k;
+            }
+        }
+        return null;
+    }
+
+    private Materyal findMateryalById(DatabaseManager db, String id) {
+        if (id == null) return null;
+        for (Materyal m : db.getMateryalListesi()) {
+            if (m.getId().equals(id)) {
+                return m;
+            }
+        }
+        return null;
+    }
+
     class StatusHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "GET, OPTIONS")) return;
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
                 sendResponse(t, 200, "{\"status\":\"UP\"}");
             } else {
@@ -86,45 +123,12 @@ public class ApiServer {
         }
     }
 
-    class JsonFileHandler implements HttpHandler {
-        private final String filePath;
-        private final boolean protectedEndpoint;
 
-        public JsonFileHandler(String filePath, boolean protectedEndpoint) {
-            this.filePath = filePath;
-            this.protectedEndpoint = protectedEndpoint;
-        }
-
-        @Override
-        public void handle(HttpExchange t) throws IOException {
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "http://localhost:8080");
-            t.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
-
-            if (protectedEndpoint) {
-                t.sendResponseHeaders(403, -1);
-                return;
-            }
-
-            Path path = Paths.get(filePath);
-            if (Files.exists(path)) {
-                byte[] data = Files.readAllBytes(path);
-                t.sendResponseHeaders(200, data.length);
-                try (OutputStream os = t.getResponseBody()) {
-                    os.write(data);
-                }
-            } else {
-                byte[] errorBytes = "[]".getBytes("UTF-8");
-                t.sendResponseHeaders(200, errorBytes.length);
-                try (OutputStream os = t.getResponseBody()) {
-                    os.write(errorBytes);
-                }
-            }
-        }
-    }
 
     class KitaplarHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "GET, OPTIONS")) return;
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
                 List<com.akillikutup.core.Materyal> materyaller = DatabaseManager.tekOrnekAl().getMateryalListesi();
                 JsonArray jsonArray = new JsonArray();
@@ -155,8 +159,14 @@ public class ApiServer {
     class KullanicilarHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "GET, PUT, OPTIONS")) return;
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
-                if (verifyAuth(t) == null) return;
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Yonetici yetkisi gerekli\"}");
+                    return;
+                }
                 
                 List<Kullanici> kullanicilar = DatabaseManager.tekOrnekAl().getKullaniciListesi();
                 JsonArray jsonArray = new JsonArray();
@@ -164,7 +174,12 @@ public class ApiServer {
                     JsonObject dto = new JsonObject();
                     dto.addProperty("id", "M-" + Math.abs(k.getTcNoDogrudan().hashCode()));
                     dto.addProperty("isim", k.getIsim());
-                    dto.addProperty("tcKimlikNo", k.getTcNoDogrudan());
+                    String tc = k.getTcNoDogrudan();
+                    if (tc != null && tc.length() == 11) {
+                        dto.addProperty("tcKimlikNo", tc.substring(0, 3) + "*****" + tc.substring(8));
+                    } else {
+                        dto.addProperty("tcKimlikNo", tc);
+                    }
                     dto.addProperty("email", k.getIsim().toLowerCase().replace(" ", "") + "@example.com");
                     dto.addProperty("rol", k.getRol());
                     
@@ -178,7 +193,12 @@ public class ApiServer {
                 }
                 sendResponse(t, 200, gson.toJson(jsonArray));
             } else if ("PUT".equalsIgnoreCase(t.getRequestMethod())) {
-                if (verifyAuth(t) == null) return;
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Yonetici yetkisi gerekli\"}");
+                    return;
+                }
                 
                 String uri = t.getRequestURI().getPath();
                 String[] parts = uri.split("/");
@@ -190,17 +210,11 @@ public class ApiServer {
                 String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : null;
                 
                 DatabaseManager db = DatabaseManager.tekOrnekAl();
-                boolean found = false;
-                for (Kullanici k : db.getKullaniciListesi()) {
-                    if (k.getId().equals(userId) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(userId)) {
-                        if (isim != null) k.setIsim(isim);
-                        if (tcNo != null) k.setTcNo(tcNo);
-                        found = true;
-                        break;
-                    }
-                }
+                Kullanici k = findUserById(db, userId);
                 
-                if (found) {
+                if (k != null) {
+                    if (isim != null) k.setIsim(isim);
+                    if (tcNo != null) k.setTcNo(tcNo);
                     db.kullanicilariKaydet();
                     sendResponse(t, 200, "{\"basarili\":true}");
                 } else {
@@ -215,29 +229,32 @@ public class ApiServer {
     class LoginHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
+
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 if (body == null) body = new JsonObject();
                 String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : "";
-                String password = body.has("sifreHash") ? body.get("sifreHash").getAsString() : "";
+                String password = body.has("sifre") ? body.get("sifre").getAsString() : (body.has("sifreHash") ? body.get("sifreHash").getAsString() : "");
                 
-                com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
-                Kullanici user = authManager.login(tcNo, password);
-                
-                if (user != null) {
-                    String token = authManager.createSession(user);
-                    JsonObject response = new JsonObject();
-                    response.addProperty("basarili", true);
-                    response.addProperty("ad", user.getIsim());
-                    response.addProperty("rol", user.getRol());
-                    response.addProperty("id", user.getId());
-                    response.addProperty("token", token);
-                    if (user.getGeminiApiKey() != null) {
-                        response.addProperty("geminiApiKey", user.getGeminiApiKey());
+                String ipAddress = t.getRemoteAddress().getAddress().getHostAddress();
+                try {
+                    Kullanici user = authManager.login(tcNo, password, ipAddress);
+                    
+                    if (user != null) {
+                        String token = authManager.createSession(user);
+                        JsonObject response = new JsonObject();
+                        response.addProperty("basarili", true);
+                        response.addProperty("ad", user.getIsim());
+                        response.addProperty("rol", user.getRol());
+                        response.addProperty("id", user.getId());
+                        response.addProperty("token", token);
+                        sendResponse(t, 200, gson.toJson(response));
+                    } else {
+                        sendResponse(t, 401, "{\"basarili\":false,\"mesaj\":\"Gecersiz kimlik bilgileri\"}");
                     }
-                    sendResponse(t, 200, gson.toJson(response));
-                } else {
-                    sendResponse(t, 401, "{\"basarili\":false,\"mesaj\":\"Gecersiz kimlik bilgileri\"}");
+                } catch (SecurityException e) {
+                    sendResponse(t, 429, "{\"basarili\":false,\"mesaj\":\"" + e.getMessage() + "\"}");
                 }
             } else {
                 t.sendResponseHeaders(405, -1);
@@ -248,8 +265,10 @@ public class ApiServer {
     class OduncHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                if (verifyAuth(t) == null) return;
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 if (body == null) body = new JsonObject();
@@ -257,18 +276,12 @@ public class ApiServer {
                 String bookId = body.has("bookId") ? body.get("bookId").getAsString() : "";
                 
                 DatabaseManager db = DatabaseManager.tekOrnekAl();
-                Kullanici targetUser = null;
-                for (Kullanici k : db.getKullaniciListesi()) {
-                    if (k.getId().equals(userId) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(userId) || k.getTcNoDogrudan().equals(userId)) {
-                        targetUser = k; break;
-                    }
-                }
-                
-                Materyal targetMat = null;
-                for (Materyal m : db.getMateryalListesi()) {
-                    if (m.getId().equals(bookId)) {
-                        targetMat = m; break;
-                    }
+                Kullanici targetUser = findUserById(db, userId);
+                Materyal targetMat = findMateryalById(db, bookId);
+
+                if (targetUser != null && !reqUser.getId().equals(targetUser.getId()) && !"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Baska bir kullanici adina islem yapamazsiniz\"}");
+                    return;
                 }
 
                 if (targetUser != null && targetMat != null) {
@@ -293,8 +306,10 @@ public class ApiServer {
     class IadeHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                if (verifyAuth(t) == null) return;
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 if (body == null) body = new JsonObject();
@@ -302,18 +317,12 @@ public class ApiServer {
                 String bookId = body.has("bookId") ? body.get("bookId").getAsString() : "";
                 
                 DatabaseManager db = DatabaseManager.tekOrnekAl();
-                Kullanici targetUser = null;
-                for (Kullanici k : db.getKullaniciListesi()) {
-                    if (k.getId().equals(userId) || ("M-" + Math.abs(k.getTcNoDogrudan().hashCode())).equals(userId) || k.getTcNoDogrudan().equals(userId)) {
-                        targetUser = k; break;
-                    }
-                }
-                
-                Materyal targetMat = null;
-                for (Materyal m : db.getMateryalListesi()) {
-                    if (m.getId().equals(bookId)) {
-                        targetMat = m; break;
-                    }
+                Kullanici targetUser = findUserById(db, userId);
+                Materyal targetMat = findMateryalById(db, bookId);
+
+                if (targetUser != null && !reqUser.getId().equals(targetUser.getId()) && !"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Baska bir kullanici adina islem yapamazsiniz\"}");
+                    return;
                 }
 
                 if (targetUser != null && targetMat != null) {
@@ -334,26 +343,13 @@ public class ApiServer {
     class ChatHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.getResponseHeaders().add("Access-Control-Allow-Methods", "POST, OPTIONS");
-            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-                t.sendResponseHeaders(204, -1);
-                return;
-            }
+            if (handleCors(t, "POST, OPTIONS")) return;
 
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
-                String userApiKey = null;
-                String authHeader = t.getRequestHeaders().getFirst("Authorization");
-                if (authHeader != null && authHeader.startsWith("Bearer ")) {
-                    String token = authHeader.substring(7);
-                    com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
-                    Kullanici user = authManager.getUserByToken(token);
-                    if (user != null) {
-                        userApiKey = user.getGeminiApiKey();
-                    }
-                }
+                Kullanici user = verifyAuth(t);
+                if (user == null) return;
+                
+                String userApiKey = user.getGeminiApiKey();
                 
                 JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
                 if (body == null) body = new JsonObject();
@@ -372,6 +368,7 @@ public class ApiServer {
     class ProfilHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 Kullanici user = verifyAuth(t);
                 if (user == null) return;
@@ -410,6 +407,7 @@ public class ApiServer {
     class SifreHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 Kullanici user = verifyAuth(t);
                 if (user == null) return;
@@ -419,13 +417,17 @@ public class ApiServer {
                 String eskiSifre = body.has("eskiSifre") ? body.get("eskiSifre").getAsString() : "";
                 String yeniSifre = body.has("yeniSifre") ? body.get("yeniSifre").getAsString() : "";
                 
-                com.akillikutup.auth.AuthManager authManager = new com.akillikutup.auth.AuthManager();
-                if (authManager.login(user.getTcNoDogrudan(), eskiSifre) != null) {
-                    user.setSifre(authManager.registerPassword(yeniSifre));
-                    DatabaseManager.tekOrnekAl().kullanicilariKaydet();
-                    sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Sifre degistirildi\"}");
-                } else {
-                    sendResponse(t, 401, "{\"basarili\":false, \"mesaj\":\"Mevcut sifre hatali\"}");
+                String ipAddress = t.getRemoteAddress().getAddress().getHostAddress();
+                try {
+                    if (authManager.login(user.getTcNoDogrudan(), eskiSifre, ipAddress) != null) {
+                        user.setSifre(authManager.registerPassword(yeniSifre));
+                        DatabaseManager.tekOrnekAl().kullanicilariKaydet();
+                        sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Sifre degistirildi\"}");
+                    } else {
+                        sendResponse(t, 401, "{\"basarili\":false, \"mesaj\":\"Mevcut sifre hatali\"}");
+                    }
+                } catch (SecurityException e) {
+                    sendResponse(t, 429, "{\"basarili\":false,\"mesaj\":\"" + e.getMessage() + "\"}");
                 }
             } else {
                 t.sendResponseHeaders(405, -1);
@@ -436,6 +438,7 @@ public class ApiServer {
     class BildirimlerHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "GET, OPTIONS")) return;
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
                 Kullanici user = verifyAuth(t);
                 if (user == null) return;
@@ -451,6 +454,7 @@ public class ApiServer {
     class BildirimOkunduHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
             if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 Kullanici user = verifyAuth(t);
                 if (user == null) return;
@@ -469,14 +473,7 @@ public class ApiServer {
     class SettingsHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-                t.sendResponseHeaders(204, -1);
-                return;
-            }
+            if (handleCors(t, "GET, POST, OPTIONS")) return;
 
             Kullanici user = verifyAuth(t);
             if (user == null) return;
@@ -508,14 +505,7 @@ public class ApiServer {
     class BackupHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            t.getResponseHeaders().add("Access-Control-Allow-Origin", "*");
-            t.getResponseHeaders().add("Access-Control-Allow-Methods", "GET, OPTIONS");
-            t.getResponseHeaders().add("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-            if ("OPTIONS".equalsIgnoreCase(t.getRequestMethod())) {
-                t.sendResponseHeaders(204, -1);
-                return;
-            }
+            if (handleCors(t, "GET, OPTIONS")) return;
 
             Kullanici user = verifyAuth(t);
             if (user == null) return;
@@ -530,7 +520,7 @@ public class ApiServer {
                 t.sendResponseHeaders(200, 0);
 
                 try (java.util.zip.ZipOutputStream zos = new java.util.zip.ZipOutputStream(t.getResponseBody())) {
-                    String[] files = {"data/users.json", "data/materials.json", "data/config.json"};
+                    String[] files = {"data/database.db", "data/config.json"};
                     for (String file : files) {
                         Path p = Paths.get(file);
                         if (Files.exists(p)) {

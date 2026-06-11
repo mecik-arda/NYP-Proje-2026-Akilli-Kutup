@@ -60,26 +60,42 @@
         </div>
     </div>
 
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
-    <script>
+    <script type="module">
+        import { Auth } from './js/auth.js';
+
+        let failedAttempts = 0;
+        let lockTime = 0;
+
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const tcNo = document.getElementById('tcNoInput').value;
             const password = document.getElementById('passwordInput').value;
             const errorDiv = document.getElementById('loginError');
-            
             const btn = document.querySelector('.login-btn');
+            
+            if (Date.now() < lockTime) {
+                const waitSecs = Math.ceil((lockTime - Date.now()) / 1000);
+                errorDiv.style.display = 'block';
+                errorDiv.textContent = `Çok fazla hatalı giriş yaptınız. Lütfen ${waitSecs} saniye bekleyin.`;
+                return;
+            }
+
             btn.textContent = 'Giriş Yapılıyor...';
             btn.disabled = true;
 
             const res = await Auth.login(tcNo, password);
             if(res.success) {
+                failedAttempts = 0;
                 window.location.href = 'index.html';
             } else {
+                failedAttempts++;
+                if (failedAttempts >= 3) {
+                    lockTime = Date.now() + 30000; // 30 saniye kilit
+                    failedAttempts = 0; // kilitten sonra tekrar 3 hak
+                }
                 errorDiv.style.display = 'block';
                 errorDiv.textContent = res.message;
-                btn.textContent = 'Giriş Yap';
+                btn.innerHTML = '<span>Giriş Yap</span><i class="fas fa-arrow-right"></i>';
                 btn.disabled = false;
             }
         });

@@ -35,13 +35,21 @@ Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak t
 *   Tek Sorumluluk Prensibi (Single Responsibility Principle - SRP): Devasa DatabaseManager sınıfı parçalanarak sorumluluklar; yüksek performanslı JSON dönüşümü için JsonParser'a, zamanlanmış yedeklemeler ve otomatik temizlik için BackupManager'a, şifreleme ve anahtar yönetimi için FileEncryptionService sınıfına devredilmiştir.
 
 ## 3. Siber Güvenlik Katmanı (Cybersecurity Framework)
-Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları içerir:
+Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları ve derinlemesine savunma (Defense-in-Depth) prensipleri içerir:
 *   Kriptografik Şifreleme (Hashing & Salting): Kullanıcı parolaları veritabanında kesinlikle açık metin (plaintext) olarak saklanmaz. Parolalar, güvenlik standartlarına uygun olarak hash algoritmaları (SHA-256) kullanılarak şifrelenir. Ayrıca hassas konfigürasyon verileri AES-256 algoritmasıyla uçtan uca korunur.
 *   Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization): Frontend ile Backend arasındaki API iletişiminde yetkisiz erişimleri engellemek için güvenlik mekanizmaları devrededir. Sistemde En Az Ayrıcalık (Least Privilege) prensibi uygulanır; sıradan bir Uye sadece okuma yapabilirken, CRUD operasyonlarını yalnızca Admin yetkisine sahip kullanıcılar gerçekleştirebilir.
 *   Girdi Denetimi ve Sanitizasyon (Input Validation): İstemciden (Web arayüzünden) gelen her türlü veri, Backend tarafında işlenmeden önce süzgeçten geçirilir. Bu sayede JSON Injection ve XSS gibi saldırı vektörleri engellenir.
 *   Dosya Yolu Güvenliği (Path Traversal Protection): Sistem, yerel JSON dosyalarını kullandığından dışarıdan manipüle edilmiş dosya yolu isteklerine karşı sıkı bir dizin denetimi uygular. ApiServer statik dosya sunucusu, `getCanonicalPath()` kontrolü sayesinde isteklerin `frontend` klasörü dışına çıkmasını engeller.
 *   Gizli Anahtar Güvenliği (Key Management): Kaynak koda gömülü olan statik AES anahtarı kaldırılmış, bunun yerine otomatik oluşturulan ve güvenli bir şekilde saklanan `data/secret.key` yapısına geçilmiştir.
 *   Güvenli Şifre Kıyaslaması: AuthManager tarafında hash kıyaslamalarında platformlar arası byte dönüşüm hatalarını ve olası sızıntıları önlemek için UTF-8 standartları zorunlu kılınmıştır.
+*   Brute-Force Koruması ve Hız Sınırlama (Rate Limiting): API ve Masaüstü GUI üzerinden yapılan hatalı giriş denemeleri IP/İstemci bazında ConcurrentHashMap ile takip edilmektedir. Aynı IP'den veya masaüstü istemcisinden üst üste 5 başarısız giriş yapıldığında, erişim 5 dakika boyunca kilitlenir.
+*   IDOR (Insecure Direct Object Reference) Önleme: `/api/kitaplar/*` rotalarına (`DELETE`, `PUT` işlemleri için) sıkı rol kontrolleri (Admin) eklenerek kullanıcıların yetkisiz materyal silmesi veya değiştirmesi engellenmiştir.
+*   Hassas Veri Sızıntısının Engellenmesi: `/api/giris` rotasından dönen kullanıcı profil nesnesinden `geminiApiKey` alanı çıkarılarak, hassas API anahtarlarının istemci tarafına sızdırılması engellenmiştir.
+*   API Key Güvenliği: Yapay zeka asistanı isteklerinde Gemini API anahtarı, URL Query parametreleri yerine HTTP Header (`x-goog-api-key`) aracılığıyla güvenli şekilde taşınmaktadır.
+*   Yedekleme Güvenliği (Backup Isolation): Sistemde otomatik veya manuel yedek (backup) zip dosyaları oluşturulurken, `secret.key` gibi kriptografik anahtar dosyalarının yedek klasörüne kopyalanması engellenmiştir.
+*   Race Condition Engelleme: `DatabaseManager` içerisindeki veri listelerinin (`getKullaniciListesi` vb.) yüklenmesinde Double-Checked Locking kalıbı uygulanarak thread-safety ve veri bütünlüğü sağlanmıştır.
+*   Transaction ve Veri Güvenliği: Dosya tabanlı veritabanı eşitleme işlemlerinde oluşabilecek hatalarda veri tutarlılığını korumak için rollback (`conn.rollback()`) mekanizması entegre edilmiştir.
+*   Sıkılaştırılmış CORS Başlıkları: `ApiServer` tarafındaki tüm yetkisiz erişim `401` yanıtlarında ve `login` rotalarında tutarlı ve güvenli CORS yapılandırması mevcuttur.
 
 ## 4. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
 *   Sistem, SQL kullanmak yerine kendi özel Dosya Tabanlı Veritabanı Motorunu (File-Based Database Engine) Java ile sıfırdan yönetir.
@@ -52,6 +60,10 @@ Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla geli
 *   Java backend'i, gömülü bir HTTP sunucusu modülü (ApiServer) barındırarak ağ üzerinden gelen istekleri dinler.
 *   Kullanıcılar sisteme kurumsal tasarıma sahip, karanlık tema destekli, asenkron (Fetch API) ve kullanıcı dostu bir web paneli üzerinden erişim sağlar.
 *   Sisteme entegre edilen GeminiClient modülü sayesinde kullanıcılara okuma geçmişlerine uygun materyal önerileri, akıllı asistan hizmetleri ve katalog analizleri sağlanır.
+*   **Modüler ES6 JavaScript Yapısı**: Dev JavaScript dosyaları sorumluluklarına göre modüllere (`main.js`, `ui.js`, `charts.js`, `utils.js`, `store.js`) ayrılmış, ortak işlevlerin `utils.js`'e toplanmasıyla modüller arası döngüsel bağımlılık (circular dependency) sorunları çözülmüştür.
+*   **XSS (Cross-Site Scripting) Koruması**: Ödünç alma modal listesi, medya gridi (Asset Grid), timeline akışı, AI chat sohbet pencereleri ve PDF rapor taslakları dahil olmak üzere kullanıcıdan gelen tüm dinamik girdiler `escapeHtml` fonksiyonu ile süzülerek HTML Entity Encoding uygulanmıştır.
+*   **Veri Maskeleme**: PDF rapor çıktılarında kullanıcıların hassas TC Kimlik numaraları maskelenerek gizlilik standartları yükseltilmiştir.
+*   **Arayüz Performans İyileştirmeleri**: SVG donut grafik üretiminde DOM döngü yükünü (layout thrashing) azaltmak için `DocumentFragment` kullanılmıştır.
 
 ## 6. Sistemin Temel Özellikleri (Features)
 
@@ -61,20 +73,20 @@ Projeye V3 sürümü ile birlikte kazandırılan ve yapılan son geliştirmelerl
 *   **Rol Tabanlı Gelişmiş Kimlik Doğrulama:** Admin ve standart Üye rolleri birbirinden tamamen ayrılmıştır. SHA-256 ile şifrelenen hesaplara giriş yapıldığında, yetkilendirmeye göre sadece ilgili butonlar, menüler ve işlemler (CRUD) aktif hale gelir.
 *   **Ödünç Alma ve İade Süreçleri:** Kullanıcılar kütüphane materyallerini ödünç alabilir. Ödünç alma limitleri (Admin için sınırsız, Üye için belirli limitler) nesneye yönelik programlama kurallarıyla dinamik olarak yönetilir.
 *   **Dinamik Ceza Puanı ve Kredi Sistemi:** Zamanında iade edilmeyen materyaller için sisteme entegre algoritma sayesinde dinamik ceza puanı hesaplanır. Kredisi eksilere düşen üyeler otomatik olarak ödünç alma işlemlerinden kısıtlanır.
-*   **Kişisel Gemini API Anahtarı Desteği:** Üyeler, profil düzenleme ekranından kendi kişisel Google Gemini API anahtarlarını sisteme tanımlayabilirler. Tanımlanan anahtarlar veritabanında güvenli bir şekilde saklanır. Bu sayede kullanıcılar kendi kotaları üzerinden AI Asistanı kullanabilirler.
-*   **Yedekli Yapay Zeka İstek Mekanizması (Fallback):** Yapay zeka asistanı ile yapılan sohbetlerde sistem, öncelikle istek atan üyenin kendi kişisel API anahtarının olup olmadığını kontrol eder. Eğer kişisel anahtar tanımlanmamışsa, sistem otomatik olarak admin tarafından belirlenen global (sistem) API anahtarını kullanır. Bu sayede kesintisiz bir AI deneyimi sağlanır.
-*   **Gelişmiş Yönetici Ayarları Paneli:** Admin yetkisine sahip kullanıcılar, dashboard üzerinden tüm sistem konfigürasyonlarını gerçek zamanlı olarak yönetebilir:
-    *   *Güvenlik Ayarları:* Oturum zaman aşımı süresi, anahtar rotasyon bildirimleri ve detaylı log izleme (Audit Trail).
-    *   *Yapay Zeka Konfigürasyonu:* Model sıcaklık değeri (Temperature), maksimum token sınırı (Max Tokens), asistan sistem promptu (System Prompt) ve global Gemini API anahtarı.
-    *   *Kütüphane Kuralları:* Günlük gecikme cezası puanı, maksimum ceza puanı sınırı ve iade tolerans süresi (Grace Period).
-*   **Tek Tıkla Veritabanı Dışa Aktarma (Export):** Yönetici ayarlarında bulunan "Veritabanını Dışa Aktar" butonu sayesinde, sistemdeki güncel JSON veritabanı dosyaları (`users.json`, `materials.json`, `config.json`) sunucu tarafında dinamik olarak zip formatında paketlenir ve `kutuphane_yedek.zip` adıyla anında indirilir.
-*   **PostgreSQL Geçiş Hazırlığı:** Gelecek sürümlerde sunulması planlanan SQL veritabanı geçişi için gerekli bağlantı ayarları arayüzü (Host, Port, Veritabanı Adı, Kullanıcı Adı ve Şifre) ayarlar paneline eklenmiş ve gelecek entegrasyonlar için mimari altyapı hazırlanmıştır (Mevcut sürümde pasif/disabled olarak yer almaktadır).
-*   **Finansal Analiz ve Otomatik PDF Raporlama:** Sistemin finansal durumu, kesilen cezalar ve genel istatistikler admin paneli üzerinden anlık olarak PDF formatında (veya ekranda tablo olarak) raporlanabilir.
-*   **Simüle Edilmiş Barkod/Hızlı Tarama Sistemi:** Ön yüz (Dashboard) üzerinde yer alan hızlı işlemler menüsü ile kütüphane barkod sistemi simüle edilerek tek tıkla en çok okunanlara erişim imkanı tanınır.
-*   **Dinamik Bildirimler ve Gerçek Zamanlı Profil Senkronizasyonu:** Kullanıcıların web paneli üzerinden anlık profil güncellemeleri ve bildirim yönetimi yapabilmesi sağlanmıştır. Bu güncellemeler eşzamanlı olarak Java Desktop GUI ile de senkronize edilir.
+*   **Kişisel Gemini API Anahtarı Desteği:** Üyeler, profil düzenleme ekranından kendi kişisel Google Gemini API anahtarını sisteme tanımlayabilirler. Tanımlanan anahtar veritabanında güvenli şekilde saklanır ve kullanıcı kendi kotasından AI sorguları yapabilir.
+*   **Yedekli Yapay Zeka İstek Mekanizması (Fallback):** AI sohbetlerinde üyenin kişisel anahtarı bulunmuyorsa, sistem otomatik olarak admin tarafından tanımlanan global API anahtarına geçiş yapar.
+*   **Gelişmiş Yönetici Ayarları Paneli:** Admin kullanıcıları; oturum zaman aşımı, AI model parametreleri (Temperature, Max Tokens, System Prompt), günlük gecikme cezası, ceza limiti ve tolerans sürelerini (Grace Period) dinamik olarak yönetebilir.
+*   **Brute-Force Koruması (Rate Limiting):** API ve Masaüstü GUI girişlerinde in-memory (ConcurrentHashMap) bazlı başarısız deneme kontrolü ile brute-force saldırılarını engelleyen hız sınırlaması (5 hatalı deneme -> 5 dakika engelleme).
+*   **Benzersiz ID Üretimi (Çakışma Engelleme):** Kitap ve Üye ekleme işlemlerinde length tabanlı hatalı üretim yerine dizideki en yüksek ID'yi bularak 1 artıran akıllı ID oluşturma algoritması.
+*   **Doğru Sıralama Algoritması:** Katalog listelemesinde, kitap ID'lerini sayısal `(b.id - a.id)` değerleri ile sıralayan mekanizma.
+*   **Tek Tıkla Veritabanı Dışa Aktarma (Export):** JSON veritabanı dosyalarını sunucu tarafında zip formatında paketleyen ve anında indirme imkanı sunan buton.
+*   **PostgreSQL Geçiş Hazırlığı:** SQL veritabanı geçişi için bağlantı ayarları arayüzü (Host, Port, DB Adı, Kullanıcı Adı ve Şifre) ayarlar paneline eklenmiştir (Mevcut sürümde pasif/disabled olarak yer almaktadır).
+*   **Finansal Analiz ve Raporlama:** Sistemin finansal durumu, kesilen cezalar ve genel istatistiklerin PDF formatında raporlanabilmesi.
+*   **Simüle Edilmiş Barkod Arayüzü**: Dashboard üzerinden barkod tarama sistemini simüle eden hızlı işlem aracı.
+*   **Dinamik Bildirimler ve Profil Senkronizasyonu:** Web paneli profil güncellemelerinin anında Java Desktop GUI ile senkronize edilmesi.
 *   **Asenkron Çalışan Arka Plan Sunucusu:** Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
-*   **Gelişmiş AI Hata Yönetimi ve Model Fallback:** Google Gemini API tarafındaki aşırı yüklenmeler (503 High Demand) ve hatalara karşı otomatik yedek (fallback) modeller (`gemini-1.5-pro-latest`, `gemini-pro`) denenir. Ayrıca çapraz alan (CORS) sorunları Native Java HTTP sunucusunda çözülmüştür.
-*   **Felaket Kurtarma ve Otomatik Yedekleme:** Sistemde yapılan her kritik okuma/yazma işlemi öncesinde `DatabaseManager` modülü tüm veritabanı (JSON) dosyalarının tam yedeğini alır.
+*   **Gelişmiş AI Hata Yönetimi ve Model Fallback:** Gemini API aşırı yüklenmelerinde otomatik yedek modellerin (`gemini-1.5-pro-latest`, `gemini-pro`) denenmesi.
+*   **Felaket Kurtarma ve Otomatik Yedekleme:** Her kritik okuma/yazma öncesinde `DatabaseManager` modülünün veritabanı dosyalarının tam yedeğini alması.
 
 ## EKİP GÖREV DAĞILIMI
 
@@ -122,7 +134,11 @@ frontend/index.html
 frontend/dashboard.html
 frontend/css/login.css
 frontend/css/main.css
-frontend/js/dashboard.js
+frontend/js/main.js
+frontend/js/ui.js
+frontend/js/charts.js
+frontend/js/store.js
+frontend/js/utils.js
 ```
 
 Security & Integration Specialist - Eren Gider:
@@ -182,7 +198,11 @@ NYP-Proje-2026-Akilli-Kutup/
 │   └── js/
 │       ├── api.js
 │       ├── auth.js
-│       └── dashboard.js
+│       ├── charts.js
+│       ├── main.js
+│       ├── store.js
+│       ├── ui.js
+│       └── utils.js
 └── src/
     ├── main/java/com/akillikutup/
     │   ├── auth/
@@ -225,12 +245,12 @@ NYP-Proje-2026-Akilli-Kutup/
 Yukarıdaki şemada belirtilen dosyalardan tamamlananlar ve güncellenen modüller aşağıda listelenmiştir:
 
 Tamamlanan Kısımlar:
-*   **src/main/java/com/akillikutup/core/** (Çekirdek OOP Modelleri; `Kullanici.java` sınıfına kişisel API anahtarı desteği; `ConfigManager.java` sınıfına dinamik konfigürasyon güncelleme ve AES-256 şifrelemeli depolama eklendi)
-*   **src/main/java/com/akillikutup/db/** (Veritabanı Motoru, JSON İşlemleri, Güvenli AES-256 Dosya Şifreleme ve Otomatik Yedekleme Mekanizması)
-*   **src/main/java/com/akillikutup/gui/** (Swing Masaüstü Arayüzü)
-*   **src/main/java/com/akillikutup/auth/** (SHA-256 Şifreleme, Oturum Yönetimi ve Kimlik Doğrulama)
-*   **src/main/java/com/akillikutup/server/** (REST API Sunucu Altyapısı; `/api/settings` ve `/api/backup` endpoint'leri eklendi; `/api/profil`, `/api/chat` ve `/api/login` modülleri kişisel API anahtarı desteği ve yedekli AI sorgulama mimarisi ile güncellendi)
-*   **src/test/** (Birim Testler - Çekirdek iş mantığı, veritabanı ve kimlik doğrulama testleri başarıyla geçmektedir)
-*   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi)
+*   **src/main/java/com/akillikutup/core/** (Çekirdek OOP Modelleri; `Kullanici.java` sınıfına kişisel API anahtarı desteği ve ID tabanlı `equals`/`hashCode` metodları; `ConfigManager.java` sınıfına dinamik konfigürasyon güncelleme ve AES-256 şifrelemeli depolama eklendi; `DijitalMedya` nesnesi için `toplamErisimSayisi` setter'ı tanımlandı)
+*   **src/main/java/com/akillikutup/db/** (Veritabanı Motoru, JSON İşlemleri, Güvenli AES-256 Dosya Şifreleme, Otomatik Yedekleme Mekanizması; veritabanı eşitleme işlemlerine rollback (`conn.rollback()`) desteği ve veri listelerinin yüklenmesinde Double-Checked Locking thread güvenliği eklendi)
+*   **src/main/java/com/akillikutup/gui/** (Swing Masaüstü Arayüzü; `LoginPanel.java` IP kısıtlama ve brute-force lockout hata yönetimi ile güncellendi)
+*   **src/main/java/com/akillikutup/auth/** (SHA-256 Şifreleme, Oturum Yönetimi, Kimlik Doğrulama; IP/İstemci bazlı in-memory Brute-Force lockout kilit mekanizması eklendi)
+*   **src/main/java/com/akillikutup/server/** (REST API Sunucu Altyapısı; `/api/settings` ve `/api/backup` endpoint'leri eklendi; `/api/profil`, `/api/chat` ve `/api/login` modülleri kişisel API anahtarı desteği ve yedekli AI sorgulama mimarisi ile güncellendi; API keylerin HTTP Header üzerinden taşınması, IDOR zafiyeti kontrolü ve login yanıtlarında hassas anahtarların sızdırılmasının engellenmesi sağlandı)
+*   **src/test/** (Birim Testler - Çekirdek iş mantığı, veritabanı, kimlik doğrulama testleri başarıyla geçmektedir. Seed data üretimi sadece test modunda çalıştırılacak şekilde ayrıştırıldı)
+*   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi. JavaScript dosyaları ES6 modüler yapısına bölünerek döngüsel bağımlılıklar giderildi. Çakışmayan ID üretimi, XSS sanitizasyonu (`escapeHtml`), TC Kimlik maskeleme ve SVG render optimizasyonları yapıldı)
 *   **docs/UML_Sema.md** (UML sınıf diyagramı ve nesne ilişkileri)
 *   **docs/Proje_Raporu.md** (Detaylı proje raporu ve OOP prensipleri dokümantasyonu)

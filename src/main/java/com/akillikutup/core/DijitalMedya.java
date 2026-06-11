@@ -57,5 +57,6 @@ public class DijitalMedya extends Materyal {
 
     public String getSonUretilenLisans() { return sonUretilenLisans; }
     public int getToplamErisimSayisi() { return toplamErisimSayisi; }
+    public void setToplamErisimSayisi(int toplamErisimSayisi) { this.toplamErisimSayisi = toplamErisimSayisi; }
     public String getDosyaFormati() { return dosyaFormati; }
 }
