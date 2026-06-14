@@ -1,6 +1,6 @@
-# UML Sinif Diyagrami
+# UML Sınıf Diyagramı
 
-Akilli Kutuphane ve Guvenli Dijital Varlik Yonetim Sistemi icin sinif diyagrami.
+Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi için güncel sınıf diyagramı.
 
 ```mermaid
 classDiagram
@@ -8,134 +8,270 @@ classDiagram
 
     class IMateryal {
         <<interface>>
-        +getId() String
-        +getBaslik() String
-        +getTur() String
-        +bilgiGetir() String
+        +oduncVer() void
+        +iadeEt() void
+        +cezaHesapla(gecikmeGunu) double
+        +stoktaVarMi() boolean
     }
 
     class Materyal {
         <<abstract>>
-        #id : String
-        #baslik : String
-        #tur : String
-        #eklemeTarihi : String
-        +Materyal(id, baslik, tur)
-        +getId() String
+        -id : String
+        -baslik : String
+        #stokAdedi : int
+        -birimFiyat : double
+        +Materyal(baslik, stokAdedi, birimFiyat)
+        +stoktaVarMi() boolean
+        +oduncVer() void*
+        +iadeEt() void*
+        +cezaHesapla(gecikmeGunu) double*
         +getBaslik() String
-        +getTur() String
-        +bilgiGetir() String*
-        +toJson() JSONObject
+        +getBirimFiyat() double
+        +getStokAdedi() int
+        +getId() String
+        +setId(id) void
     }
 
     class Kitap {
-        -yazar : String
         -isbn : String
-        -sayfaSayisi : int
-        -kategori : String
-        -durum : String
-        -oduncAlan : String
-        +Kitap(id, baslik, yazar, isbn, sayfaSayisi, kategori)
-        +getYazar() String
+        +Kitap(baslik, stokAdedi, birimFiyat, isbn)
+        +oduncVer() void
+        +iadeEt() void
+        +cezaHesapla(gecikmeGunu) double
         +getIsbn() String
-        +getDurum() String
-        +setDurum(durum) void
-        +oduncVer(kullaniciId) void
-        +iadeAl() void
-        +bilgiGetir() String
-        +toJson() JSONObject
     }
 
     class DijitalMedya {
-        -format : String
-        -boyutMB : double
-        -url : String
-        +DijitalMedya(id, baslik, format, boyutMB, url)
-        +getFormat() String
-        +getBoyutMB() double
-        +getUrl() String
-        +bilgiGetir() String
-        +toJson() JSONObject
+        -dosyaFormati : String
+        -sonUretilenLisans : String
+        -toplamErisimSayisi : int
+        -MAX_ERISIM_LIMITI : int
+        +DijitalMedya(baslik, birimFiyat, dosyaFormati)
+        +stoktaVarMi() boolean
+        +oduncVer() void
+        +iadeEt() void
+        +cezaHesapla(gun) double
+        +getSonUretilenLisans() String
+        +getToplamErisimSayisi() int
+        +setToplamErisimSayisi(toplamErisimSayisi) void
+        +getDosyaFormati() String
     }
 
     class Kullanici {
         <<abstract>>
-        #id : String
-        #ad : String
-        #soyad : String
-        #tcKimlikNo : String
-        #sifreHash : String
-        #rol : String
-        +Kullanici(id, ad, soyad, tcKimlikNo, sifreHash, rol)
+        -id : String
+        -isim : String
+        -tcNo : String
+        -rol : String
+        -sifre : String
+        -token : String
+        -tokenExpiry : long
+        #krediPuani : int
+        #oduncAlinanMateryaller : List~String~
+        #bildirimler : List~Bildirim~
+        #geminiApiKey : String
+        +Kullanici(isim, tcNo, rol, sifre)
+        +getTcNo(talepEden) String
         +getId() String
-        +getAd() String
-        +getSoyad() String
-        +getTcKimlikNo() String
-        +getSifreHash() String
+        +setId(id) void
+        +getToken() String
+        +setToken(token) void
+        +getTokenExpiry() long
+        +setTokenExpiry(tokenExpiry) void
+        +goreviniYap() void*
+        +getIsim() String
         +getRol() String
-        +toJson() JSONObject
+        +getSifre() String
+        +getKrediPuani() int
+        +getTcNoDogrudan() String
+        +setTcNo(tcNo) void
+        +setSifre(sifre) void
+        +setIsim(isim) void
+        +getOduncAlinanMateryaller() List~String~
+        +getBildirimler() List~Bildirim~
+        +materyalOduncAl(materyalId) void
+        +materyalIadeEt(materyalId) void
+        +getGeminiApiKey() String
+        +setGeminiApiKey(geminiApiKey) void
     }
 
     class Admin {
-        +Admin(id, ad, soyad, tcKimlikNo, sifreHash)
-        +kitapEkle(kitap) void
-        +kitapSil(kitapId) void
-        +kullaniciYonet() void
-        +istatistikGoruntule() void
+        +Admin(isim, tcNo, sifre)
+        +goreviniYap() void
+        +envanterEkle(m) void
     }
 
     class Uye {
-        -oduncListesi : List~String~
-        -maxOdunc : int
-        +Uye(id, ad, soyad, tcKimlikNo, sifreHash)
-        +kitapOduncAl(kitapId) boolean
-        +kitapIadeEt(kitapId) boolean
-        +getOduncListesi() List~String~
-        +toJson() JSONObject
+        +Uye(isim, tcNo, sifre)
+        +goreviniYap() void
+        +materyalAl(m) void
+        +puanGuncelle(miktar) void
+    }
+
+    class Bildirim {
+        -id : String
+        -type : String
+        -icon : String
+        -text : String
+        -time : String
+        -unread : boolean
+        +Bildirim()
+        +Bildirim(type, icon, text, time)
+        +getId() String
+        +setId(id) void
+        +getType() String
+        +setType(type) void
+        +getIcon() String
+        +setIcon(icon) void
+        +getText() String
+        +setText(text) void
+        +getTime() String
+        +setTime(time) void
+        +isUnread() boolean
+        +setUnread(unread) void
     }
 
     class DatabaseManager {
-        -instance : DatabaseManager$
-        -veritabaniYolu : String
-        -kitaplar : List~Kitap~
-        -kullanicilar : List~Kullanici~
+        -tekOrnek : DatabaseManager$
+        +isTestMode : boolean$
+        -kullaniciListesi : List~Kullanici~
+        -materyalListesi : List~Materyal~
+        -lock : ReadWriteLock
+        -dataSource : HikariDataSource
+        -scheduler : ScheduledExecutorService
+        -shutdownHook : Thread
         -DatabaseManager()
-        +getInstance() DatabaseManager$
-        +kitapEkle(kitap) void
-        +kitapSil(kitapId) boolean
-        +kitapBul(kitapId) Kitap
-        +kitapAra(sorgu) List~Kitap~
-        +tumKitaplar() List~Kitap~
-        +kullaniciEkle(kullanici) void
-        +kullaniciBul(tcKimlikNo) Kullanici
-        +tumKullanicilar() List~Kullanici~
-        +kaydet() void
-        +yukle() void
+        +tekOrnekAl() DatabaseManager$
+        +tekOrnekSifirla() void$
+        -getConnection() Connection
+        -baslatYedeklemeZamanlayici() void
+        -initDb() void
+        +kaydet(kullanicilar, materyaller) void
+        +kullanicilariKaydet() void
+        +materyallariKaydet() void
+        +kullanicilariYukle() List~Kullanici~
+        +materyallariYukle() List~Materyal~
+        +yedekle() void
+        +senkronizeEt(kullanicilar, materyaller) void
+        +kullaniciEkle(yeniKullanici) void
+        +kullaniciSil(kullaniciIsmi) void
+        +materyalEkle(yeniMateryal) void
+        +materyalSil(materyalId) void
+        +kullaniciBul(id) Kullanici
+        +materyalBul(id) Materyal
+        +materyalAra(aramaKelimesi) List~Materyal~
+        +veritabaniMevcutMu() boolean
+        +getKullaniciListesi() List~Kullanici~
+        +getMateryalListesi() List~Materyal~
+    }
+
+    class BackupManager {
+        -YEDEK_KLASORU : String
+        -KULLANICI_DOSYASI : String
+        -MATERYAL_DOSYASI : String
+        +BackupManager(yedekKlasoru, kullaniciDosyasi, materyalDosyasi)
+        +yedekle() void
+        +yedektenKurtar(hedefDosyaYolu) boolean
+        -eskiYedekleriTemizle(maxYedekSayisi) void
+        -dosyaKopyala(kaynak, hedef) void
+    }
+
+    class FileEncryptionService {
+        -ANAHTAR_DOSYASI : String$
+        -GCM_IV_LENGTH : int$
+        -GCM_TAG_LENGTH : int$
+        -gizliAnahtar : SecretKey$
+        +init() void$
+        +encrypt(value) String$
+        +decrypt(encryptedValue) String$
+        +dosyaErisiminiKisila(yol) void$
+    }
+
+    class JsonParser {
+        -gson : Gson$
+        +serializeKullanici(k) String$
+        +serializeMateryal(m) String$
+        +deserializeKullanici(json) Kullanici$
+        +deserializeMateryal(json) Materyal$
+        +serializeKullanicilar(kullaniciListesi) String$
+        +serializeMateryaller(materyalListesi) String$
+        +deserializeKullanicilar(json) List~Kullanici~
+        +deserializeMateryaller(json) List~Materyal~
+    }
+
+    class ConfigManager {
+        -CONFIG_FILE : String$
+        -geminiApiKey : String$
+        -configData : JsonObject$
+        -gson : Gson$
+        -DEFAULT_API_KEY : String$
+        +init() void$
+        -createDefaultConfig() JsonObject$
+        -checkDefaults() void$
+        +saveConfig() void$
+        +getConfigData() JsonObject$
+        +updateConfigData(newData) void$
+        +getGeminiApiKey() String$
     }
 
     class AuthManager {
-        -dbManager : DatabaseManager
-        +AuthManager(dbManager)
-        +girisYap(tcKimlikNo, sifreHash) Kullanici
-        +hashSifre(sifre) String
-        +dogrula(tcKimlikNo, sifreHash) boolean
+        -db : DatabaseManager
+        -failedAttempts : ConcurrentHashMap~String, Integer~
+        -lockoutTimes : ConcurrentHashMap~String, Long~
+        -MAX_FAILED_ATTEMPTS : int$
+        -LOCKOUT_DURATION_MS : long$
+        +AuthManager()
+        +hashPassword(password, salt) String
+        +generateSalt() byte[]
+        +login(tcNo, plainPassword, ipAddress) Kullanici
+        +registerPassword(plainPassword) String
+        +createSession(user) String
+        +getUserByToken(token) Kullanici
+    }
+
+    class GeminiClient {
+        -API_BASE_URL : String$
+        -MODELS : String[]$
+        -httpClient : HttpClient$
+        -gson : Gson$
+        +askQuestion(prompt, userApiKey) String$
+        -parseGeminiResponse(jsonResponse) String$
     }
 
     class ApiServer {
-        -port : int
         -server : HttpServer
-        -dbManager : DatabaseManager
+        -gson : Gson
         -authManager : AuthManager
-        +ApiServer(port)
-        +baslat() void
-        +durdur() void
-        -handleKitaplar(exchange) void
-        -handleKullanicilar(exchange) void
-        -handleGiris(exchange) void
-        -handleOdunc(exchange) void
-        -handleIade(exchange) void
-        -handleIstatistikler(exchange) void
-        -sendResponse(exchange, code, body) void
+        +startServer(port) void
+        +stopServer() void
+        -sendResponse(t, statusCode, response) void
+        -verifyAuth(t) Kullanici
+        -handleCors(t, allowedMethods) boolean
+        -findUserById(db, id) Kullanici
+    }
+
+    class MainFrame {
+        -cardLayout : CardLayout
+        -mainPanel : JPanel
+        +MainFrame()
+        +showPanel(panelName) void
+    }
+
+    class LibraryManager {
+        -instance : LibraryManager$
+        -users : List~Kullanici~
+        -materials : List~Materyal~
+        -currentUser : Kullanici
+        -LibraryManager()
+        +getInstance() LibraryManager$
+        +addUser(user) void
+        +getUsers() List~Kullanici~
+        +getMaterials() List~Materyal~
+        +getCurrentUser() Kullanici
+        +setCurrentUser(currentUser) void
+        +addMaterial(m) void
+        +removeUser(user) void
+        +removeMaterial(m) void
     }
 
     IMateryal <|.. Materyal
@@ -143,32 +279,48 @@ classDiagram
     Materyal <|-- DijitalMedya
     Kullanici <|-- Admin
     Kullanici <|-- Uye
-    DatabaseManager --> Kitap : yonetir
-    DatabaseManager --> Kullanici : yonetir
-    AuthManager --> DatabaseManager : kullanir
-    ApiServer --> DatabaseManager : kullanir
-    ApiServer --> AuthManager : kullanir
-    Uye --> Kitap : odunc alir
-    Admin --> Kitap : ekler/siler
+    Kullanici o--> "0..*" Bildirim : has
+    DatabaseManager o--> "0..*" Kitap : manages
+    DatabaseManager o--> "0..*" Kullanici : manages
+    DatabaseManager --> JsonParser : uses
+    DatabaseManager --> FileEncryptionService : uses
+    LibraryManager --> DatabaseManager : uses
+    LibraryManager o--> "0..*" Kullanici : manages
+    LibraryManager o--> "0..*" Materyal : manages
+    AuthManager --> DatabaseManager : uses
+    ApiServer --> DatabaseManager : uses
+    ApiServer --> AuthManager : uses
+    ApiServer --> GeminiClient : delegates to
+    ConfigManager --> FileEncryptionService : uses
+    GeminiClient --> ConfigManager : reads global key
 ```
 
-## Iliskiler
+## İlişkiler
 
-| Iliski | Aciklama |
+| İlişki | Açıklama |
 |--------|----------|
-| `IMateryal <\|.. Materyal` | Materyal sinifi IMateryal arayuzunu uygular |
-| `Materyal <\|-- Kitap` | Kitap sinifi Materyal soyut sinifini genisletir |
-| `Materyal <\|-- DijitalMedya` | DijitalMedya sinifi Materyal soyut sinifini genisletir |
-| `Kullanici <\|-- Admin` | Admin sinifi Kullanici soyut sinifini genisletir |
-| `Kullanici <\|-- Uye` | Uye sinifi Kullanici soyut sinifini genisletir |
-| `DatabaseManager --> Kitap` | DatabaseManager kitaplari yonetir (composition) |
-| `DatabaseManager --> Kullanici` | DatabaseManager kullanicilari yonetir (composition) |
-| `AuthManager --> DatabaseManager` | AuthManager veritabani erisimi icin DatabaseManager kullanir |
-| `ApiServer --> DatabaseManager` | ApiServer veri islemleri icin DatabaseManager kullanir |
-| `ApiServer --> AuthManager` | ApiServer kimlik dogrulama icin AuthManager kullanir |
+| `IMateryal <\|.. Materyal` | `Materyal` sınıfı `IMateryal` arayüzünü uygular |
+| `Materyal <\|-- Kitap` | `Kitap` sınıfı `Materyal` soyut sınıfını genişletir |
+| `Materyal <\|-- DijitalMedya` | `DijitalMedya` sınıfı `Materyal` soyut sınıfını genişletir |
+| `Kullanici <\|-- Admin` | `Admin` sınıfı `Kullanici` soyut sınıfını genişletir |
+| `Kullanici <\|-- Uye` | `Uye` sınıfı `Kullanici` soyut sınıfını genişletir |
+| `Kullanici o--> Bildirim` | `Kullanici` nesnesi sıfır veya daha fazla `Bildirim` nesnesi barındırır (Aggregation) |
+| `DatabaseManager o--> Kitap` | `DatabaseManager` kitap listesini yönetir |
+| `DatabaseManager o--> Kullanici` | `DatabaseManager` kullanıcı listesini yönetir |
+| `DatabaseManager --> JsonParser` | `DatabaseManager` JSON serileştirme/serileştirmeden çıkarma işlemleri için `JsonParser` kullanır |
+| `DatabaseManager --> FileEncryptionService` | `DatabaseManager` verileri diske yazarken AES şifreleme/çözme işlemleri için `FileEncryptionService` kullanır |
+| `LibraryManager --> DatabaseManager` | GUI katmanının tek noktadan erişimi için `LibraryManager`, `DatabaseManager`'a delegasyon yapar |
+| `AuthManager --> DatabaseManager` | `AuthManager` kimlik doğrulama ve kullanıcı oturumu işlemleri için `DatabaseManager` kullanır |
+| `ApiServer --> DatabaseManager` | `ApiServer` REST API veri taleplerini karşılamak için `DatabaseManager` kullanır |
+| `ApiServer --> AuthManager` | `ApiServer` Bearer token doğrulama ve giriş işlemlerini yönetmek için `AuthManager` kullanır |
+| `ApiServer --> GeminiClient` | Yapay zeka asistanı istekleri `GeminiClient` sınıfına yönlendirilir |
+| `ConfigManager --> FileEncryptionService` | `ConfigManager` Gemini API anahtarını şifrelenmiş olarak `config.json` dosyasında saklamak/okumak için kullanır |
+| `GeminiClient --> ConfigManager` | `GeminiClient` kullanıcıya özel anahtar olmadığında sistem genelindeki global API anahtarını `ConfigManager` üzerinden okur |
 
-## Tasarim Desenleri
+## Tasarım Desenleri
 
-- **Singleton**: `DatabaseManager` tek ornek olarak calisir
-- **Template Method**: `Materyal` soyut sinifinda `bilgiGetir()` metodu
-- **Strategy**: Farkli materyal turleri icin farkli `bilgiGetir()` uygulamalari
+- **Singleton (Tek Nesne)**: `DatabaseManager` ve `LibraryManager` sınıfları tek örnek olarak çalışacak şekilde tasarlanmıştır (`tekOrnekAl()` / `getInstance()`).
+- **Template Method (Şablon Yöntem)**: `Materyal` soyut sınıfında tanımlanan abstract metotlar (`oduncVer()`, `iadeEt()`, `cezaHesapla()`) alt sınıflarda özel iş mantıklarıyla ezilerek uygulanır.
+- **Facade (Alt Sistem Arayüzü)**: `LibraryManager` sınıfı, Swing GUI katmanının backend iş mantığı ve veritabanı işlemlerine basitleştirilmiş tek bir arayüz üzerinden erişmesini sağlar.
+- **Double-Checked Locking (Çift Kontrollü Kilitleme)**: `DatabaseManager` singleton kurulumunda ve verilerin yüklenmesi süreçlerinde çoklu kanal (thread) güvenliği için çift kontrollü kilit mekanizması uygulanmıştır.
+- **Strategy (Strateji)**: Materyal türlerine göre (Kitap veya DijitalMedya) ödünç verme kuralları ve ceza hesaplama katsayıları dinamik olarak değişir.
