@@ -125,6 +125,14 @@ export const API = (() => {
     return post('/api/bildirimler/okundu', {});
   }
 
+  async function uploadAsset(data) {
+    return post('/api/dijital/upload', data);
+  }
+
+  async function createFolder(data) {
+    return post('/api/dijital/klasor', data);
+  }
+
   return {
     checkServerStatus,
     getBooks,
@@ -142,6 +150,8 @@ export const API = (() => {
     updateProfile,
     updatePassword,
     getNotifications,
-    markAllNotificationsRead
+    markAllNotificationsRead,
+    uploadAsset,
+    createFolder
   };
 })();

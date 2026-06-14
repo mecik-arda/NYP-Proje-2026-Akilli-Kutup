@@ -19,6 +19,8 @@ export function applyRBAC() {
     const style = document.createElement('style');
     style.innerHTML = `
       .admin-only,
+      #uploadAssetBtn,
+      #newFolderBtn,
       button:has(i.fa-plus),
       button:has(i.fa-user-plus),
       button:has(i.fa-book-medical),
@@ -878,4 +880,108 @@ export async function initSettings() {
           }
       });
   }
+}
+
+export function initDigitalAssetsUI() {
+    const uploadModal = document.getElementById('uploadAssetModal');
+    const uploadBtn = document.getElementById('uploadAssetBtn');
+    const uploadClose = document.getElementById('uploadAssetModalClose');
+    const uploadCancel = document.getElementById('uploadAssetModalCancel');
+    const uploadForm = document.getElementById('uploadAssetForm');
+    const uploadSaveBtn = document.getElementById('uploadAssetSaveBtn');
+
+    if (uploadBtn && uploadModal) {
+        uploadBtn.addEventListener('click', () => {
+            uploadModal.style.display = 'flex';
+        });
+        const closeMod = () => { uploadModal.style.display = 'none'; uploadForm.reset(); };
+        uploadClose.addEventListener('click', closeMod);
+        uploadCancel.addEventListener('click', closeMod);
+        
+        uploadSaveBtn.addEventListener('click', async () => {
+            if (!uploadForm.checkValidity()) {
+                uploadForm.reportValidity();
+                return;
+            }
+            const data = {
+                baslik: document.getElementById('uploadAssetTitle').value,
+                tur: document.getElementById('uploadAssetType').value,
+                format: document.getElementById('uploadAssetFormat').value,
+                boyut: document.getElementById('uploadAssetSize').value
+            };
+            uploadSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const res = await window.API.uploadAsset(data);
+                if (res && res.basarili) {
+                    window.showToast(res.mesaj, 'success');
+                    closeMod();
+                    if (window.loadDataFromAPI) await window.loadDataFromAPI();
+                } else {
+                    window.showToast(res ? res.mesaj : 'Hata oluştu.', 'error');
+                }
+            } catch (e) {
+                window.showToast('Bağlantı hatası.', 'error');
+            } finally {
+                uploadSaveBtn.innerHTML = '<i class="fas fa-check"></i> Yükle';
+            }
+        });
+    }
+
+    const folderModal = document.getElementById('newFolderModal');
+    const folderBtn = document.getElementById('newFolderBtn');
+    const folderClose = document.getElementById('newFolderModalClose');
+    const folderCancel = document.getElementById('newFolderModalCancel');
+    const folderForm = document.getElementById('newFolderForm');
+    const folderSaveBtn = document.getElementById('newFolderSaveBtn');
+
+    if (folderBtn && folderModal) {
+        folderBtn.addEventListener('click', () => {
+            folderModal.style.display = 'flex';
+        });
+        const closeFolderMod = () => { folderModal.style.display = 'none'; folderForm.reset(); };
+        folderClose.addEventListener('click', closeFolderMod);
+        folderCancel.addEventListener('click', closeFolderMod);
+        
+        folderSaveBtn.addEventListener('click', async () => {
+            if (!folderForm.checkValidity()) {
+                folderForm.reportValidity();
+                return;
+            }
+            const data = {
+                baslik: document.getElementById('newFolderName').value
+            };
+            folderSaveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            try {
+                const res = await window.API.createFolder(data);
+                if (res && res.basarili) {
+                    window.showToast(res.mesaj, 'success');
+                    closeFolderMod();
+                    if (window.loadDataFromAPI) await window.loadDataFromAPI();
+                } else {
+                    window.showToast(res ? res.mesaj : 'Hata oluştu.', 'error');
+                }
+            } catch (e) {
+                window.showToast('Bağlantı hatası.', 'error');
+            } finally {
+                folderSaveBtn.innerHTML = '<i class="fas fa-check"></i> Oluştur';
+            }
+        });
+    }
+
+    const tabs = document.querySelectorAll('.asset-tab');
+    if (tabs) {
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                const filterType = tab.getAttribute('data-type');
+                window.currentAssetFilter = filterType;
+                
+                if (window.Charts && typeof window.Charts.renderAssetGrid === 'function') {
+                    window.Charts.renderAssetGrid();
+                }
+            });
+        });
+    }
 }

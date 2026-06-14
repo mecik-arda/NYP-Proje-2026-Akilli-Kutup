@@ -30,11 +30,11 @@ public class LibraryManager {
             materials.add(new Kitap("1984", 5, 25.0, "978-0451524935"));
             materials.add(new Kitap("Seker Portakali", 3, 15.0, "978-9750719387"));
             materials.add(new Kitap("Kucuk Prens", 7, 20.0, "978-9750726439"));
-            materials.add(new Kitap("Suç ve Ceza", 4, 30.0, "978-9754580662"));
-            materials.add(new Kitap("Simyaci", 6, 22.0, "978-9750726446"));
-            materials.add(new DijitalMedya("Inception (Film)", 10.0, "MP4"));
-            materials.add(new DijitalMedya("Interstellar (Film)", 12.0, "MP4"));
-            materials.add(new DijitalMedya("Java Dersleri (Video)", 0.0, "MP4"));
+            materials.add(new Kitap("Clean Code", 5, 50.0, "9780132350884"));
+            materials.add(new Kitap("Effective Java", 3, 60.0, "9780134685991"));
+            materials.add(new DijitalMedya("Inception (Film)", 10.0, "MP4", "Video", "1 GB"));
+            materials.add(new DijitalMedya("Interstellar (Film)", 12.0, "MP4", "Video", "1.5 GB"));
+            materials.add(new DijitalMedya("Java Dersleri (Video)", 0.0, "MP4", "Video", "500 MB"));
             com.akillikutup.db.DatabaseManager.tekOrnekAl().kaydet(users, materials);
         }
     }

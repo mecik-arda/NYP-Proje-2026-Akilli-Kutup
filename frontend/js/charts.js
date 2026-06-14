@@ -502,15 +502,36 @@ export function renderAssetGrid() {
       tabs[4].textContent = imgCount.toLocaleString('tr-TR');
   }
 
-  const icons = { 'E-Kitap': '📄', 'Video': '🎬', 'Ses': '🎵', 'Görsel': '🖼️' };
-  grid.innerHTML = appData.assets.map(asset => `
+  const filterMap = {
+      'ebook': ['E-Kitap'],
+      'audio': ['Ses', 'Sesli Kitap'],
+      'document': ['Belge', 'PDF'],
+      'image': ['Görsel']
+  };
+
+  const currentFilter = window.currentAssetFilter || 'all';
+  let filteredAssets = appData.assets;
+  
+  if (currentFilter !== 'all') {
+      const allowedTypes = filterMap[currentFilter] || [];
+      filteredAssets = appData.assets.filter(a => allowedTypes.includes(a.tur));
+  }
+
+  const icons = { 'E-Kitap': '📄', 'Video': '🎬', 'Ses': '🎵', 'Görsel': '🖼️', 'Belge': '📝', 'Klasor': '📁' };
+  
+  if (filteredAssets.length === 0) {
+      grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-tertiary);">Bu kategoride varlık bulunamadı.</div>';
+      return;
+  }
+
+  grid.innerHTML = filteredAssets.map(asset => `
     <div class="asset-card fade-in" data-id="${escapeHtml(asset.id.toString())}">
       <div class="asset-icon">${icons[asset.tur] || '📁'}</div>
       <div class="asset-info">
         <h4>${escapeHtml(asset.baslik)}</h4>
-        <p>${escapeHtml(asset.tur)} · ${escapeHtml(asset.format)} · ${escapeHtml(asset.boyut)}</p>
+        <p>${asset.tur === 'Klasor' ? 'Klasör' : `${escapeHtml(asset.tur)} · ${escapeHtml(asset.format)} · ${escapeHtml(asset.boyut)}`}</p>
       </div>
-      <button class="btn btn-sm btn-outline">İndir</button>
+      ${asset.tur !== 'Klasor' ? `<button class="btn btn-sm btn-outline">İndir</button>` : `<button class="btn btn-sm btn-primary">Aç</button>`}
     </div>
   `).join('');
 }

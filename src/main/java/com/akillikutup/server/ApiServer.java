@@ -40,6 +40,8 @@ public class ApiServer {
             server.createContext("/api/bildirimler/okundu", new BildirimOkunduHandler());
             server.createContext("/api/settings", new SettingsHandler());
             server.createContext("/api/backup", new BackupHandler());
+            server.createContext("/api/dijital/upload", new DijitalUploadHandler());
+            server.createContext("/api/dijital/klasor", new KlasorCreateHandler());
             server.createContext("/", new StaticFileHandler("frontend"));
             server.setExecutor(null);
             server.start();
@@ -146,6 +148,10 @@ public class ApiServer {
                         dto.addProperty("tur", "DijitalMedya");
                         dto.addProperty("yazar", "Dijital Icerik");
                         dto.addProperty("dosyaFormati", ((com.akillikutup.core.DijitalMedya) m).getDosyaFormati());
+                        dto.addProperty("dijitalTur", ((com.akillikutup.core.DijitalMedya) m).getTur());
+                        dto.addProperty("boyut", ((com.akillikutup.core.DijitalMedya) m).getBoyut());
+                    } else if (m instanceof com.akillikutup.core.Klasor) {
+                        dto.addProperty("tur", "Klasor");
                     }
                     jsonArray.add(dto);
                 }
@@ -574,6 +580,75 @@ public class ApiServer {
             if (path.endsWith(".js")) return "application/javascript; charset=utf-8";
             if (path.endsWith(".json")) return "application/json; charset=utf-8";
             return "text/plain; charset=utf-8";
+        }
+    }
+
+    class DijitalUploadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Yonetici yetkisi gerekli\"}");
+                    return;
+                }
+                
+                try {
+                    InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "UTF-8");
+                    JsonObject body = com.google.gson.JsonParser.parseReader(isr).getAsJsonObject();
+                    
+                    String baslik = body.get("baslik").getAsString();
+                    String tur = body.get("tur").getAsString();
+                    String boyut = body.get("boyut").getAsString();
+                    String format = body.get("format").getAsString();
+                    
+                    com.akillikutup.core.DijitalMedya dm = new com.akillikutup.core.DijitalMedya(baslik, 0.0, format, tur, boyut);
+                    DatabaseManager db = DatabaseManager.tekOrnekAl();
+                    db.getMateryalListesi().add(dm);
+                    db.senkronizeEt(db.getKullaniciListesi(), db.getMateryalListesi());
+                    
+                    sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Dijital varlik eklendi.\"}");
+                } catch (Exception e) {
+                    sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Gecersiz veri formatı.\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class KlasorCreateHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "POST, OPTIONS")) return;
+            if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Yonetici yetkisi gerekli\"}");
+                    return;
+                }
+                
+                try {
+                    InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "UTF-8");
+                    JsonObject body = com.google.gson.JsonParser.parseReader(isr).getAsJsonObject();
+                    
+                    String baslik = body.get("baslik").getAsString();
+                    
+                    com.akillikutup.core.Klasor klasor = new com.akillikutup.core.Klasor(baslik);
+                    DatabaseManager db = DatabaseManager.tekOrnekAl();
+                    db.getMateryalListesi().add(klasor);
+                    db.senkronizeEt(db.getKullaniciListesi(), db.getMateryalListesi());
+                    
+                    sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Klasor olusturuldu.\"}");
+                } catch (Exception e) {
+                    sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Gecersiz veri formatı.\"}");
+                }
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
         }
     }
 }

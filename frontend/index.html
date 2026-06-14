@@ -1093,7 +1093,7 @@
             <div class="notification-item">
                 <div class="notification-icon info"><i class="fas fa-info-circle"></i></div>
                 <div class="notification-content">
-                    <p class="notification-text">Sistem güncellemesi <strong>v3.2.1</strong> mevcut</p>
+                    <p class="notification-text">Sistem güncellemesi <strong>[v3.0.0-Beta.2]</strong> tamamlandı.</p>
                     <span class="notification-time">3 saat önce</span>
                 </div>
             </div>
@@ -1245,6 +1245,70 @@
             <div class="modal-footer">
                 <button class="btn btn-ghost" id="borrowManualModalCancel">İptal</button>
                 <button class="btn btn-primary" id="borrowManualSaveBtn"><i class="fas fa-check"></i> Ödünç Ver</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="uploadAssetModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-cloud-upload-alt"></i> Dijital Varlık Yükle</h2>
+                <button class="modal-close" id="uploadAssetModalClose" aria-label="Kapat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="uploadAssetForm">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Başlık</label>
+                        <input type="text" id="uploadAssetTitle" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Tür</label>
+                        <select id="uploadAssetType" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;">
+                            <option value="E-Kitap">E-Kitap</option>
+                            <option value="Ses">Ses</option>
+                            <option value="Video">Video</option>
+                            <option value="Belge">Belge</option>
+                            <option value="Görsel">Görsel</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Format (örn. PDF, MP4)</label>
+                        <input type="text" id="uploadAssetFormat" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Boyut (örn. 15 MB)</label>
+                        <input type="text" id="uploadAssetSize" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="uploadAssetModalCancel">İptal</button>
+                <button class="btn btn-primary" id="uploadAssetSaveBtn"><i class="fas fa-check"></i> Yükle</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="newFolderModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-folder-plus"></i> Yeni Klasör</h2>
+                <button class="modal-close" id="newFolderModalClose" aria-label="Kapat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="newFolderForm">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Klasör Adı</label>
+                        <input type="text" id="newFolderName" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white;" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="newFolderModalCancel">İptal</button>
+                <button class="btn btn-primary" id="newFolderSaveBtn"><i class="fas fa-check"></i> Oluştur</button>
             </div>
         </div>
     </div>

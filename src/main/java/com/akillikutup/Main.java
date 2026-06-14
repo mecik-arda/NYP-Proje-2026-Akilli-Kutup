@@ -26,9 +26,9 @@ public class Main {
             materials.add(new com.akillikutup.core.Kitap("Kucuk Prens", 7, 20.0, "978-9750726439"));
             materials.add(new com.akillikutup.core.Kitap("Suç ve Ceza", 4, 30.0, "978-9754580662"));
             materials.add(new com.akillikutup.core.Kitap("Simyaci", 6, 22.0, "978-9750726446"));
-            materials.add(new com.akillikutup.core.DijitalMedya("Inception (Film)", 10.0, "MP4"));
-            materials.add(new com.akillikutup.core.DijitalMedya("Interstellar (Film)", 12.0, "MP4"));
-            materials.add(new com.akillikutup.core.DijitalMedya("Java Dersleri (Video)", 0.0, "MP4"));
+            materials.add(new com.akillikutup.core.DijitalMedya("Inception (Film)", 10.0, "MP4", "Video", "1 GB"));
+            materials.add(new com.akillikutup.core.DijitalMedya("Interstellar (Film)", 12.0, "MP4", "Video", "1.5 GB"));
+            materials.add(new com.akillikutup.core.DijitalMedya("Java Dersleri (Video)", 0.0, "MP4", "Video", "500 MB"));
             com.akillikutup.db.DatabaseManager.tekOrnekAl().kaydet(users, materials);
         }
         

@@ -88,8 +88,12 @@ public class JsonParser {
             } else if (m instanceof DijitalMedya) {
                 obj.addProperty("tur", "DijitalMedya");
                 obj.addProperty("dosyaFormati", ((DijitalMedya) m).getDosyaFormati());
+                obj.addProperty("dijitalTur", ((DijitalMedya) m).getTur());
+                obj.addProperty("boyut", ((DijitalMedya) m).getBoyut());
                 obj.addProperty("toplamErisimSayisi", ((DijitalMedya) m).getToplamErisimSayisi());
                 obj.addProperty("sonUretilenLisans", ((DijitalMedya) m).getSonUretilenLisans());
+            } else if (m instanceof Klasor) {
+                obj.addProperty("tur", "Klasor");
             }
             array.add(obj);
         }
@@ -185,10 +189,14 @@ public class JsonParser {
                     materyal = new Kitap(baslik, stokAdedi, birimFiyat, isbn);
                 } else if ("DijitalMedya".equals(tur)) {
                     String dosyaFormati = getAsString(obj, "dosyaFormati");
-                    materyal = new DijitalMedya(baslik, birimFiyat, dosyaFormati);
+                    String dijitalTur = getAsString(obj, "dijitalTur");
+                    String boyut = getAsString(obj, "boyut");
+                    materyal = new DijitalMedya(baslik, birimFiyat, dosyaFormati, dijitalTur, boyut);
                     if (obj.has("toplamErisimSayisi") && !obj.get("toplamErisimSayisi").isJsonNull()) {
                         ((DijitalMedya) materyal).setToplamErisimSayisi(getAsInt(obj, "toplamErisimSayisi"));
                     }
+                } else if ("Klasor".equals(tur)) {
+                    materyal = new Klasor(baslik);
                 } else {
                     continue; 
                 }

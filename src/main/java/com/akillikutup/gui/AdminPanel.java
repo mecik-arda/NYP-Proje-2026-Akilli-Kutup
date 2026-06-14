@@ -103,7 +103,7 @@ public class AdminPanel extends JPanel {
                     int stok = Integer.parseInt(stokField.getText());
                     yeniMateryal = new Kitap(baslik, stok, fiyat, extra);
                 } else {
-                    yeniMateryal = new DijitalMedya(baslik, fiyat, extra);
+                    yeniMateryal = new DijitalMedya(baslik, fiyat, extra, "E-Kitap", "0 MB");
                 }
 
                 Kullanici user = LibraryManager.getInstance().getCurrentUser();

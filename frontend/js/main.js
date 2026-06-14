@@ -48,12 +48,24 @@ document.addEventListener('DOMContentLoaded', async () => {
   initDummyButtons();
   initCatalogFilters();
   initSettings();
+  if (typeof UI.initDigitalAssetsUI === 'function') UI.initDigitalAssetsUI();
 });
 export async function loadDataFromAPI() {
     try {
         if(typeof API !== 'undefined') {
-            const books = await API.getBooks();
-            if(books && Array.isArray(books)) appData.books = books;
+            const materials = await API.getBooks();
+            if(materials && Array.isArray(materials)) {
+                appData.books = materials.filter(m => m.tur === 'Kitap');
+                appData.assets = materials.filter(m => m.tur === 'DijitalMedya' || m.tur === 'Klasor').map(m => {
+                    return {
+                        id: m.id,
+                        baslik: m.baslik,
+                        tur: m.tur === 'Klasor' ? 'Klasor' : m.dijitalTur, // frontend expects tur to be E-Kitap, Ses, etc.
+                        boyut: m.boyut || '-',
+                        format: m.dosyaFormati || '-'
+                    };
+                });
+            }
             
             const users = await API.getUsers();
             if(users && Array.isArray(users)) appData.members = users;
@@ -93,11 +105,13 @@ export async function loadDataFromAPI() {
         ];
     }
 
-    appData.assets = [
-        { id: 1, baslik: 'Türk Edebiyatı Antolojisi', tur: 'E-Kitap', boyut: '12 MB', format: 'PDF' },
-        { id: 2, baslik: 'Osmanlı Tarihi Belgeseli', tur: 'Video', boyut: '1.2 GB', format: 'MP4' },
-        { id: 3, baslik: 'Klasik Türk Müziği Koleksiyonu', tur: 'Ses', boyut: '340 MB', format: 'MP3' },
-        { id: 4, baslik: 'Python Programlama Rehberi', tur: 'E-Kitap', boyut: '8 MB', format: 'EPUB' }
-    ];
+    if (!appData.assets || appData.assets.length === 0) {
+        appData.assets = [
+            { id: 1, baslik: 'Türk Edebiyatı Antolojisi', tur: 'E-Kitap', boyut: '12 MB', format: 'PDF' },
+            { id: 2, baslik: 'Osmanlı Tarihi Belgeseli', tur: 'Video', boyut: '1.2 GB', format: 'MP4' },
+            { id: 3, baslik: 'Klasik Türk Müziği Koleksiyonu', tur: 'Ses', boyut: '340 MB', format: 'MP3' },
+            { id: 4, baslik: 'Python Programlama Rehberi', tur: 'E-Kitap', boyut: '8 MB', format: 'EPUB' }
+        ];
+    }
 }
 Object.assign(window, UI, Charts, {API, Auth, appData, catalogState, escapeHtml, showToast});

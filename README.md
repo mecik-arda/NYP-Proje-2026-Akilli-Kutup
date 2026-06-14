@@ -1,4 +1,4 @@
-# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi V3 - 2026 Nesneye Yönelik Programlama Proje Ödevi
+# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi [v3.0.0-Beta.2] - 2026 Nesneye Yönelik Programlama Proje Ödevi
 
 ![Java](https://img.shields.io/badge/Java-ED8B00?logo=java&logoColor=white)
 ![Frontend](https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JS-E34F26?logo=html5&logoColor=white)
@@ -83,6 +83,7 @@ Projeye V3 sürümü ile birlikte kazandırılan ve yapılan son geliştirmelerl
 *   **PostgreSQL Geçiş Hazırlığı:** SQL veritabanı geçişi için bağlantı ayarları arayüzü (Host, Port, DB Adı, Kullanıcı Adı ve Şifre) ayarlar paneline eklenmiştir (Mevcut sürümde pasif/disabled olarak yer almaktadır).
 *   **Finansal Analiz ve Raporlama:** Sistemin finansal durumu, kesilen cezalar ve genel istatistiklerin PDF formatında raporlanabilmesi.
 *   **Gerçek Zamanlı Kamera Tabanlı Barkod Tarayıcı (Yeni):** `html5-qrcode` kütüphanesi entegrasyonu ile cihazın kamerasını (varsayılan olarak arka kamerayı) kullanarak EAN-13 ve EAN-8 standartlarındaki barkodları/ISBN kodlarını gerçek zamanlı okuma yeteneği. Başarılı okumalarda Web Audio API üzerinden sentezlenen bip sesi ve haptik titreşim (`navigator.vibrate`) desteği ile zenginleştirilmiş kullanıcı deneyimi.
+*   **Gelişmiş Dijital Varlık Yönetimi (Yeni):** E-Kitap, Video, Ses, Belge ve Görsel gibi dijital varlıkların sisteme eklenip yönetilebilmesi. Yetkilendirilmiş RBAC kontrolleriyle (sadece Adminlere özel) klasör oluşturma, yeni medya yükleme ve dinamik filtreleme sekmeleriyle zenginleştirilmiş kullanıcı arayüzü entegrasyonu.
 *   **Dinamik Bildirimler ve Profil Senkronizasyonu:** Web paneli profil güncellemelerinin anında Java Desktop GUI ile senkronize edilmesi.
 *   **Asenkron Çalışan Arka Plan Sunucusu:** Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
 *   **Gelişmiş AI Hata Yönetimi ve Model Fallback:** Gemini API aşırı yüklenmelerinde otomatik yedek modellerin (`gemini-1.5-pro-latest`, `gemini-pro`) denenmesi.

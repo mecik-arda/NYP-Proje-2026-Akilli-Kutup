@@ -4,13 +4,17 @@ import java.util.UUID;
 
 public class DijitalMedya extends Materyal {
     private String dosyaFormati;
+    private String tur;
+    private String boyut;
     private String sonUretilenLisans;
     private int toplamErisimSayisi;
     private final int MAX_ERISIM_LIMITI = 1000;
 
-    public DijitalMedya(String baslik, double birimFiyat, String dosyaFormati) {
+    public DijitalMedya(String baslik, double birimFiyat, String dosyaFormati, String tur, String boyut) {
         super(baslik, 0, birimFiyat);
         this.dosyaFormati = dosyaFormati;
+        this.tur = tur;
+        this.boyut = boyut;
         this.toplamErisimSayisi = 0;
     }
 
@@ -59,4 +63,6 @@ public class DijitalMedya extends Materyal {
     public int getToplamErisimSayisi() { return toplamErisimSayisi; }
     public void setToplamErisimSayisi(int toplamErisimSayisi) { this.toplamErisimSayisi = toplamErisimSayisi; }
     public String getDosyaFormati() { return dosyaFormati; }
+    public String getTur() { return tur; }
+    public String getBoyut() { return boyut; }
 }
