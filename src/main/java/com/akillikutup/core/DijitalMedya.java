@@ -2,7 +2,7 @@ package com.akillikutup.core;
 
 import java.util.UUID;
 
-public class DijitalMedya extends Materyal {
+public class DijitalMedya extends Materyal implements IOduncAlinabilir {
     private String dosyaFormati;
     private String tur;
     private String boyut;

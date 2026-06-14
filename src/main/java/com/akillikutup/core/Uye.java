@@ -18,7 +18,9 @@ public class Uye extends Kullanici {
         }
 
         if (m.stoktaVarMi()) {
-            m.oduncVer();
+            if (m instanceof IOduncAlinabilir) {
+                ((IOduncAlinabilir) m).oduncVer();
+            }
             System.out.println(getIsim() + " adli uye '" + m.getBaslik() + "' urununu teslim aldi.");
         } else {
             System.out.println("HATA: Urun stokta bulunmamaktadir.");

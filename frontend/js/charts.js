@@ -488,10 +488,15 @@ export function renderAssetGrid() {
   if (!grid) return;
   
   const allCount = appData.assets.length;
-  const ebookCount = appData.assets.filter(a => a.tur === 'E-Kitap').length;
-  const audioCount = appData.assets.filter(a => a.tur === 'Ses' || a.tur === 'Sesli Kitap').length;
-  const docCount = appData.assets.filter(a => a.tur === 'Belge').length;
-  const imgCount = appData.assets.filter(a => a.tur === 'Görsel').length;
+  const counts = appData.assets.reduce((acc, a) => {
+      acc[a.tur] = (acc[a.tur] || 0) + 1;
+      return acc;
+  }, {});
+  
+  const ebookCount = counts['E-Kitap'] || 0;
+  const audioCount = (counts['Ses'] || 0) + (counts['Sesli Kitap'] || 0);
+  const docCount = (counts['Belge'] || 0) + (counts['PDF'] || 0);
+  const imgCount = counts['Görsel'] || 0;
   
   const tabs = document.querySelectorAll('.asset-tab .tab-count');
   if (tabs.length >= 5) {

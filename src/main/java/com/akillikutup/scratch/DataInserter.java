@@ -31,11 +31,11 @@ public class DataInserter {
         Materyal m2 = materials.get(1); 
         Materyal m3 = materials.get(5); 
 
-        m1.oduncVer();
+        if (m1 instanceof IOduncAlinabilir) ((IOduncAlinabilir) m1).oduncVer();
         users.get(2).materyalOduncAl(m1.getId()); 
 
-        m2.oduncVer();
-        m3.oduncVer();
+        if (m2 instanceof IOduncAlinabilir) ((IOduncAlinabilir) m2).oduncVer();
+        if (m3 instanceof IOduncAlinabilir) ((IOduncAlinabilir) m3).oduncVer();
         users.get(3).materyalOduncAl(m2.getId()); 
         users.get(3).materyalOduncAl(m3.getId()); 
         

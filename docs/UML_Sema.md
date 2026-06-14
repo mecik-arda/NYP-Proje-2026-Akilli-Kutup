@@ -8,10 +8,14 @@ classDiagram
 
     class IMateryal {
         <<interface>>
-        +oduncVer() void
-        +iadeEt() void
         +cezaHesapla(gecikmeGunu) double
         +stoktaVarMi() boolean
+    }
+
+    class IOduncAlinabilir {
+        <<interface>>
+        +oduncVer() void
+        +iadeEt() void
     }
 
     class Materyal {
@@ -22,8 +26,6 @@ classDiagram
         -birimFiyat : double
         +Materyal(baslik, stokAdedi, birimFiyat)
         +stoktaVarMi() boolean
-        +oduncVer() void*
-        +iadeEt() void*
         +cezaHesapla(gecikmeGunu) double*
         +getBaslik() String
         +getBirimFiyat() double
@@ -55,6 +57,16 @@ classDiagram
         +getToplamErisimSayisi() int
         +setToplamErisimSayisi(toplamErisimSayisi) void
         +getDosyaFormati() String
+    }
+
+    class Klasor {
+        +Klasor(baslik)
+        +stoktaVarMi() boolean
+        +cezaHesapla(gecikmeGunu) double
+    }
+
+    class SystemTester {
+        +main(args) void$
     }
 
     class Kullanici {
@@ -275,8 +287,11 @@ classDiagram
     }
 
     IMateryal <|.. Materyal
+    IOduncAlinabilir <|.. Kitap
+    IOduncAlinabilir <|.. DijitalMedya
     Materyal <|-- Kitap
     Materyal <|-- DijitalMedya
+    Materyal <|-- Klasor
     Kullanici <|-- Admin
     Kullanici <|-- Uye
     Kullanici o--> "0..*" Bildirim : has
@@ -300,8 +315,11 @@ classDiagram
 | İlişki | Açıklama |
 |--------|----------|
 | `IMateryal <\|.. Materyal` | `Materyal` sınıfı `IMateryal` arayüzünü uygular |
+| `IOduncAlinabilir <\|.. Kitap` | `Kitap` sınıfı fiziksel bir obje olarak ödünç alınabilirlik davranışını uygular |
+| `IOduncAlinabilir <\|.. DijitalMedya` | `DijitalMedya` sınıfı sanal bir lisans kiralama davranışını uygular |
 | `Materyal <\|-- Kitap` | `Kitap` sınıfı `Materyal` soyut sınıfını genişletir |
 | `Materyal <\|-- DijitalMedya` | `DijitalMedya` sınıfı `Materyal` soyut sınıfını genişletir |
+| `Materyal <\|-- Klasor` | `Klasor` sınıfı dijital varlık yönetimi için yalnızca soyut gösterim (Materyal) sağlar |
 | `Kullanici <\|-- Admin` | `Admin` sınıfı `Kullanici` soyut sınıfını genişletir |
 | `Kullanici <\|-- Uye` | `Uye` sınıfı `Kullanici` soyut sınıfını genişletir |
 | `Kullanici o--> Bildirim` | `Kullanici` nesnesi sıfır veya daha fazla `Bildirim` nesnesi barındırır (Aggregation) |

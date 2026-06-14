@@ -5,6 +5,7 @@ import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.akillikutup.core.Kullanici;
 import com.akillikutup.core.Materyal;
+import com.akillikutup.core.IOduncAlinabilir;
 import com.akillikutup.db.DatabaseManager;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
@@ -292,7 +293,12 @@ public class ApiServer {
 
                 if (targetUser != null && targetMat != null) {
                     if (targetMat.stoktaVarMi()) {
-                        targetMat.oduncVer();
+                    if (targetMat instanceof IOduncAlinabilir) {
+                        ((IOduncAlinabilir) targetMat).oduncVer();
+                    } else {
+                        sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Bu materyal turu odunc alinamaz.\"}");
+                        return;
+                    }
                         targetUser.materyalOduncAl(targetMat.getId());
                         db.kullanicilariKaydet();
                         db.materyallariKaydet();
@@ -332,7 +338,12 @@ public class ApiServer {
                 }
 
                 if (targetUser != null && targetMat != null) {
-                    targetMat.iadeEt();
+                    if (targetMat instanceof IOduncAlinabilir) {
+                        ((IOduncAlinabilir) targetMat).iadeEt();
+                    } else {
+                        sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Bu materyal turu iade edilemez.\"}");
+                        return;
+                    }
                     targetUser.materyalIadeEt(targetMat.getId());
                     db.kullanicilariKaydet();
                     db.materyallariKaydet();
@@ -599,10 +610,15 @@ public class ApiServer {
                     InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "UTF-8");
                     JsonObject body = com.google.gson.JsonParser.parseReader(isr).getAsJsonObject();
                     
-                    String baslik = body.get("baslik").getAsString();
-                    String tur = body.get("tur").getAsString();
-                    String boyut = body.get("boyut").getAsString();
-                    String format = body.get("format").getAsString();
+                    String baslik = body.has("baslik") && !body.get("baslik").isJsonNull() ? body.get("baslik").getAsString() : null;
+                    String tur = body.has("tur") && !body.get("tur").isJsonNull() ? body.get("tur").getAsString() : null;
+                    String boyut = body.has("boyut") && !body.get("boyut").isJsonNull() ? body.get("boyut").getAsString() : null;
+                    String format = body.has("format") && !body.get("format").isJsonNull() ? body.get("format").getAsString() : null;
+                    
+                    if (baslik == null || tur == null || boyut == null || format == null) {
+                        sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Gecersiz veya eksik veri gonderildi.\"}");
+                        return;
+                    }
                     
                     com.akillikutup.core.DijitalMedya dm = new com.akillikutup.core.DijitalMedya(baslik, 0.0, format, tur, boyut);
                     DatabaseManager db = DatabaseManager.tekOrnekAl();
@@ -635,6 +651,10 @@ public class ApiServer {
                     InputStreamReader isr = new InputStreamReader(t.getRequestBody(), "UTF-8");
                     JsonObject body = com.google.gson.JsonParser.parseReader(isr).getAsJsonObject();
                     
+                    if (!body.has("baslik") || body.get("baslik").isJsonNull()) {
+                        sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Baslik alani zorunludur.\"}");
+                        return;
+                    }
                     String baslik = body.get("baslik").getAsString();
                     
                     com.akillikutup.core.Klasor klasor = new com.akillikutup.core.Klasor(baslik);

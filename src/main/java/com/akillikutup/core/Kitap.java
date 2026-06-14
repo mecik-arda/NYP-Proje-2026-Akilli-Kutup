@@ -1,6 +1,6 @@
 package com.akillikutup.core;
 
-public class Kitap extends Materyal {
+public class Kitap extends Materyal implements IOduncAlinabilir {
     private String isbn;
 
     public Kitap(String baslik, int stokAdedi, double birimFiyat, String isbn) {

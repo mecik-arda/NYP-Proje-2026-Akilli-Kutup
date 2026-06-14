@@ -21,12 +21,6 @@ public abstract class Materyal implements IMateryal {
     }
 
     @Override
-    public abstract void oduncVer();
-
-    @Override
-    public abstract void iadeEt();
-
-    @Override
     public abstract double cezaHesapla(int gecikmeGunu);
 
     public String getBaslik() { return baslik; }

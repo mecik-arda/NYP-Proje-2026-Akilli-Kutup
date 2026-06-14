@@ -11,15 +11,6 @@ public class Klasor extends Materyal {
         return true;
     }
 
-    @Override
-    public void oduncVer() {
-        System.out.println("Klasorler odunc verilemez.");
-    }
-
-    @Override
-    public void iadeEt() {
-        System.out.println("Klasorler iade edilemez.");
-    }
 
     @Override
     public double cezaHesapla(int gecikmeGunu) {
