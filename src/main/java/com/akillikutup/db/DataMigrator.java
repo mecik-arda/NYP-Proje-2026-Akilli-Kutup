@@ -9,7 +9,6 @@ import org.hibernate.cfg.Configuration;
 
 import java.util.List;
 import java.util.Properties;
-import java.util.Properties;
 
 /**
  * Tek seferlik veri göç modülü: SQLite'taki mevcut verileri PostgreSQL'e kayıpsız aktarır.

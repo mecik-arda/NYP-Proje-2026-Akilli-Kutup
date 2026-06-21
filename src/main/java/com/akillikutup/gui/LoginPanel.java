@@ -1,7 +1,6 @@
 package com.akillikutup.gui;
 
 import com.akillikutup.core.Kullanici;
-import com.google.gson.JsonObject;
 
 import javax.swing.*;
 import java.awt.*;

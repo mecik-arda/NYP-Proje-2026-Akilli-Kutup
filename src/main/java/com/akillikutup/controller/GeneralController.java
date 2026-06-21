@@ -1,10 +1,11 @@
 package com.akillikutup.controller;
 
 import com.akillikutup.core.*;
+import com.akillikutup.repository.DijitalMedyaRepository;
+import com.akillikutup.repository.KlasorRepository;
 import com.akillikutup.server.GeminiClient;
 import com.akillikutup.server.RagService;
 import com.akillikutup.service.BorrowService;
-import com.akillikutup.service.KitapService;
 import com.akillikutup.service.KullaniciService;
 import com.google.gson.*;
 import org.springframework.http.ResponseEntity;
@@ -23,16 +24,20 @@ public class GeneralController {
 
     private final Gson gson = new Gson();
     private final KullaniciService kullaniciService;
-    private final KitapService kitapService;
     private final BorrowService borrowService;
     private final RagService ragService;
+    private final DijitalMedyaRepository dijitalMedyaRepository;
+    private final KlasorRepository klasorRepository;
 
-    public GeneralController(KullaniciService kullaniciService, KitapService kitapService,
-                              BorrowService borrowService, RagService ragService) {
+    public GeneralController(KullaniciService kullaniciService,
+                              BorrowService borrowService, RagService ragService,
+                              DijitalMedyaRepository dijitalMedyaRepository,
+                              KlasorRepository klasorRepository) {
         this.kullaniciService = kullaniciService;
-        this.kitapService = kitapService;
         this.borrowService = borrowService;
         this.ragService = ragService;
+        this.dijitalMedyaRepository = dijitalMedyaRepository;
+        this.klasorRepository = klasorRepository;
     }
 
     @GetMapping("/status")
@@ -239,6 +244,7 @@ public class GeneralController {
             if (baslik == null || tur == null || boyut == null || format == null)
                 return ResponseEntity.badRequest().body("{\"basarili\":false,\"mesaj\":\"Eksik veri.\"}");
             DijitalMedya dm = new DijitalMedya(baslik, 0.0, format, tur, boyut);
+            dijitalMedyaRepository.save(dm);
             return ResponseEntity.ok("{\"basarili\":true,\"mesaj\":\"Dijital varlik eklendi.\"}");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"basarili\":false}");
@@ -251,6 +257,8 @@ public class GeneralController {
             JsonObject body = gson.fromJson(new InputStreamReader(request.getInputStream(), "UTF-8"), JsonObject.class);
             if (!body.has("baslik") || body.get("baslik").isJsonNull())
                 return ResponseEntity.badRequest().body("{\"basarili\":false,\"mesaj\":\"Baslik zorunludur.\"}");
+            Klasor klasor = new Klasor(body.get("baslik").getAsString());
+            klasorRepository.save(klasor);
             return ResponseEntity.ok("{\"basarili\":true,\"mesaj\":\"Klasor olusturuldu.\"}");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("{\"basarili\":false}");

@@ -2,9 +2,7 @@ package com.akillikutup;
 
 import com.akillikutup.core.ConfigManager;
 import com.akillikutup.gui.MainFrame;
-import com.akillikutup.server.ApiServer;
 import javax.swing.SwingUtilities;
-import java.awt.GraphicsEnvironment;
 
 public class Main {
     public static void main(String[] args) {
