@@ -263,4 +263,7 @@ Tamamlanan Kısımlar:
 *   **src/test/** (Birim Testler - Çekirdek iş mantığı, veritabanı, kimlik doğrulama testleri başarıyla geçmektedir. Seed data üretimi sadece test modunda çalıştırılacak şekilde ayrıştırıldı)
 *   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi. JavaScript dosyaları ES6 modüler yapısına bölünerek döngüsel bağımlılıklar giderildi. Çakışmayan ID üretimi, XSS sanitizasyonu (`escapeHtml`), TC Kimlik maskeleme ve SVG render optimizasyonları yapıldı. Ayrıca **Kamera Tabanlı Gerçek Zamanlı Barkod Tarayıcı** modülü eklendi: Yeşil lazer tarama animasyonu, ses sentezlemeli bip geri bildirimi ve tarama sonrası otomatik kitap getirme özellikleri entegre edildi.)
 *   **docs/UML_Sema.md** (UML sınıf diyagramı ve nesne ilişkileri)
+
+## 7. Gelecek Planları ve Geliştirme Önerileri
+Projenin V3 stabil sürümüne geçişiyle beraber altyapı iyileştirmelerinin ve yeni özelliklerin ekleneceği V4 sürümü için planlanan yenilikler `proje_gelistirme_oneriV1.md` dokümanında detaylandırılmıştır. PostgreSQL entegrasyonu, Spring Boot geçişi ve Dockerize edilmesi gibi önemli başlıkları kapsamaktadır.
 *   **docs/Proje_Raporu.md** (Detaylı proje raporu ve OOP prensipleri dokümantasyonu)

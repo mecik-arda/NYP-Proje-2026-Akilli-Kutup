@@ -47,9 +47,17 @@ data/materials.json
 # SQLite Database files
 *.db
 data/database.db
+data/database.db-journal
 
-# Test and temporary directories
+# Logs and debug files
+*.log
+logs/
+
+# Uploads and temporary assets
+frontend/uploads/
+data/uploads/
+
+# Test data
 test-data/
 scratch/
 *.py
-
