@@ -7,8 +7,9 @@
 FROM maven:3.9-eclipse-temurin-17-alpine AS builder
 WORKDIR /app
 
-# pom.xml'i kopyala (bağımlılık önbellekleme)
+# pom.xml ve checkstyle.xml kopyala (bağımlılık önbellekleme)
 COPY pom.xml .
+COPY checkstyle.xml .
 
 # Bağımlılıkları indir (kod değişmedikçe bu katman cache'lenir)
 RUN mvn dependency:resolve -q 2>/dev/null || true

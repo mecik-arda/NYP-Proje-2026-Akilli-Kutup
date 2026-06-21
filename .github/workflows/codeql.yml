@@ -1,0 +1,65 @@
+# ==========================================================================
+# GitHub CodeQL — SAST (Static Application Security Testing)
+#
+# Java projesi için güvenlik zafiyeti ve kod kalitesi taraması.
+# Her push ve PR'da çalışır. Haftalık schedule ile periyodik tarama.
+# ==========================================================================
+
+name: "CodeQL — Security Analysis"
+
+on:
+  push:
+    branches: [ main, master, develop ]
+    paths-ignore:
+      - '**.md'
+      - 'ekran_goruntuleri/**'
+  pull_request:
+    branches: [ main, master ]
+    paths-ignore:
+      - '**.md'
+      - 'ekran_goruntuleri/**'
+  schedule:
+    - cron: '30 6 * * 1'  # Her Pazartesi 06:30 UTC
+  workflow_dispatch:
+
+jobs:
+
+  analyze:
+    name: Analyze (Java)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [ 'java' ]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: +security-and-quality
+
+      - name: Build with Maven
+        run: mvn clean compile -B -q -DskipTests
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

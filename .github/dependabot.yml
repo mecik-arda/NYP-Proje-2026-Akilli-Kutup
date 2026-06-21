@@ -1,0 +1,49 @@
+# ==========================================================================
+# Dependabot — Otomatik bağımlılık güncelleme
+#
+# Haftalık olarak Maven ve GitHub Actions bağımlılıklarını denetler,
+# güncelleme varsa otomatik PR açar.
+# ==========================================================================
+
+version: 2
+updates:
+
+  # ── Maven bağımlılıkları (pom.xml) ──────────────────────────────
+  - package-ecosystem: "maven"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 10
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "maven"
+    assignees:
+      - "ardam"
+    reviewers:
+      - "ardam"
+    commit-message:
+      prefix: "deps(maven)"
+      include: "scope"
+
+  # ── GitHub Actions (CI/CD workflow'ları) ─────────────────────────
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Istanbul"
+    open-pull-requests-limit: 5
+    target-branch: "main"
+    labels:
+      - "dependencies"
+      - "ci-cd"
+    assignees:
+      - "ardam"
+    commit-message:
+      prefix: "deps(actions)"
+      include: "scope"

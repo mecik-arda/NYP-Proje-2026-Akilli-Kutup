@@ -1,29 +1,29 @@
 # ==========================================================================
-# Akilli Kutuphane V4 — CI (Continuous Integration) Workflow
+# Akilli Kutuphane V4.1 — CI (Continuous Integration) Workflow
 #
-# Her push ve PR'da otomatik olarak çalışır:
-#   1. Java 17 ile derleme
-#   2. Tüm unit testleri çalıştırma (mvn clean test)
-#   3. Test sonuçlarını raporlama
+# Adımlar:
+#   1. Checkstyle (kod stili denetimi)
+#   2. Maven compile
+#   3. Unit + Integration testleri + JaCoCo coverage raporu
+#   4. Test sonuçlarını ve coverage raporunu yayınlama
 # ==========================================================================
 
-name: CI - Build & Test
+name: CI — Build, Test & Coverage
 
 on:
   push:
     branches: [ main, master, develop, 'feature/**', 'v*' ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch:  # Manuel tetikleme
+  workflow_dispatch:
 
 jobs:
 
   build-and-test:
-    name: Build & Test (Java 17, Ubuntu)
+    name: Build, Checkstyle, Test & Coverage (Java 17)
     runs-on: ubuntu-latest
 
     services:
-      # PostgreSQL servisi (entegrasyon testleri için)
       postgres:
         image: pgvector/pgvector:pg16
         env:
@@ -38,7 +38,6 @@ jobs:
           --health-timeout 5s
           --health-retries 5
 
-      # Redis servisi (rate limiting testleri için)
       redis:
         image: redis:7-alpine
         ports:
@@ -60,15 +59,22 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Verify Maven and Java versions
+      - name: Verify tool versions
         run: |
           java -version
           mvn --version
 
-      - name: Build with Maven (compile only)
+      # ── 1. Checkstyle Kod Stili Denetimi ────────────────────────
+      - name: Checkstyle — Kod Stili Denetimi
+        run: mvn checkstyle:check -B
+        continue-on-error: false
+
+      # ── 2. Derleme ──────────────────────────────────────────────
+      - name: Compile
         run: mvn clean compile -B -q
 
-      - name: Run all tests
+      # ── 3. Test + JaCoCo Coverage ───────────────────────────────
+      - name: Run Tests with JaCoCo Coverage
         run: mvn test -B
         env:
           PG_HOST: localhost
@@ -77,7 +83,17 @@ jobs:
           PG_USER: postgres
           PG_PASS: postgres
 
-      - name: Upload test results
+      # ── 4. JaCoCo Coverage Raporu ───────────────────────────────
+      - name: Upload JaCoCo Coverage Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-coverage-report
+          path: target/jacoco-report/
+          retention-days: 14
+
+      # ── 5. Test Sonuçları ───────────────────────────────────────
+      - name: Upload Test Results
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -85,7 +101,8 @@ jobs:
           path: target/surefire-reports/
           retention-days: 7
 
-      - name: Publish test report
+      # ── 6. Test Raporu Yayınlama ────────────────────────────────
+      - name: Publish Test Report
         if: always()
         uses: dorny/test-reporter@v1
         with:
@@ -93,3 +110,14 @@ jobs:
           path: target/surefire-reports/*.xml
           reporter: java-junit
           fail-on-error: true
+
+      # ── 7. JaCoCo Coverage Yorumu (PR'lara) ─────────────────────
+      - name: Add JaCoCo Coverage Comment to PR
+        if: github.event_name == 'pull_request'
+        uses: madrapps/jacoco-report@v2
+        with:
+          paths: target/jacoco-report/jacoco.xml
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: '📊 JaCoCo Kod Kapsam Raporu'
+          min-coverage-overall: 0
+          min-coverage-changed-files: 0
