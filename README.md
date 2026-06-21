@@ -61,23 +61,23 @@ Yapay zeka katmanı; Gemini Embedding API ile kitap vektörleştirme, pgvector i
 
 ```mermaid
 graph TD
-    subgraph Istemciler [İstemci Katmanı (Clients)]
-        Web[Web Arayüzü - Tarayıcı]
-        Swing[Masaüstü Arayüzü - Swing]
+    subgraph "İstemci Katmanı (Clients)"
+        Web["Web Arayüzü - Tarayıcı"]
+        Swing["Masaüstü Arayüzü - Swing"]
     end
 
-    subgraph Sunucu [Sunucu Katmanı (Spring Boot)]
-        API[REST API Controllers]
-        Security[Security & JWT Filter]
-        Service[İş Mantığı - Service Layer]
+    subgraph "Sunucu Katmanı (Spring Boot)"
+        API["REST API Controllers"]
+        Security["Security & JWT Filter"]
+        Service["İş Mantığı - Service Layer"]
     end
 
-    subgraph Veri [Veri Katmanı]
-        DB[(Docker PostgreSQL)]
+    subgraph "Veri Katmanı"
+        DB[("Docker PostgreSQL")]
     end
 
-    Web -->|HTTP / JSON| API
-    Swing -->|HTTP / JSON + JWT| API
+    Web -- "HTTP / JSON" --> API
+    Swing -- "HTTP / JSON + JWT" --> API
     API --> Security
     Security --> Service
     Service --> DB
