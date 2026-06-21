@@ -104,7 +104,7 @@ jobs:
       # ── 6. Test Raporu Yayınlama ────────────────────────────────
       - name: Publish Test Report
         if: always()
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v3
         with:
           name: JUnit Tests
           path: target/surefire-reports/*.xml
