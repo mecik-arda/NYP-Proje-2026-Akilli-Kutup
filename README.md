@@ -116,7 +116,7 @@ Database    ──→  PostgreSQL 16 + pgvector (prod) / H2 file (dev)
 
 ```bash
 # 1. Projeyi klonla
-git clone <repo-url> && cd Akilli-kutup-v2
+git clone https://github.com/mecik-arda/NYP-Proje-2026-Akilli-Kutup && cd Akilli-kutup-v2
 
 # 2. Derle ve başlat (DataInitializer seed data oluşturur)
 mvn clean package -DskipTests
