@@ -17,7 +17,6 @@ RUN mvn dependency:resolve -q 2>/dev/null || true
 # Kaynak kodu kopyala ve build et
 COPY src ./src
 COPY frontend ./frontend
-COPY data ./data
 
 RUN mvn clean package -DskipTests -q && \
     cp target/*.jar app.jar
@@ -33,7 +32,9 @@ RUN addgroup -g 1000 appgroup && \
 # Uygulama jar'ını kopyala
 COPY --from=builder /app/app.jar app.jar
 COPY --from=builder /app/frontend ./frontend
-COPY --from=builder /app/data ./data
+
+# Runtime veri klasoru (container calisirken olusur)
+RUN mkdir -p /app/data
 
 # Kullanıcı değiştir
 USER appuser

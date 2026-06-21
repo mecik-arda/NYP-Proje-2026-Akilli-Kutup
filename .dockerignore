@@ -1,0 +1,36 @@
+# Maven build artifacts
+target/
+*.jar
+
+# Runtime data (container'da kendisi olusturur)
+data/
+test-data/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Git
+.git/
+.gitignore
+
+# Docs/Screenshots
+docs/
+ekran_goruntuleri/
+*.md
+!checkstyle.xml
+
+# Logs
+logs/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp
+temp/
+tmp/
+*.tmp
+scratch/
