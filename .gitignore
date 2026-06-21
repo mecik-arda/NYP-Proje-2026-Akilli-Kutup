@@ -1,13 +1,25 @@
+# ==========================================================================
+# Akilli Kutuphane V4 — .gitignore
+# Spring Boot + PostgreSQL + Redis + Docker + Swing
+# ==========================================================================
+
+# ─── Maven / Spring Boot ──────────────────────────────────────────
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
+*.jar
+*.war
+!.mvn/
+
+# ─── IDE'ler ──────────────────────────────────────────────────────
 
 ### IntelliJ IDEA ###
 .idea/
 *.iws
 *.iml
 *.ipr
+out/
 
 ### Eclipse ###
 .apt_generated
@@ -17,6 +29,7 @@ target/
 .settings
 .springBeans
 .sts4-cache
+bin/
 
 ### NetBeans ###
 /nbproject/private/
@@ -30,34 +43,109 @@ build/
 
 ### VS Code ###
 .vscode/
+*.code-workspace
+
+# ─── İşletim Sistemi ──────────────────────────────────────────────
+
+### Windows ###
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
 
 ### Mac OS ###
 .DS_Store
+.AppleDouble
+.LSOverride
+._*
 
-# User credentials
-kullanicilar.txt
+### Linux ###
+*~
+.directory
 
-# Database backups and secret keys
-data/backup/
-data/secret.key
-data/config.json
-data/users.json
-data/materials.json
+# ─── Veritabanı ───────────────────────────────────────────────────
 
-# SQLite Database files
-*.db
+# H2 local development database
+data/akilli_kutup.mv.db
+data/akilli_kutup.trace.db
+*.mv.db
+*.trace.db
+
+# SQLite (eski sistem kalıntıları)
 data/database.db
 data/database.db-journal
+test-data/database.db
+test-data/database.db-journal
+*.db-journal
 
-# Logs and debug files
-*.log
-logs/
+# ─── Hassas Dosyalar (GİT'E ASLA EKLEME!) ────────────────────────
 
-# Uploads and temporary assets
+# Kriptografik anahtarlar
+data/secret.key
+*.secret.key
+*.pem
+*.p12
+*.jks
+
+# Konfigürasyon (API key içerir)
+data/config.json
+
+# Veri dökümleri
+data/users.json
+data/materials.json
+data/*.json
+!data/*.json.example
+
+# Kullanıcı bilgileri
+kullanicilar.txt
+credentials.txt
+*.env
+!.env.example
+
+# ─── Yedekleme ────────────────────────────────────────────────────
+data/backup/
+test-data/backup/
+*.backup
+*.bak
+
+# ─── Uploads / Medya ──────────────────────────────────────────────
 frontend/uploads/
 data/uploads/
+uploads/
 
-# Test data
+# ─── Test ─────────────────────────────────────────────────────────
 test-data/
 scratch/
 *.py
+!extract.py
+
+# ─── Loglar ───────────────────────────────────────────────────────
+*.log
+logs/
+*.log.*
+
+# ─── Docker ───────────────────────────────────────────────────────
+docker-compose.override.yml
+.docker/
+
+# ─── Node / Frontend ──────────────────────────────────────────────
+node_modules/
+package-lock.json
+.npm/
+
+# ─── Geçici Dosyalar ──────────────────────────────────────────────
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+temp/
+tmp/
+
+# ─── Claude / AI ──────────────────────────────────────────────────
+.claude/
+memory/
+CLAUDE.md
+
+# ─── Ekran Görüntüleri (opsiyonel, büyük dosyalar) ───────────────
+# ekran_goruntuleri/*.png  # commit'lenmesini istiyorsan yorum satırı yap

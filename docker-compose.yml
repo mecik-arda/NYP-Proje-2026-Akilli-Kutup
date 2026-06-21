@@ -1,0 +1,79 @@
+services:
+
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: akilli-kutup-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: akilli_kutup
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d akilli_kutup"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - akilli-kutup-net
+
+  redis:
+    image: redis:7-alpine
+    container_name: akilli-kutup-redis
+    restart: unless-stopped
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - akilli-kutup-net
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: akilli-kutup-app
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/akilli_kutup
+      DB_USER: postgres
+      DB_PASS: postgres
+      DB_DRIVER: org.postgresql.Driver
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      JWT_SECRET: docker-compose-jwt-secret-change-in-production
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - akilli-kutup-net
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  akilli-kutup-net:
+    driver: bridge

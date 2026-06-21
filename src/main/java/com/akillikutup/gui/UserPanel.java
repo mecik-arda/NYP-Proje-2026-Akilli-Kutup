@@ -61,9 +61,9 @@ public class UserPanel extends JPanel {
         });
         rightButtons.add(profileButton);
 
-        JButton logoutButton = new JButton("Cikis Yap");
+        JButton logoutButton = new JButton("Cikis Yap (JWT temizle)");
         logoutButton.addActionListener(e -> {
-            LibraryManager.getInstance().setCurrentUser(null);
+            LibraryManager.getInstance().logout();
             mainFrame.showPanel("LOGIN");
         });
         rightButtons.add(logoutButton);
@@ -124,20 +124,42 @@ public class UserPanel extends JPanel {
                 }
 
                 if (selectedMaterial != null) {
-                    Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
-                    if (currentUser instanceof Uye) {
-                        Uye uye = (Uye) currentUser;
-                        if (uye.getKrediPuani() < 20) {
-                            JOptionPane.showMessageDialog(this,
+                    final Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
+                    final Materyal secilenMateryal = selectedMaterial;
+                    if (currentUser != null) {
+                        if (currentUser instanceof Uye) {
+                            Uye uye = (Uye) currentUser;
+                            if (uye.getKrediPuani() < 20) {
+                                JOptionPane.showMessageDialog(this,
                                     "Kredi puaniniz cok dusuk (" + uye.getKrediPuani() + ")! Odunc alamazsiniz.",
                                     "Yetersiz Kredi", JOptionPane.WARNING_MESSAGE);
-                            return;
+                                return;
+                            }
                         }
-                        uye.materyalAl(selectedMaterial);
-                        uye.puanGuncelle(-5);
-                        JOptionPane.showMessageDialog(this,
-                                "\"" + selectedMaterial.getBaslik() + "\" basariyla odunc alindi!\nKalan Kredi: " + uye.getKrediPuani());
-                        refreshData();
+                        SwingWorker<Boolean, Void> worker = new SwingWorker<>() {
+                            @Override
+                            protected Boolean doInBackground() {
+                                return LibraryManager.getInstance()
+                                    .borrowMaterial(currentUser.getId(), secilenMateryal.getId());
+                            }
+                            @Override
+                            protected void done() {
+                                try {
+                                    if (get()) {
+                                        JOptionPane.showMessageDialog(UserPanel.this,
+                                            "\"" + secilenMateryal.getBaslik() + "\" REST API ile odunc alindi!");
+                                        refreshData();
+                                    } else {
+                                        JOptionPane.showMessageDialog(UserPanel.this,
+                                            "Odunc alma basarisiz!", "Hata", JOptionPane.ERROR_MESSAGE);
+                                    }
+                                } catch (Exception ex) {
+                                    JOptionPane.showMessageDialog(UserPanel.this,
+                                        "Sunucu hatasi: " + ex.getMessage(), "Hata", JOptionPane.ERROR_MESSAGE);
+                                }
+                            }
+                        };
+                        worker.execute();
                     }
                 }
             } else {

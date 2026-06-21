@@ -1,13 +1,26 @@
 package com.akillikutup.core;
 
 import java.util.UUID;
+import jakarta.persistence.*;
 
+@Embeddable
 public class Bildirim {
+    @Column(name = "bildirim_id", length = 36)
     private String id;
+
+    @Column(name = "type")
     private String type;
+
+    @Column(name = "icon")
     private String icon;
+
+    @Column(name = "text", length = 1000)
     private String text;
+
+    @Column(name = "time")
     private String time;
+
+    @Column(name = "unread")
     private boolean unread;
 
     public Bildirim() {

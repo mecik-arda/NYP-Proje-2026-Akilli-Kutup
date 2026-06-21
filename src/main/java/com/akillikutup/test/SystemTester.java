@@ -10,7 +10,7 @@ public class SystemTester {
     public static final String ANSI_BLUE = "\u001B[34m";
 
     public static void main(String[] args) {
-        System.out.println(ANSI_BLUE + "=== Akilli Kutuphane [v3.0.0-Beta.2] Uctan Uca (E2E) Test Sistemi ===" + ANSI_RESET);
+        System.out.println(ANSI_BLUE + "=== Akilli Kutuphane [v4.1.0] Uctan Uca (E2E) Test Sistemi ===" + ANSI_RESET);
         
         try {
             // Test 1: Veritabanı Yükleme

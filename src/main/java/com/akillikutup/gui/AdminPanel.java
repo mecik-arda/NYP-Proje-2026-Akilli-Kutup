@@ -32,9 +32,9 @@ public class AdminPanel extends JPanel {
         leftTop.add(statsLabel);
         topPanel.add(leftTop, BorderLayout.WEST);
 
-        JButton logoutButton = new JButton("Çıkış Yap");
+        JButton logoutButton = new JButton("Çıkış Yap (JWT temizle)");
         logoutButton.addActionListener(e -> {
-            LibraryManager.getInstance().setCurrentUser(null);
+            LibraryManager.getInstance().logout();
             mainFrame.showPanel("LOGIN");
         });
         topPanel.add(logoutButton, BorderLayout.EAST);
@@ -150,7 +150,7 @@ public class AdminPanel extends JPanel {
                 if (silinecek != null) {
                     LibraryManager.getInstance().removeMaterial(silinecek);
                     refreshData();
-                    JOptionPane.showMessageDialog(this, "Materyal başarıyla silindi.");
+                    JOptionPane.showMessageDialog(this, "Materyal REST API uzerinden silindi.");
                 }
             }
         });
@@ -162,7 +162,7 @@ public class AdminPanel extends JPanel {
 
         JPanel uyePanel = new JPanel(new BorderLayout());
 
-        String[] userColumnNames = {"İsim", "Rol", "TC Kimlik No", "Kredi Puanı"};
+        String[] userColumnNames = {"Isim", "Rol", "TC Kimlik No", "E-posta", "Kredi Puani"};
         userTableModel = new DefaultTableModel(userColumnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) { return false; }
@@ -207,7 +207,7 @@ public class AdminPanel extends JPanel {
             if (onay == JOptionPane.YES_OPTION) {
                 LibraryManager.getInstance().removeUser(secilen);
                 refreshData();
-                JOptionPane.showMessageDialog(this, "Kullanıcı başarıyla silindi.");
+                JOptionPane.showMessageDialog(this, "Kullanici REST API uzerinden silindi.");
             }
         });
         userButtonPanel.add(deleteUserButton);
@@ -252,8 +252,9 @@ public class AdminPanel extends JPanel {
                     return;
                 }
                 secilen.setTcNo(yeniTc.trim());
+                LibraryManager.getInstance().updateUser(secilen.getId(), secilen);
                 refreshData();
-                JOptionPane.showMessageDialog(this, "TC Kimlik No başarıyla güncellendi.");
+                JOptionPane.showMessageDialog(this, "TC Kimlik No REST API uzerinden guncellendi.");
             }
         });
         userButtonPanel.add(changeTcButton);
@@ -267,8 +268,9 @@ public class AdminPanel extends JPanel {
                     "Şifre Sıfırla", JOptionPane.PLAIN_MESSAGE);
             if (yeniSifre != null && !yeniSifre.trim().isEmpty()) {
                 secilen.setSifre(yeniSifre.trim());
+                LibraryManager.getInstance().updateUser(secilen.getId(), secilen);
                 refreshData();
-                JOptionPane.showMessageDialog(this, "Şifre başarıyla güncellendi.");
+                JOptionPane.showMessageDialog(this, "Sifre REST API uzerinden guncellendi.");
             }
         });
         userButtonPanel.add(resetPassButton);
@@ -293,8 +295,9 @@ public class AdminPanel extends JPanel {
                     return;
                 }
                 secilen.setIsim(yeniIsim.trim());
+                LibraryManager.getInstance().updateUser(secilen.getId(), secilen);
                 refreshData();
-                JOptionPane.showMessageDialog(this, "İsim başarıyla güncellendi.");
+                JOptionPane.showMessageDialog(this, "Isim REST API uzerinden guncellendi.");
             }
         });
         userButtonPanel.add(changeNameButton);
@@ -346,8 +349,10 @@ public class AdminPanel extends JPanel {
         Kullanici admin = LibraryManager.getInstance().getCurrentUser();
         List<Kullanici> users = LibraryManager.getInstance().getUsers();
         for (Kullanici k : users) {
-            String tcBilgi = k.getTcNo(admin);
-            userTableModel.addRow(new Object[]{k.getIsim(), k.getRol(), tcBilgi, k.getKrediPuani()});
+            String tcBilgi = (admin != null) ? k.getTcNo(admin) : k.getTcNoDogrudan();
+            String email = k.getEmail() != null ? k.getEmail() : "Yok";
+            userTableModel.addRow(new Object[]{k.getIsim(), k.getRol(), tcBilgi, email, k.getKrediPuani()});
         }
+        statsLabel.setText(statsLabel.getText() + " [REST API ✅]");
     }
 }

@@ -32,10 +32,8 @@ public class Main {
             com.akillikutup.db.DatabaseManager.tekOrnekAl().kaydet(users, materials);
         }
         
-        ApiServer apiServer = new ApiServer();
-        apiServer.startServer(8080);
-        
-        System.out.println("API Sunucusu http://localhost:8080 adresinde aktif.");
+        // Eski ApiServer kaldirildi (Artik Spring Boot kullaniliyor)
+        System.out.println("Sadece Swing Masaustu Arayuzu baslatiliyor...");
         
         SwingUtilities.invokeLater(() -> {
             try {

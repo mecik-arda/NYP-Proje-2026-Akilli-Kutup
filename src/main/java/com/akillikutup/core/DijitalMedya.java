@@ -1,14 +1,33 @@
 package com.akillikutup.core;
 
 import java.util.UUID;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "dijital_medyalar")
 public class DijitalMedya extends Materyal implements IOduncAlinabilir {
+    @Column(name = "dosya_formati")
     private String dosyaFormati;
+
+    @Column(name = "tur")
     private String tur;
+
+    @Column(name = "boyut")
     private String boyut;
+
+    @Column(name = "son_uretilen_lisans", length = 36)
     private String sonUretilenLisans;
+
+    @Column(name = "toplam_erisim_sayisi")
     private int toplamErisimSayisi;
+
+    @Transient
     private final int MAX_ERISIM_LIMITI = 1000;
+
+    /** JPA için zorunlu no-arg constructor (protected). */
+    protected DijitalMedya() {
+        super();
+    }
 
     public DijitalMedya(String baslik, double birimFiyat, String dosyaFormati, String tur, String boyut) {
         super(baslik, 0, birimFiyat);

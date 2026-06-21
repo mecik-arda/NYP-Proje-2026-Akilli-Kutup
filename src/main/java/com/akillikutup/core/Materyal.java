@@ -1,12 +1,27 @@
 package com.akillikutup.core;
 
 import java.util.UUID;
+import jakarta.persistence.*;
 
+@MappedSuperclass
 public abstract class Materyal implements IMateryal {
+    @Id
+    @Column(name = "id", length = 36)
     private String id;
+
+    @Column(name = "baslik", nullable = false)
     private String baslik;
+
+    @Column(name = "stok_adedi")
     protected int stokAdedi;
+
+    @Column(name = "birim_fiyat")
     private double birimFiyat;
+
+    /** JPA için zorunlu no-arg constructor (protected). */
+    protected Materyal() {
+        this.id = UUID.randomUUID().toString();
+    }
 
     public Materyal(String baslik, int stokAdedi, double birimFiyat) {
         this.id = UUID.randomUUID().toString();

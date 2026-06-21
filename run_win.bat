@@ -1,74 +1,73 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Guvenilir ANSI ESC karakteri olusturma
-for /F %%a in ('echo prompt $E ^| cmd') do set "ESC=%%a"
-set "RED=!ESC![91m"
-set "GREEN=!ESC![92m"
-set "YELLOW=!ESC![93m"
-set "BLUE=!ESC![94m"
-set "CYAN=!ESC![96m"
-set "RESET=!ESC![0m"
-
-echo !CYAN!===================================================!RESET!
-echo !CYAN!   Akilli Kutup Sistemi Baslatiliyor (Windows)...!RESET!
-echo !CYAN!===================================================!RESET!
+echo ===================================================
+echo    Akilli Kutup V4 Baslatiliyor (Windows Docker)...
+echo ===================================================
 echo.
 
-:: 1. Sistem Kontrolleri (Java & Maven)
-echo [*] Sistem gereksinimleri kontrol ediliyor...
-where java >nul 2>nul
-if %errorlevel% neq 0 (
-    echo !RED![HATA] Sisteminizde Java bulunamadi. !RESET!
-    echo !YELLOW!Lutfen Java JDK 17 veya uzeri bir surum yukleyin ve PATH ortam degiskenine ekleyin.!RESET!
+echo [*] Docker kurulumu kontrol ediliyor...
+docker -v >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo [HATA] Sisteminizde Docker bulunamadi!
+    echo V4 mimarisi PostgreSQL ve Redis gerektirdiginden Docker Desktop zorunludur.
+    pause
+    exit /b 1
+)
+echo [OK] Docker yuklu.
+
+echo [*] Docker Motoru (Daemon) calisiyor mu kontrol ediliyor...
+docker info >nul 2>&1
+if %ERRORLEVEL% equ 0 goto docker_running
+
+echo [UYARI] Docker arka planda calismiyor! Docker Desktop otomatik baslatiliyor...
+
+if not exist "C:\Program Files\Docker\Docker\Docker Desktop.exe" (
+    echo [HATA] Docker Desktop.exe bulunamadi! Lutfen Docker'i manuel olarak acin.
     pause
     exit /b 1
 )
 
-where mvn >nul 2>nul
-if %errorlevel% neq 0 (
-    echo !RED![HATA] Sisteminizde Maven bulunamadi. !RESET!
-    echo !YELLOW!Lutfen Apache Maven yukleyin ve PATH ortam degiskenine ekleyin.!RESET!
-    pause
-    exit /b 1
-)
-echo !GREEN![OK] Java ve Maven yuklu.!RESET!
+start "" "C:\Program Files\Docker\Docker\Docker Desktop.exe"
+echo Docker'in hazir olmasi bekleniyor (Bu islem biraz surebilir)...
 
-:: 2. Port Kontrolu (8080)
-set "PORT_PID="
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8080" ^| findstr "LISTENING"') do (
-    set "PORT_PID=%%a"
+:wait_docker
+timeout /t 5 /nobreak >nul
+docker info >nul 2>&1
+if %ERRORLEVEL% neq 0 (
+    echo Docker motoru hala basliyor, lutfen bekleyin...
+    goto wait_docker
 )
+echo [OK] Docker basariyla aktif hale geldi!
+goto start_containers
 
-if defined PORT_PID (
-    echo !YELLOW![UYARI] 8080 portu baska bir uygulama tarafindan kullaniliyor. PID: %PORT_PID% !RESET!
-    set /p "kill_choice=Bu portu kullanan surec sonlandirilsin mi? [E/H]: "
-    if /i "!kill_choice!"=="E" (
-        taskkill /F /PID %PORT_PID% >nul 2>&1
-        echo !GREEN![OK] Port serbest birakildi.!RESET!
-    ) else (
-        echo !RED![IPTAL] Baslatma islemi iptal edildi. Lutfen 8080 portunu bosaltip tekrar deneyin.!RESET!
-        pause
-        exit /b 1
-    )
-)
+:docker_running
+echo [OK] Docker su anda aktif.
 
-:: 3. Java Backend'i Baslat
+:start_containers
 echo.
-echo !BLUE![1/2] Java API Sunucusu baslatiliyor...!RESET!
-:: Hata durumunda pencerenin acik kalmasi icin "cmd /k" kullanilmistir.
-start "Akilli Kutup Backend" cmd /k "mvn compile exec:java -Dexec.mainClass=com.akillikutup.Main"
+echo [1/3] Konteynerler (Web Sunucusu, PostgreSQL, Redis) baslatiliyor...
+docker compose up --build -d
 
-:: Sunucunun hazir olmasi icin kisa bir sure bekle
-echo Sunucunun hazirlanmasi bekleniyor...
-ping 127.0.0.1 -n 6 >nul
+echo [2/3] Servislerin hazirlanmasi bekleniyor (15 saniye)...
+timeout /t 15 /nobreak >nul
 
-:: 4. Tarayicida Arayuzu Ac
-echo !BLUE![2/2] Tarayici aciliyor...!RESET!
-start http://localhost:8080/
+echo [3/3] Java Masaustu (Swing GUI) Uygulamasi Baslatiliyor...
+start "Masaustu Arayuzu" cmd /c "mvn clean compile exec:java -Dexec.mainClass=com.akillikutup.Main"
 
+echo ===================================================
+echo    Sistem hazir! Iki Arayuz de aktif!
+echo    Web Arayuzu Tarayicida aciliyor: http://localhost:8080
+echo    Masaustu Arayuzu (Java GUI) ise yeni pencerede acildi.
+echo ===================================================
+echo Sistemi kapatmak icin: docker compose down
 echo.
-echo !GREEN!===================================================!RESET!
-echo !GREEN!   Sistem hazir. Backend konsolunu kapatmayiniz.   !RESET!
-echo !GREEN!===================================================!RESET!
+
+:: Web arayüzünü (Yeni GUI) aç
+start http://localhost:8080
+
+:: Terminal penceresini açık tut ve logları izle
+echo Canli Sunucu Loglari Izleniyor (Cikmak icin CTRL+C yapabilirsiniz):
+echo -------------------------------------------------------------------
+docker compose logs -f app
 pause

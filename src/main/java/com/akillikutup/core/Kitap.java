@@ -1,10 +1,26 @@
 package com.akillikutup.core;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "kitaplar")
 public class Kitap extends Materyal implements IOduncAlinabilir {
+    @Column(name = "isbn", length = 20)
     private String isbn;
+
+    @Column(name = "yazar")
     private String yazar;
+
+    @Column(name = "kategori")
     private String kategori;
+
+    @Column(name = "kapak_gorseli", length = 500)
     private String kapakGorseli;
+
+    /** JPA için zorunlu no-arg constructor (protected). */
+    protected Kitap() {
+        super();
+    }
 
     public Kitap(String baslik, int stokAdedi, double birimFiyat, String isbn) {
         super(baslik, stokAdedi, birimFiyat);

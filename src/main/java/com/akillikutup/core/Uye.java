@@ -1,6 +1,15 @@
 package com.akillikutup.core;
 
+import jakarta.persistence.*;
+
+@Entity
+@DiscriminatorValue("UYE")
 public class Uye extends Kullanici {
+
+    /** JPA için zorunlu no-arg constructor (protected). */
+    protected Uye() {
+        super();
+    }
 
     public Uye(String isim, String tcNo, String sifre) {
         super(isim, tcNo, "UYE", sifre);

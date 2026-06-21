@@ -9,71 +9,42 @@ CYAN='\033[0;36m'
 NC='\033[0m' # Renk sıfırlama
 
 echo -e "${CYAN}===================================================${NC}"
-echo -e "${CYAN}  Akilli Kutup Sistemi Baslatiliyor...${NC}"
+echo -e "${CYAN}  Akilli Kutup V4 Baslatiliyor (Genel Bash)...${NC}"
 echo -e "${CYAN}===================================================${NC}"
 echo
 
-# 1. Sistem Kontrolleri (Java & Maven)
-echo -e "[*] Sistem gereksinimleri kontrol ediliyor..."
-if ! command -v java &> /dev/null; then
-    echo -e "${RED}[HATA] Sisteminizde Java bulunamadi!${NC}"
-    echo -e "${YELLOW}Lutfen Java JDK 17 veya uzeri bir surum yukleyin.${NC}"
+echo -e "[*] Docker kurulumu kontrol ediliyor..."
+if ! command -v docker &> /dev/null; then
+    echo -e "${RED}[HATA] Sisteminizde Docker bulunamadi!${NC}"
+    echo -e "${YELLOW}V4 mimarisi PostgreSQL ve Redis gerektirdiginden Docker zorunludur.${NC}"
     exit 1
 fi
+echo -e "${GREEN}[OK] Docker yuklu.${NC}"
 
-if ! command -v mvn &> /dev/null; then
-    echo -e "${RED}[HATA] Sisteminizde Maven bulunamadi!${NC}"
-    echo -e "${YELLOW}Lutfen Apache Maven yukleyin.${NC}"
-    exit 1
-fi
-echo -e "${GREEN}[OK] Java ve Maven yuklu.${NC}"
-
-# 2. Port Kontrolü (8080)
-PORT_PID=$(lsof -t -i:8080 -sTCP:LISTEN 2>/dev/null || netstat -vanp tcp 2>/dev/null | grep 8080 | grep LISTEN | awk '{print $9}' | cut -d'/' -f1)
-if [ -n "$PORT_PID" ]; then
-    echo -e "${YELLOW}[UYARI] 8080 portu su anda kullanimda (PID: $PORT_PID).${NC}"
-    read -p "Bu portu kullanan surec sonlandirilsin mi? (e/h): " kill_choice
-    if [[ "$kill_choice" =~ ^[Ee]$ ]]; then
-        kill -9 $PORT_PID
-        echo -e "${GREEN}[OK] Port serbest birakildi.${NC}"
-    else
-        echo -e "${RED}[IPTAL] Baslatma islemi iptal edildi. Lutfen 8080 portunu bosaltip tekrar deneyin.${NC}"
-        exit 1
-    fi
-fi
-
-# 3. Java Backend'i arka planda baslat
 echo
-echo -e "${BLUE}[1/2] Java API Sunucusu baslatiliyor...${NC}"
-mvn compile exec:java -Dexec.mainClass=com.akillikutup.Main &
-BACKEND_PID=$!
+echo -e "${BLUE}[1/3] Konteynerler (PostgreSQL, Redis, Spring Boot) baslatiliyor...${NC}"
+docker compose up --build -d
 
-# Sunucunun hazir olmasi icin kısa bir sure bekle
-echo "Sunucunun hazirlanmasi bekleniyor..."
-sleep 5
+echo -e "${BLUE}[2/3] Servislerin hazirlanmasi bekleniyor (15 saniye)...${NC}"
+sleep 15
 
-# 4. Tarayicida arayuzu ac (macOS için open, Linux için xdg-open)
-echo -e "${BLUE}[2/2] Tarayici aciliyor...${NC}"
-if command -v open &> /dev/null; then
-    open http://localhost:8080/
-elif command -v xdg-open &> /dev/null; then
+echo -e "${BLUE}[3/3] Java Masaustu (Swing GUI) Uygulamasi Arkaplanda Baslatiliyor...${NC}"
+# Nohup kullanarak GUI'yi arkaplanda başlat, terminali kitleme
+nohup mvn clean compile exec:java -Dexec.mainClass=com.akillikutup.Main > gui.log 2>&1 &
+echo -e "${GREEN}[OK] Masaustu GUI basariyla cagirildi.${NC}"
+
+echo -e "${GREEN}===================================================${NC}"
+echo -e "${GREEN}  Sistem hazir! Iki Arayuz de aktif!${NC}"
+echo -e "${GREEN}  Web Arayuzu icin: http://localhost:8080${NC}"
+echo -e "${GREEN}  Masaustu Arayuzu (Java GUI) ise yeni bir pencerede acildi.${NC}"
+echo -e "${GREEN}===================================================${NC}"
+echo -e "Sunucu Loglari (Ctrl+C ile cikabilirsiniz):"
+echo -e "Sistemi kapatmak icin baska bir terminalde: docker compose down\n"
+
+if command -v xdg-open &> /dev/null; then
     xdg-open http://localhost:8080/
-else
-    echo -e "${YELLOW}Lutfen tarayicinizdan http://localhost:8080/ adresine gidiniz.${NC}"
+elif command -v open &> /dev/null; then
+    open http://localhost:8080/
 fi
 
-echo
-echo -e "${GREEN}===================================================${NC}"
-echo -e "${GREEN}  Sistem hazir! Kapatmak icin Ctrl+C tuslarina basiniz.${NC}"
-echo -e "${GREEN}===================================================${NC}"
-
-# Script sonlandirildiginda java surecini de kapat
-cleanup() {
-    echo "Sunucu kapatiliyor..."
-    kill $BACKEND_PID 2>/dev/null
-    exit
-}
-trap cleanup SIGINT SIGTERM
-
-# Backend loglarini takip et
-wait $BACKEND_PID
+docker compose logs -f app

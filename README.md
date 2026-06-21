@@ -1,11 +1,36 @@
-# Akıllı Kütüphane ve Güvenli Dijital Varlık Yönetim Sistemi [v3.0.0-Beta.2] - 2026 Nesneye Yönelik Programlama Proje Ödevi
+# Akıllı Kütüphane V4.1 Kurumsal — Spring Boot + PostgreSQL + Redis + Docker
 
-![Java](https://img.shields.io/badge/Java-ED8B00?logo=java&logoColor=white)
-![Frontend](https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JS-E34F26?logo=html5&logoColor=white)
-![Database](https://img.shields.io/badge/Database-JSON-orange)
-![Security](https://img.shields.io/badge/Security-SHA--256-red?logo=springsecurity&logoColor=white)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-lightgrey?logo=linux)
+![Java](https://img.shields.io/badge/Java_17-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot](https://img.shields.io/badge/Spring_Boot_3.2-6DB33F?logo=springboot&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-pgvector-4169E1?logo=postgresql&logoColor=white)
+![Redis](https://img.shields.io/badge/Redis-Rate_Limiting-DC382D?logo=redis&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-Spring_Security-000000?logo=jsonwebtokens&logoColor=white)
+![Swing](https://img.shields.io/badge/Swing-REST_Client-orange)
 ![License](https://img.shields.io/badge/License-MIT-brightgreen)
+![Tests](https://img.shields.io/badge/Tests-52/52_PASS-success)
+
+---
+
+## 🚀 V4.1 Yenilikleri (Özet)
+
+| Özellik | V3 | V4.1 |
+|---|---|---|
+| **Framework** | Saf Java + HttpServer | **Spring Boot 3.2** |
+| **Veritabanı** | SQLite / JSON | **PostgreSQL + pgvector** |
+| **ORM** | JsonParser (manuel) | **Spring Data JPA + Hibernate** |
+| **Kimlik Doğrulama** | SHA-256 + Session Token | **BCrypt + JWT + Spring Security** |
+| **Rate Limiting** | ConcurrentHashMap | **Redis (ConcurrentHashMap fallback)** |
+| **2FA** | Yok | **TOTP RFC 6238 (java-otp)** |
+| **AI RAG** | Yok | **Gemini Embedding + pgvector (PostgreSQL)** |
+| **Vision AI** | Yok | **Kitap Kapağı Tarama (Gemini Vision)** |
+| **Konteyner** | Yok | **Docker Compose (3 servis)** |
+| **CI/CD** | Yok | **GitHub Actions (mvn test)** |
+| **Yetkilendirme** | Controller içi if-else | **@PreAuthorize + SecurityFilterChain** |
+| **Split-Brain** | Swing ↔ SQLite / Web ↔ ? | **Swing ↔ REST API ↔ PostgreSQL ↔ Web** |
+| **Performans** | N+1 sorgu | **Batch findAllById (2 sorgu)** |
+| **Dosya Güvenliği** | Kullanıcı girdili isim | **UUID.randomUUID() + Path Traversal check** |
+| **Seed Data** | Manuel | **DataInitializer (CommandLineRunner)** |
 
 ### Uygulama Ekran Görüntüleri
 
@@ -25,245 +50,487 @@
 ---
 
 ## 1. Proje Özeti
-Bu proje, geleneksel kütüphane otomasyonlarını modern web teknolojileri, Yapay Zeka (AI) ve derinlemesine savunma (Defense-in-Depth) prensipleriyle birleştiren, Java tabanlı bir dijital varlık yönetim sistemidir. Sistem; fiziksel kitaplar, dijital medyalar ve süreli yayınlar gibi farklı materyalleri Nesneye Yönelik Programlama (OOP) standartlarıyla tek bir merkezden yönetir. Klasik ödev projelerinden farklı olarak, Java bir web sunucusu (Backend) gibi konumlandırılmış ve istemci (Frontend) ile haberleşmesi güvenli bir REST mimarisi üzerine inşa edilmiştir. V3 sürümü ile birlikte sisteme Kişisel Gemini API Anahtarı desteği, Gelişmiş Yönetici Ayarları Paneli, Veritabanı Dışa Aktarma/Zip ve PostgreSQL geçiş hazırlığı entegre edilerek sistemin yetenekleri ve yönetilebilirliği üst düzeye taşınmıştır.
 
-## 2. Çekirdek Mimari ve OOP Uygulamaları
-Projenin temel iskeleti, yazılım mühendisliği standartlarına uygun olarak tasarlanmıştır:
-*   Kalıtım (Inheritance) ve Soyutlama (Abstraction): IMateryal arayüzü ve Materyal soyut sınıfı üzerinden Kitap ve DijitalMedya gibi alt sınıflar türetilerek, genişletilebilir (Scalable) bir yapı kurulmuştur.
-*   Çok Biçimlilik (Polymorphism): Her materyal türünün ceza hesaplama veya ödünç verilme mantığı çalışma zamanında (Runtime) dinamik olarak belirlenir.
-*   Kapsülleme (Encapsulation): Kritik iş mantığı, ceza puanları ve sistemin iç durumu dış müdahalelere kapatılarak nesne bütünlüğü korunmuştur.
-*   Tek Sorumluluk Prensibi (Single Responsibility Principle - SRP): Devasa DatabaseManager sınıfı parçalanarak sorumluluklar; yüksek performanslı JSON dönüşümü için JsonParser'a, zamanlanmış yedeklemeler ve otomatik temizlik için BackupManager'a, şifreleme ve anahtar yönetimi için FileEncryptionService sınıfına devredilmiştir.
+Akıllı Kütüphane V4.1, V3'ün OOP temelli kütüphane yönetim sistemini **kurumsal Spring Boot mimarisine** taşıyan büyük bir dönüşümdür. Sistem; fiziksel kitaplar, dijital medyalar ve klasörleri JPA entity'leri olarak PostgreSQL'de saklar, Redis üzerinden rate limiting uygular, JWT ile güvenli API erişimi sağlar, TOTP tabanlı iki faktörlü doğrulama (2FA) sunar ve Docker Compose ile tek komutta ayağa kalkar.
 
-## 3. Siber Güvenlik Katmanı (Cybersecurity Framework)
-Proje, kullanıcı verilerini ve sunucu bütünlüğünü korumak amacıyla gelişmiş güvenlik mekanizmaları ve derinlemesine savunma (Defense-in-Depth) prensipleri içerir:
-*   Kriptografik Şifreleme (Hashing & Salting): Kullanıcı parolaları veritabanında kesinlikle açık metin (plaintext) olarak saklanmaz. Parolalar, güvenlik standartlarına uygun olarak hash algoritmaları (SHA-256) kullanılarak şifrelenir. Ayrıca hassas konfigürasyon verileri AES-256 algoritmasıyla uçtan uca korunur.
-*   Kimlik Doğrulama ve Yetkilendirme (Auth & Authorization): Frontend ile Backend arasındaki API iletişiminde yetkisiz erişimleri engellemek için güvenlik mekanizmaları devrededir. Sistemde En Az Ayrıcalık (Least Privilege) prensibi uygulanır; sıradan bir Uye sadece okuma yapabilirken, CRUD operasyonlarını yalnızca Admin yetkisine sahip kullanıcılar gerçekleştirebilir.
-*   Girdi Denetimi ve Sanitizasyon (Input Validation): İstemciden (Web arayüzünden) gelen her türlü veri, Backend tarafında işlenmeden önce süzgeçten geçirilir. Bu sayede JSON Injection ve XSS gibi saldırı vektörleri engellenir.
-*   Dosya Yolu Güvenliği (Path Traversal Protection): Sistem, yerel JSON dosyalarını kullandığından dışarıdan manipüle edilmiş dosya yolu isteklerine karşı sıkı bir dizin denetimi uygular. ApiServer statik dosya sunucusu, `getCanonicalPath()` kontrolü sayesinde isteklerin `frontend` klasörü dışına çıkmasını engeller.
-*   Gizli Anahtar Güvenliği (Key Management): Kaynak koda gömülü olan statik AES anahtarı kaldırılmış, bunun yerine otomatik oluşturulan ve güvenli bir şekilde saklanan `data/secret.key` yapısına geçilmiştir.
-*   Güvenli Şifre Kıyaslaması: AuthManager tarafında hash kıyaslamalarında platformlar arası byte dönüşüm hatalarını ve olası sızıntıları önlemek için UTF-8 standartları zorunlu kılınmıştır.
-*   Brute-Force Koruması ve Hız Sınırlama (Rate Limiting): API ve Masaüstü GUI üzerinden yapılan hatalı giriş denemeleri IP/İstemci bazında ConcurrentHashMap ile takip edilmektedir. Aynı IP'den veya masaüstü istemcisinden üst üste 5 başarısız giriş yapıldığında, erişim 5 dakika boyunca kilitlenir.
-*   IDOR (Insecure Direct Object Reference) Önleme: `/api/kitaplar/*` rotalarına (`DELETE`, `PUT` işlemleri için) sıkı rol kontrolleri (Admin) eklenerek kullanıcıların yetkisiz materyal silmesi veya değiştirmesi engellenmiştir.
-*   Hassas Veri Sızıntısının Engellenmesi: `/api/giris` rotasından dönen kullanıcı profil nesnesinden `geminiApiKey` alanı çıkarılarak, hassas API anahtarlarının istemci tarafına sızdırılması engellenmiştir.
-*   API Key Güvenliği: Yapay zeka asistanı isteklerinde Gemini API anahtarı, URL Query parametreleri yerine HTTP Header (`x-goog-api-key`) aracılığıyla güvenli şekilde taşınmaktadır.
-*   Yedekleme Güvenliği (Backup Isolation): Sistemde otomatik veya manuel yedek (backup) zip dosyaları oluşturulurken, `secret.key` gibi kriptografik anahtar dosyalarının yedek klasörüne kopyalanması engellenmiştir.
-*   Race Condition Engelleme: `DatabaseManager` içerisindeki veri listelerinin (`getKullaniciListesi` vb.) yüklenmesinde Double-Checked Locking kalıbı uygulanarak thread-safety ve veri bütünlüğü sağlanmıştır.
-*   Transaction ve Veri Güvenliği: Dosya tabanlı veritabanı eşitleme işlemlerinde oluşabilecek hatalarda veri tutarlılığını korumak için rollback (`conn.rollback()`) mekanizması entegre edilmiştir.
-*   Sıkılaştırılmış CORS Başlıkları: `ApiServer` tarafındaki tüm yetkisiz erişim `401` yanıtlarında ve `login` rotalarında tutarlı ve güvenli CORS yapılandırması mevcuttur.
+Yapay zeka katmanı; Gemini Embedding API ile kitap vektörleştirme, pgvector ile kalıcı vektör depolama (RAG) ve Gemini Vision ile kitap kapağı tarama özelliklerini içerir.
 
-## 4. Veri Kalıcılığı ve Hata Yönetimi (Database & Persistence)
-*   Sistem, SQL kullanmak yerine kendi özel Dosya Tabanlı Veritabanı Motorunu (File-Based Database Engine) Java ile sıfırdan yönetir.
-*   Veriler JSON formatında serialize/deserialize edilerek saklanır.
-*   Gelişmiş Hata Yakalama (Exception Handling) blokları sayesinde; dosya bulunamaması veya JSON formatının bozulması gibi durumlarda sistem çökmez. Ayrıca her kritik işlemden önce zaman damgalı otomatik JSON yedekleri oluşturularak veri kaybı tamamen önlenir.
+**V4.1 (Split-Brain Fix):** Masaüstü Swing uygulaması (`gui/`) artık yerel SQLite yerine doğrudan Spring Boot REST API'ye bağlanır. `ApiClient.java` HTTP köprüsü ile JWT token yönetimi yapar. Web arayüzü ve masaüstü uygulaması **tek PostgreSQL veritabanını** paylaşır — veri uyumsuzluğu (split-brain) tamamen çözülmüştür.
 
-## 5. Modern Web Arayüzü ve AI Entegrasyonu (Frontend Integration)
-*   Java backend'i, gömülü bir HTTP sunucusu modülü (ApiServer) barındırarak ağ üzerinden gelen istekleri dinler.
-*   Kullanıcılar sisteme kurumsal tasarıma sahip, karanlık tema destekli, asenkron (Fetch API) ve kullanıcı dostu bir web paneli üzerinden erişim sağlar.
-*   Sisteme entegre edilen GeminiClient modülü sayesinde kullanıcılara okuma geçmişlerine uygun materyal önerileri, akıllı asistan hizmetleri ve katalog analizleri sağlanır.
-*   **Modüler ES6 JavaScript Yapısı**: Dev JavaScript dosyaları sorumluluklarına göre modüllere (`main.js`, `ui.js`, `charts.js`, `utils.js`, `store.js`) ayrılmış, ortak işlevlerin `utils.js`'e toplanmasıyla modüller arası döngüsel bağımlılık (circular dependency) sorunları çözülmüştür.
-*   **XSS (Cross-Site Scripting) Koruması**: Ödünç alma modal listesi, medya gridi (Asset Grid), timeline akışı, AI chat sohbet pencereleri ve PDF rapor taslakları dahil olmak üzere kullanıcıdan gelen tüm dinamik girdiler `escapeHtml` fonksiyonu ile süzülerek HTML Entity Encoding uygulanmıştır.
-*   **Veri Maskeleme**: PDF rapor çıktılarında kullanıcıların hassas TC Kimlik numaraları maskelenerek gizlilik standartları yükseltilmiştir.
-*   **Arayüz Performans İyileştirmeleri**: SVG donut grafik üretiminde DOM döngü yükünü (layout thrashing) azaltmak için `DocumentFragment` kullanılmıştır.
+## 2. Sistem Mimarisi (V4)
 
-## 6. Sistemin Temel Özellikleri (Features)
+```mermaid
+graph TD
+    subgraph Istemciler [İstemci Katmanı (Clients)]
+        Web[Web Arayüzü - Tarayıcı]
+        Swing[Masaüstü Arayüzü - Swing]
+    end
 
-Projeye V3 sürümü ile birlikte kazandırılan ve yapılan son geliştirmelerle sistemin temelini oluşturan tüm fonksiyonel yetenekler aşağıda detaylandırılmıştır:
+    subgraph Sunucu [Sunucu Katmanı (Spring Boot)]
+        API[REST API Controllers]
+        Security[Security & JWT Filter]
+        Service[İş Mantığı - Service Layer]
+    end
 
-*   **Kapsamlı Materyal Yönetimi:** Admin kullanıcıları sisteme Kitap veya Dijital Medya gibi farklı özelliklere sahip materyaller ekleyebilir, güncelleyebilir, stok durumlarını kontrol edebilir ve silebilir.
-*   **Rol Tabanlı Gelişmiş Kimlik Doğrulama:** Admin ve standart Üye rolleri birbirinden tamamen ayrılmıştır. SHA-256 ile şifrelenen hesaplara giriş yapıldığında, yetkilendirmeye göre sadece ilgili butonlar, menüler ve işlemler (CRUD) aktif hale gelir.
-*   **Ödünç Alma ve İade Süreçleri:** Kullanıcılar kütüphane materyallerini ödünç alabilir. Ödünç alma limitleri (Admin için sınırsız, Üye için belirli limitler) nesneye yönelik programlama kurallarıyla dinamik olarak yönetilir.
-*   **Dinamik Ceza Puanı ve Kredi Sistemi:** Zamanında iade edilmeyen materyaller için sisteme entegre algoritma sayesinde dinamik ceza puanı hesaplanır. Kredisi eksilere düşen üyeler otomatik olarak ödünç alma işlemlerinden kısıtlanır.
-*   **Kişisel Gemini API Anahtarı Desteği:** Üyeler, profil düzenleme ekranından kendi kişisel Google Gemini API anahtarını sisteme tanımlayabilirler. Tanımlanan anahtar veritabanında güvenli şekilde saklanır ve kullanıcı kendi kotasından AI sorguları yapabilir.
-*   **Yedekli Yapay Zeka İstek Mekanizması (Fallback):** AI sohbetlerinde üyenin kişisel anahtarı bulunmuyorsa, sistem otomatik olarak admin tarafından tanımlanan global API anahtarına geçiş yapar.
-*   **Gelişmiş Yönetici Ayarları Paneli:** Admin kullanıcıları; oturum zaman aşımı, AI model parametreleri (Temperature, Max Tokens, System Prompt), günlük gecikme cezası, ceza limiti ve tolerans sürelerini (Grace Period) dinamik olarak yönetebilir.
-*   **Brute-Force Koruması (Rate Limiting):** API ve Masaüstü GUI girişlerinde in-memory (ConcurrentHashMap) bazlı başarısız deneme kontrolü ile brute-force saldırılarını engelleyen hız sınırlaması (5 hatalı deneme -> 5 dakika engelleme).
-*   **Benzersiz ID Üretimi (Çakışma Engelleme):** Kitap ve Üye ekleme işlemlerinde length tabanlı hatalı üretim yerine dizideki en yüksek ID'yi bularak 1 artıran akıllı ID oluşturma algoritması.
-*   **Doğru Sıralama Algoritması:** Katalog listelemesinde, kitap ID'lerini sayısal `(b.id - a.id)` değerleri ile sıralayan mekanizma.
-*   **Tek Tıkla Veritabanı Dışa Aktarma (Export):** JSON veritabanı dosyalarını sunucu tarafında zip formatında paketleyen ve anında indirme imkanı sunan buton.
-*   **PostgreSQL Geçiş Hazırlığı:** SQL veritabanı geçişi için bağlantı ayarları arayüzü (Host, Port, DB Adı, Kullanıcı Adı ve Şifre) ayarlar paneline eklenmiştir (Mevcut sürümde pasif/disabled olarak yer almaktadır).
-*   **Finansal Analiz ve Raporlama:** Sistemin finansal durumu, kesilen cezalar ve genel istatistiklerin PDF formatında raporlanabilmesi.
-*   **Gerçek Zamanlı Kamera Tabanlı Barkod Tarayıcı (Yeni):** `html5-qrcode` kütüphanesi entegrasyonu ile cihazın kamerasını (varsayılan olarak arka kamerayı) kullanarak EAN-13 ve EAN-8 standartlarındaki barkodları/ISBN kodlarını gerçek zamanlı okuma yeteneği. Başarılı okumalarda Web Audio API üzerinden sentezlenen bip sesi ve haptik titreşim (`navigator.vibrate`) desteği ile zenginleştirilmiş kullanıcı deneyimi.
-*   **Gelişmiş Dijital Varlık Yönetimi (Yeni):** E-Kitap, Video, Ses, Belge ve Görsel gibi dijital varlıkların sisteme eklenip yönetilebilmesi. Yetkilendirilmiş RBAC kontrolleriyle (sadece Adminlere özel) klasör oluşturma, yeni medya yükleme ve dinamik filtreleme sekmeleriyle zenginleştirilmiş kullanıcı arayüzü entegrasyonu.
-*   **Gelişmiş OOP Refactoring ve LSP Desteği (Yeni):** Sistemi Liskov Substitution Principle ihlallerinden korumak için `IOduncAlinabilir` arayüzü oluşturuldu. Fiziksel kitaplar ve dijital medyalar bu özellikleri uygularken, klasör nesneleri gibi ödünç alınamayan varlıkların mantık hatalarına neden olması sunucu seviyesinde type-casting (`instanceof`) ile tamamen engellendi.
-*   **Gelişmiş Üye Yönetimi ve Güvenlik (Yeni):** Yalnızca yetkili (Admin) kullanıcıların erişebildiği; TC No ve E-posta bazlı mükerrer kayıt kontrolü barındıran tam donanımlı üye listeleme, ekleme, silme ve düzenleme ekranı.
-*   **Gerçek Zamanlı Ödünç ve İade Takibi (Yeni):** 14 günlük standart ödünç süresi, süre aşımında formül tabanlı `(gecikmeGunu * 2.5) + (birimFiyat * 0.10)` dinamik ceza puanı hesaplaması. Tüm bu süreçleri `Activity Timeline` üzerinden grafiksel olarak takip etme imkanı.
-*   **Kapsamlı Raporlar ve Analizler (Yeni):** Veritabanından gerçek zamanlı beslenen Dashboard üzerinden haftalık etkileşim çubuk grafikleri, finansal özetler (tahsil edilen cezalar), kategori dağılım pasta grafikleri ve son gerçekleştirilen işlemler tablosu.
-*   **Tam Bağımsız Uçtan Uca (E2E) Test Altyapısı (Yeni):** `SystemTester.java` sınıfı ile tüm kullanıcı işlemleri, materyal oluşturma, LSP prensipleri, veritabanı simülasyonları ve güvenlik kuralları konsol üzerinden izole olarak `%100` oranında test edilebilir hale getirildi.
-*   **Dinamik Bildirimler ve Profil Senkronizasyonu:** Web paneli profil güncellemelerinin anında Java Desktop GUI ile senkronize edilmesi.
-*   **Asenkron Çalışan Arka Plan Sunucusu:** Java tabanlı ApiServer sayesinde tüm arayüz (Frontend) işlemleri sayfayı yenilemeden arka planda hızlı ve güvenli bir şekilde sunucu ile haberleşir.
-*   **Gelişmiş AI Hata Yönetimi ve Model Fallback:** Gemini API aşırı yüklenmelerinde otomatik yedek modellerin (`gemini-1.5-pro-latest`, `gemini-pro`) denenmesi.
-*   **Felaket Kurtarma ve Otomatik Yedekleme:** Her kritik okuma/yazma öncesinde `DatabaseManager` modülünün veritabanı dosyalarının tam yedeğini alması.
+    subgraph Veri [Veri Katmanı]
+        DB[(Docker PostgreSQL)]
+    end
 
-## EKİP GÖREV DAĞILIMI
-
-Backend & Core Architect - Ahmet Güler:
-
-Projenin nesneye yönelik tasarım hiyerarşisini ve iş mantığını kurgular. Sistemdeki tüm nesnelerin atası olan Abstract sınıfları ve ortak davranışları belirleyen Interface yapılarını tasarlar. Kalıtım mekanizması ile materyal çeşitliliğini yönetirken; kredi puanı hesaplama, dinamik ceza sistemi ve stok kontrolü gibi çekirdek algoritmaları kodlar. Ayrıca, sınıflar arası ilişkilerin sağlam bir mimaride yürümesini sağlayarak projenin genişletilebilir olmasını garanti altına alır.
-
-Yaptığı dosyalar:
-
-```text
-src/main/java/com/akillikutup/core/IMateryal.java
-src/main/java/com/akillikutup/core/Materyal.java
-src/main/java/com/akillikutup/core/Kitap.java
-src/main/java/com/akillikutup/core/DijitalMedya.java
-src/test/java/com/akillikutup/core/CoreTest.java
-src/main/java/com/akillikutup/Main.java
+    Web -->|HTTP / JSON| API
+    Swing -->|HTTP / JSON + JWT| API
+    API --> Security
+    Security --> Service
+    Service --> DB
 ```
 
-Database & Data Persistence Manager / Penetration Tester - Arda Meçik:
+### Katmanlı Mimari
 
-Sistemin veri kalıcılığı katmanını tasarlar ve yönetir. Verileri SQL yerine Java kullanarak dosya tabanlı bir yapıda saklayacak olan Database Engine mekanizmasını kurar. Nesnelerin diske yazılması ve açılışta tekrar belleğe yüklenmesi süreçlerini yürütür. Ayrıca, dosya okuma/yazma sırasında oluşabilecek tüm senaryolar için Hata Yönetimi mimarisini, otomatik yedekleme süreçlerini kurar. Projenin canlıya alınma durumunda host penetrasyon işlemini yapar.
-
-Yaptığı dosyalar:
-
-```text
-src/main/java/com/akillikutup/db/DatabaseManager.java
-src/main/java/com/akillikutup/db/BackupManager.java
-src/main/java/com/akillikutup/db/JsonParser.java
-src/main/java/com/akillikutup/db/FileEncryptionService.java
-src/test/java/com/akillikutup/db/DatabaseManagerTest.java
-data/users.json
-data/materials.json
-data/backup/
-data/secret.key
+```
+Controller  ──→  @RestController, @PreAuthorize("hasRole('ADMIN')")
+  │
+  ▼
+Service     ──→  @Service, @Transactional, iş mantığı
+  │
+  ▼
+Repository  ──→  JpaRepository, @Query (pgvector), findAllById (batch)
+  │
+  ▼
+Entity      ──→  @Entity, SINGLE_TABLE, @MappedSuperclass, @Embeddable
+  │
+  ▼
+Database    ──→  PostgreSQL 16 + pgvector (prod) / H2 file (dev)
 ```
 
-UI/UX Developer - Göktuğ Berke Kuzucu:
+## 3. Hızlı Başlangıç
 
-Sistemin kullanıcı ile temas eden tüm görsel arayüzlerini ve etkileşim senaryolarını tasarlar. Web teknolojilerini kullanarak karmaşık kütüphane işlemlerini son kullanıcı için basit bir deneyime dönüştürür. Kurumsal koyu tema, görsel hiyerarşi, renk paleti ve tipografi seçimleriyle kullanıcı deneyimini iyileştirirken; Backend'den gelen verileri dinamik grafikler, tablolar ve uyarı pencereleriyle görselleştirir.
+### Gereksinimler
 
-Yaptığı dosyalar:
+| Bileşen | Versiyon | Zorunlu? |
+|---|---|---|
+| Java | 17+ | ✅ |
+| Maven | 3.8+ | ✅ |
+| Docker Desktop | Son sürüm | ⚠️ (production modu) |
+| Google Gemini API Key | — | ⚠️ (AI özellikleri) |
 
-```text
-frontend/index.html
-frontend/dashboard.html
-frontend/css/login.css
-frontend/css/main.css
-frontend/css/scanner.css
-frontend/js/main.js
-frontend/js/ui.js
-frontend/js/charts.js
-frontend/js/store.js
-frontend/js/utils.js
-frontend/js/scanner.js
+### Local Development (H2 veritabanı, Docker'sız)
+
+```bash
+# 1. Projeyi klonla
+git clone <repo-url> && cd Akilli-kutup-v2
+
+# 2. Derle ve başlat (DataInitializer seed data oluşturur)
+mvn clean package -DskipTests
+mvn spring-boot:run
+
+# 3. Tarayıcıda aç
+open http://localhost:8080
+
+# 4. Test kullanıcıları (DataInitializer tarafından oluşturulur):
+#    Admin: 11111111111 / 12345678
+#    Admin: 33333333333 / 12345678
+#    Üye:   44444444444 / 12345678
 ```
 
-Security & Integration Specialist - Eren Gider:
+### Docker Compose (PostgreSQL + pgvector + Redis)
 
-Sistemin güvenlik altyapısını ve iletişim ağını kurar. AES-256 ve SHA-256 şifreleme sistemleri üzerinden güvenli veri ve konfigürasyon depolama mimarilerini kurar. ApiServer ile Java backend - web frontend haberleşmesini sağlar. V2 güncellemesi ile Gemini AI entegrasyonunu gerçekleştirerek sisteme yapay zeka özelliklerini kazandırır. Kapsamlı README dokümantasyonunu yönetir.
+```bash
+# Tek komutla tüm servisleri başlat
+docker compose up -d
 
-Yaptığı dosyalar:
+# Servisler:
+#   - PostgreSQL 16 + pgvector → localhost:5433
+#   - Redis 7                  → localhost:6380
+#   - Spring Boot App          → localhost:8080
 
-```text
-src/main/java/com/akillikutup/auth/AuthManager.java
-src/main/java/com/akillikutup/server/ApiServer.java
-src/main/java/com/akillikutup/server/GeminiClient.java
-src/main/java/com/akillikutup/core/ConfigManager.java
-src/test/java/com/akillikutup/auth/AuthManagerTest.java
-frontend/js/api.js
-frontend/js/auth.js
-pom.xml
-README.md
-docs/UML_Sema.md
-docs/Proje_Raporu.md
+# Logları takip et
+docker compose logs -f app
+
+# Durdur
+docker compose down
 ```
 
-## Genel Proje Dosya Şeması
+### Testleri Çalıştırma
+
+```bash
+# Tüm testler (52 adet: unit + JPA entegrasyon + E2E)
+mvn clean test
+
+# Sadece birim testler (33 adet)
+mvn test -Dtest="CoreTest,AuthManagerTest,DatabaseManagerTest"
+
+# Sadece JPA entegrasyon testleri (4 adet)
+mvn test -Dtest="AkilliKutupV4IntegrationTest"
+
+# Sadece E2E Split-Brain testi (13 adet — Spring Boot çalışıyor olmalı)
+mvn test -Dtest="E2ESplitBrainTest"
+
+# Shell E2E testi (curl tabanlı, 12 adım)
+bash test-scripts/e2e_splitbrain_test.sh
+```
+
+## 4. Split-Brain Çözümü: Swing ↔ REST API ↔ Web
+
+### Sorun
+
+V3'te Swing masaüstü uygulaması yerel SQLite'a (`data/database.db`) yazıp okurken, web arayüzü Spring Boot REST API üzerinden PostgreSQL'e erişiyordu. Sonuç: iki arayüz farklı verileri görüyordu (**Split-Brain**).
+
+### Çözüm
+
+Swing GUI katmanı tamamen REST API istemcisine dönüştürüldü:
+
+```
+Swing GUI (AdminPanel / UserPanel / LoginPanel)
+    │
+    ▼
+LibraryManager (singleton, veri erişim katmanı)
+    │
+    ▼
+ApiClient (HTTP, JWT, JSON parse)
+    │
+    ▼
+Spring Boot REST API (:8080)
+    │
+    ▼
+PostgreSQL (tek veritabanı)
+```
+
+| Bileşen | Dosya | Görev |
+|---|---|---|
+| HTTP İstemci | `gui/ApiClient.java` | `java.net.http.HttpClient`, JWT token yönetimi, tüm CRUD |
+| Veri Katmanı | `gui/LibraryManager.java` | SQLite yerine REST API proxy'si |
+| Login | `gui/LoginPanel.java` | TC No + Şifre → `/api/giris` POST → JWT |
+| Admin Panel | `gui/AdminPanel.java` | REST API üzerinden CRUD + `[REST API ✅]` göstergesi |
+| Üye Panel | `gui/UserPanel.java` | SwingWorker ile asenkron ödünç alma |
+| Seed Data | `config/DataInitializer.java` | İlk çalıştırmada admin/üye/kitap oluşturma |
+
+### E2E Doğrulama
+
+```bash
+# Java: 13 adım, JUnit 5, ApiClient üzerinden
+mvn test -Dtest=E2ESplitBrainTest
+# → 13/13 PASS ✅
+
+# Shell: 12 adım, curl, renkli çıktı
+bash test-scripts/e2e_splitbrain_test.sh
+# → Web → PostgreSQL → Swing → Aynı veri ✅
+```
+
+## 5. Çekirdek Mimari ve OOP Uygulamaları
+
+- **Kalıtım (Inheritance)**: `IMateryal` → `Materyal` (@MappedSuperclass) → `Kitap`, `DijitalMedya`, `Klasor`. `Kullanici` (@Entity, SINGLE_TABLE) → `Admin` (@DiscriminatorValue("ADMIN")), `Uye` (@DiscriminatorValue("UYE")).
+- **Çok Biçimlilik (Polymorphism)**: `cezaHesapla()` metodu her materyal türünde farklı formülle çalışır.
+- **Kapsülleme (Encapsulation)**: `getTcNo(Kullanici talepEden)` — TC numarasına sadece admin veya kullanıcının kendisi erişebilir.
+- **LSP (Liskov Substitution)**: `IOduncAlinabilir` arayüzü sadece ödünç alınabilir materyallerde. `Klasor` bu arayüzü implemente etmez — `instanceof` kontrolü ile LSP ihlali önlenir.
+- **SRP (Single Responsibility)**: Servis katmanı (`KullaniciService`, `KitapService`, `BorrowService`) ve repository katmanı (5 JPA interface) ayrılmıştır.
+
+### JPA Entity Hiyerarşisi
+
+```
+@MappedSuperclass
+  Materyal (abstract)
+    ├── @Entity Kitap           → kitaplar tablosu
+    ├── @Entity DijitalMedya    → dijital_medyalar tablosu
+    └── @Entity Klasor          → klasorler tablosu
+
+@Entity @Inheritance(SINGLE_TABLE)
+  Kullanici (abstract)
+    ├── @DiscriminatorValue("ADMIN") Admin
+    └── @DiscriminatorValue("UYE")   Uye
+
+@Embeddable
+  Bildirim                      → kullanici_bildirimler (ElementCollection)
+
+@Entity
+  KitapEmbedding                → kitap_embeddings (pgvector vector(768))
+```
+
+## 6. Güvenlik Katmanı (Defense-in-Depth)
+
+### 6.1 Kimlik Doğrulama (Authentication)
+
+```
+Kullanıcı → POST /api/giris
+         → RateLimiterService.isBlocked(ip) kontrolü
+         → BCrypt passwordEncoder.matches()
+         → Admin ise TOTP 2FA kontrolü (java-otp, RFC 6238)
+         → JwtUtil.generateToken() → JWT (1 saat expiry)
+         → Frontend/Swing: Authorization: Bearer <token>
+         → JwtAuthFilter (OncePerRequestFilter): token → SecurityContext
+```
+
+### 6.2 Yetkilendirme (Authorization)
+
+```java
+// SecurityConfig.java — SecurityFilterChain
+.authorizeHttpRequests(auth -> auth
+    .requestMatchers("/api/status", "/api/giris").permitAll()
+    .requestMatchers(HttpMethod.GET, "/api/kitaplar").permitAll()
+    .requestMatchers("/api/kullanicilar/**", "/api/settings",
+        "/api/backup", "/api/admin/**").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.POST, "/api/kitaplar").hasRole("ADMIN")
+    .requestMatchers(HttpMethod.DELETE, "/api/kitaplar/**").hasRole("ADMIN")
+    .anyRequest().authenticated()
+)
+
+// Controller seviyesinde çift katman
+@PreAuthorize("hasRole('ADMIN')")
+@PostMapping("/kitaplar")
+```
+
+### 6.3 Rate Limiting (Brute-Force Koruması)
+
+```java
+// RateLimiterService: Redis öncelikli, ConcurrentHashMap fallback
+public boolean isBlocked(String ip)        // IP bloke mi?
+public boolean recordFailedAttempt(String) // Başarısız deneme kaydet
+public void resetAttempts(String)          // Başarılı girişte sıfırla
+// 5 başarısız deneme → 5 dakika IP blokajı
+```
+
+### 6.4 Ek Güvenlik Önlemleri
+
+| Önlem | Uygulama |
+|---|---|
+| Dosya Yükleme | `UUID.randomUUID() + extension`, `file.normalize().startsWith(dir)` |
+| CORS | Sadece `localhost:8080`, `127.0.0.1:8080`, `localhost:3000` |
+| CSRF | API stateless → disable |
+| Session | `SessionCreationPolicy.STATELESS` |
+| Hassas Veri | Login yanıtında `geminiApiKey` döndürülmez |
+| Input Validasyon | Base64 5MB sınırı, sadece JPG/PNG |
+
+## 7. Veri Katmanı (Persistence)
+
+### 7.1 Veritabanı Stratejisi
+
+```yaml
+# application.yml
+spring:
+  datasource:
+    url: ${DB_URL:jdbc:h2:file:./data/akilli_kutup;MODE=PostgreSQL}
+    username: ${DB_USER:sa}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+  jpa:
+    hibernate:
+      ddl-auto: update
+```
+
+- **Local dev**: H2 file-based (PostgreSQL modunda), otomatik
+- **Docker**: `DB_URL=jdbc:postgresql://postgres:5432/akilli_kutup` (docker-compose.yml'den enjekte)
+- **Seed Data**: `DataInitializer` — ilk çalıştırmada 4 kullanıcı + 5 kitap (BCrypt şifreli)
+
+### 7.2 Repository Katmanı (5 JPA Repository)
+
+| Repository | Entity | Özel Metodlar |
+|---|---|---|
+| `KullaniciRepository` | Kullanici (Admin+Üye) | `findByTcNo`, `existsByEmailIgnoreCase` |
+| `KitapRepository` | Kitap | `findByBaslikContainingIgnoreCase`, `findByYazarContainingIgnoreCase` |
+| `DijitalMedyaRepository` | DijitalMedya | `findByTur`, `findByDosyaFormati` |
+| `KlasorRepository` | Klasor | `findByBaslikContainingIgnoreCase` |
+| `KitapEmbeddingRepository` | KitapEmbedding | `findNearest` (pgvector `<=>` cosine) |
+
+### 7.3 N+1 Sorgu Optimizasyonu
+
+```java
+// ❌ ESKİ: N+1 (5000 kullanıcı × 3 kitap = 15.000 sorgu)
+for (Kullanici k : kullaniciRepository.findAll()) {
+    for (String mid : k.getOduncAlinanMateryaller()) {
+        kitapRepository.findById(mid); // Her kitap için ayrı SELECT
+    }
+}
+
+// ✅ YENİ: 2 sorgu (batch — sabit)
+List<Kullanici> kullanicilar = kullaniciRepository.findAll();          // Sorgu 1
+Set<String> tumIdler = ...;
+Map<String, Kitap> kitapMap = kitapRepository.findAllById(tumIdler);   // Sorgu 2
+```
+
+### 7.4 Data Migration (SQLite → PostgreSQL)
+
+```bash
+mvn compile exec:java -Dexec.mainClass="com.akillikutup.db.DataMigrator"
+```
+
+## 8. API Endpoint Referansı (23 endpoint)
+
+| Metod | Endpoint | Yetki | Açıklama |
+|---|---|---|---|
+| `GET` | `/api/status` | Public | Sunucu durumu |
+| `POST` | `/api/giris` | Public | Giriş (JWT + opsiyonel 2FA) |
+| `GET` | `/api/kitaplar` | Public | Kitap listesi |
+| `POST` | `/api/kitaplar` | **ADMIN** | Kitap ekle (+ kapak upload) |
+| `DELETE` | `/api/kitaplar/{id}` | **ADMIN** | Kitap sil |
+| `GET` | `/api/kullanicilar` | **ADMIN** | Kullanıcı listesi |
+| `POST` | `/api/kullanicilar` | **ADMIN** | Kullanıcı ekle |
+| `PUT` | `/api/kullanicilar/{id}` | **ADMIN** | Kullanıcı güncelle |
+| `DELETE` | `/api/kullanicilar/{id}` | **ADMIN** | Kullanıcı sil |
+| `POST` | `/api/odunc` | Auth | Kitap ödünç ver |
+| `POST` | `/api/iade` | Auth | Kitap iade al |
+| `GET` | `/api/odunc-gecmisi` | Auth | Ödünç geçmişi |
+| `GET` | `/api/istatistikler` | Auth | Sistem istatistikleri |
+| `POST` | `/api/chat` | Auth | AI Sohbet (useRag:true → RAG) |
+| `POST` | `/api/kitap-kapak-tara` | Auth | Vision AI kitap kapağı tarama |
+| `GET` | `/api/settings` | **ADMIN** | Sistem ayarları |
+| `POST` | `/api/settings` | **ADMIN** | Ayarları kaydet |
+| `GET` | `/api/backup` | **ADMIN** | Veritabanı yedeği (ZIP) |
+| `POST` | `/api/profil` | Auth | Profil güncelle |
+| `POST` | `/api/sifre` | Auth | Şifre değiştir |
+| `GET` | `/api/bildirimler` | Auth | Bildirimler |
+| `POST` | `/api/bildirimler/okundu` | Auth | Tümünü okundu işaretle |
+| `POST` | `/api/dijital/upload` | **ADMIN** | Dijital varlık ekle |
+| `POST` | `/api/dijital/klasor` | **ADMIN** | Klasör oluştur |
+| `POST` | `/api/admin/2fa-setup` | **ADMIN** | 2FA kurulumu |
+
+## 9. Yapay Zeka Modülleri
+
+### 9.1 RAG (Retrieval-Augmented Generation)
+
+```
+Kullanıcı Sorusu → Gemini Embedding API → sorgu vektörü (float[768])
+                → pgvector cosine similarity (<=>) → en benzer 3 kitap
+                → Gemini Generate API → kitap bağlamlı yanıt
+```
+
+- **Embedding Modeli**: `text-embedding-004` (768 boyut)
+- **Vektör Depolama**: PostgreSQL `kitap_embeddings` tablosu, `vector(768)` kolonu
+- **Benzerlik**: pgvector `<=>` kosinüs benzerlik operatörü
+
+### 9.2 Vision AI (Kitap Kapağı Tarama)
+
+```
+Kamera Görseli (Base64) → Gemini Vision API → {baslik, yazar, isbn, kategori}
+```
+
+### 9.3 Model Fallback
+
+`GeminiClient`: `gemini-2.0-flash-exp` → `gemini-1.5-pro-latest` → `gemini-1.5-flash-latest` → `gemini-pro`
+
+## 10. Docker Compose Servisleri
+
+```yaml
+services:
+  postgres:    # pgvector/pgvector:pg16
+    port: 5433:5432
+    env: POSTGRES_DB=akilli_kutup
+    healthcheck: pg_isready
+
+  redis:       # redis:7-alpine
+    port: 6380:6379
+    healthcheck: redis-cli ping
+
+  app:         # Spring Boot 3.2
+    port: 8080:8080
+    depends_on: [postgres (healthy), redis (healthy)]
+    env:
+      DB_URL: jdbc:postgresql://postgres:5432/akilli_kutup
+      DB_DRIVER: org.postgresql.Driver
+      REDIS_HOST: redis
+      JWT_SECRET: docker-compose-jwt-secret-change-in-production
+```
+
+## 11. CI/CD (GitHub Actions)
+
+Her push ve PR'da: Java 17 → PostgreSQL 16 + Redis servis konteynerleri → `mvn clean compile` → `mvn test` → test raporu.
+
+## 12. Test Kapsamı
+
+| Test Sınıfı | Sayı | Tür |
+|---|---|---|
+| `CoreTest` | 4 | OOP + LSP + Güvenlik |
+| `AuthManagerTest` | 1 | Kimlik doğrulama |
+| `DatabaseManagerTest` | 28 | Veritabanı CRUD + Yedekleme |
+| `AkilliKutupV4IntegrationTest` | 4 | JPA Repository + Service |
+| `E2ESplitBrainTest` | 13 | Swing ↔ Web veri bütünlüğü |
+| `e2e_splitbrain_test.sh` | 12 adım | curl tabanlı E2E |
+| **Toplam** | **52 test + 12 adım** | Unit + Integration + E2E |
+
+## 13. Proje Dosya Şeması (V4.1)
+
 ```text
-NYP-Proje-2026-Akilli-Kutup/
+Akilli-kutup-v2/
+├── .github/workflows/ci.yml              # GitHub Actions CI
 ├── .gitignore
-├── LICENSE
+├── Dockerfile                             # Multi-stage (Maven → JRE)
+├── docker-compose.yml                     # PostgreSQL + Redis + App
+├── pom.xml                                # Spring Boot 3.2 parent
 ├── README.md
-├── pom.xml
-├── run.sh
-├── run_linux.sh
-├── run_mac.sh
-├── run_win.bat
-├── data/
-│   ├── config.json
-│   ├── materials.json
-│   ├── users.json
-│   ├── secret.key
-│   └── backup/
-├── docs/
-│   ├── UML_Sema.md
-│   └── Proje_Raporu.md
-├── ekran_goruntuleri/
-│   ├── 1.png
-│   ├── 2.png
-│   ├── 3.png
-│   ├── 4.png
-│   ├── 5.png
-│   └── 6.png
-├── frontend/
+├── application.yml                        # Spring Boot konfigürasyonu
+├── data/                                  # H2 veritabanı (local dev)
+├── test-scripts/
+│   └── e2e_splitbrain_test.sh            # curl E2E test scripti
+├── frontend/                              # Web arayüzü (HTML/CSS/JS)
 │   ├── index.html
-│   ├── dashboard.html
 │   ├── login.html
-│   ├── css/
-│   │   ├── login.css
-│   │   ├── main.css
-│   │   └── scanner.css
-│   └── js/
-│       ├── api.js
-│       ├── auth.js
-│       ├── charts.js
-│       ├── main.js
-│       ├── store.js
-│       ├── ui.js
-│       ├── utils.js
-│       └── scanner.js
-└── src/
-    ├── main/java/com/akillikutup/
-    │   ├── auth/
-    │   │   └── AuthManager.java
-    │   ├── core/
-    │   │   ├── ConfigManager.java
-    │   │   ├── IMateryal.java
-    │   │   ├── Materyal.java
-    │   │   ├── Kitap.java
-    │   │   ├── DijitalMedya.java
-    │   │   ├── Kullanici.java
-    │   │   ├── Admin.java
-    │   │   └── Uye.java
-    │   ├── db/
-    │   │   ├── DatabaseManager.java
-    │   │   ├── BackupManager.java
-    │   │   ├── JsonParser.java
-    │   │   └── FileEncryptionService.java
-    │   ├── gui/
-    │   │   ├── MainFrame.java
-    │   │   ├── LoginPanel.java
-    │   │   ├── AdminPanel.java
-    │   │   ├── UserPanel.java
-    │   │   └── LibraryManager.java
-    │   ├── server/
-    │   │   ├── ApiServer.java
-    │   │   └── GeminiClient.java
-    │   └── Main.java
-    └── test/java/com/akillikutup/
-        ├── auth/
-        │   └── AuthManagerTest.java
-        ├── core/
-        │   └── CoreTest.java
-        └── db/
-            └── DatabaseManagerTest.java
+│   ├── css/ (login.css, main.css, scanner.css)
+│   ├── js/ (api.js, auth.js, charts.js, main.js, ui.js, store.js, utils.js, scanner.js)
+│   └── uploads/covers/
+├── src/main/java/com/akillikutup/
+│   ├── AkilliKutupApplication.java        # @SpringBootApplication
+│   ├── config/
+│   │   ├── SecurityConfig.java            # Spring Security + JWT + CORS
+│   │   ├── JwtUtil.java                   # JWT üretim/doğrulama (jjwt)
+│   │   ├── JwtAuthFilter.java             # OncePerRequestFilter
+│   │   ├── RateLimiterService.java        # Redis + ConcurrentHashMap fallback
+│   │   ├── TotpService.java              # TOTP RFC 6238 (java-otp)
+│   │   └── DataInitializer.java          # Seed data (CommandLineRunner)
+│   ├── controller/
+│   │   ├── AuthController.java            # /api/giris, 2FA setup
+│   │   ├── BookController.java            # /api/kitaplar
+│   │   ├── BorrowController.java          # /api/odunc, /api/iade
+│   │   └── GeneralController.java         # Kullanıcı, İstatistik, Chat, Settings...
+│   ├── core/
+│   │   ├── Materyal.java (@MappedSuperclass)
+│   │   ├── Kitap.java, DijitalMedya.java, Klasor.java (@Entity)
+│   │   ├── Kullanici.java (@Entity, SINGLE_TABLE)
+│   │   ├── Admin.java, Uye.java (@DiscriminatorValue)
+│   │   ├── Bildirim.java (@Embeddable)
+│   │   ├── KitapEmbedding.java (pgvector)
+│   │   └── IOduncAlinabilir.java, IMateryal.java, ConfigManager.java
+│   ├── repository/
+│   │   ├── KullaniciRepository.java
+│   │   ├── KitapRepository.java
+│   │   ├── DijitalMedyaRepository.java
+│   │   ├── KlasorRepository.java
+│   │   └── KitapEmbeddingRepository.java
+│   ├── service/
+│   │   ├── KullaniciService.java          # BCrypt + CRUD
+│   │   ├── KitapService.java             # Kitap CRUD
+│   │   └── BorrowService.java            # Ödünç/iade + batch sorgu
+│   ├── gui/                               # Swing masaüstü (REST API client)
+│   │   ├── ApiClient.java                # HTTP + JWT + JSON
+│   │   ├── LibraryManager.java           # REST API proxy'si
+│   │   ├── LoginPanel.java               # TC + Şifre → /api/giris
+│   │   ├── AdminPanel.java               # Admin CRUD
+│   │   ├── UserPanel.java                # Üye ödünç alma
+│   │   └── MainFrame.java                # Ana pencere
+│   ├── server/
+│   │   ├── ApiServer.java                # Eski HTTP sunucusu (korunuyor)
+│   │   ├── GeminiClient.java             # Gemini AI + Vision + Embedding
+│   │   └── RagService.java               # pgvector RAG
+│   ├── db/                                # Eski SQLite katmanı (korunuyor)
+│   │   ├── DatabaseManager.java
+│   │   ├── DataMigrator.java             # SQLite → PostgreSQL
+│   │   ├── JsonParser.java
+│   │   ├── BackupManager.java
+│   │   └── FileEncryptionService.java
+│   └── auth/AuthManager.java             # Eski auth (korunuyor)
+└── src/test/java/com/akillikutup/
+    ├── AkilliKutupV4IntegrationTest.java  # @DataJpaTest (4 test)
+    ├── E2ESplitBrainTest.java            # E2E Split-Brain (13 test)
+    ├── auth/AuthManagerTest.java
+    ├── core/CoreTest.java
+    └── db/DatabaseManagerTest.java
 ```
 
-### Geliştirme Durumu
+## 14. EKİP GÖREV DAĞILIMI
 
-Yukarıdaki şemada belirtilen dosyalardan tamamlananlar ve güncellenen modüller aşağıda listelenmiştir:
+**Backend & Core Architect — Ahmet Güler**: OOP sınıf hiyerarşisi, entity tasarımı, JPA anotasyonları, çekirdek iş mantığı, ceza hesaplama algoritmaları, CoreTest.
 
-Tamamlanan Kısımlar:
-*   **src/main/java/com/akillikutup/core/** (Çekirdek OOP Modelleri; `Kullanici.java` sınıfına kişisel API anahtarı desteği ve ID tabanlı `equals`/`hashCode` metodları; `ConfigManager.java` sınıfına dinamik konfigürasyon güncelleme ve AES-256 şifrelemeli depolama eklendi; `DijitalMedya` nesnesi için `toplamErisimSayisi` setter'ı tanımlandı)
-*   **src/main/java/com/akillikutup/db/** (Veritabanı Motoru, JSON İşlemleri, Güvenli AES-256 Dosya Şifreleme, Otomatik Yedekleme Mekanizması; veritabanı eşitleme işlemlerine rollback (`conn.rollback()`) desteği ve veri listelerinin yüklenmesinde Double-Checked Locking thread güvenliği eklendi)
-*   **src/main/java/com/akillikutup/gui/** (Swing Masaüstü Arayüzü; `LoginPanel.java` IP kısıtlama ve brute-force lockout hata yönetimi ile güncellendi)
-*   **src/main/java/com/akillikutup/auth/** (SHA-256 Şifreleme, Oturum Yönetimi, Kimlik Doğrulama; IP/İstemci bazlı in-memory Brute-Force lockout kilit mekanizması eklendi)
-*   **src/main/java/com/akillikutup/server/** (REST API Sunucu Altyapısı; `/api/settings` ve `/api/backup` endpoint'leri eklendi; `/api/profil`, `/api/chat` ve `/api/login` modülleri kişisel API anahtarı desteği ve yedekli AI sorgulama mimarisi ile güncellendi; API keylerin HTTP Header üzerinden taşınması, IDOR zafiyeti kontrolü ve login yanıtlarında hassas anahtarların sızdırılmasının engellenmesi sağlandı)
-*   **src/test/** (Birim Testler - Çekirdek iş mantığı, veritabanı, kimlik doğrulama testleri başarıyla geçmektedir. Seed data üretimi sadece test modunda çalıştırılacak şekilde ayrıştırıldı)
-*   **frontend/** (Karanlık Temalı Modern Web Arayüzü; Profil düzenlemede "Kişisel Gemini API Key" alanı, Admin panelinde "Sistem Ayarları" yönetim paneli, "Veritabanını Dışa Aktar" ve "PostgreSQL Bağlantı Ayarları" alanları eklendi. JavaScript dosyaları ES6 modüler yapısına bölünerek döngüsel bağımlılıklar giderildi. Çakışmayan ID üretimi, XSS sanitizasyonu (`escapeHtml`), TC Kimlik maskeleme ve SVG render optimizasyonları yapıldı. Ayrıca **Kamera Tabanlı Gerçek Zamanlı Barkod Tarayıcı** modülü eklendi: Yeşil lazer tarama animasyonu, ses sentezlemeli bip geri bildirimi ve tarama sonrası otomatik kitap getirme özellikleri entegre edildi.)
-*   **docs/UML_Sema.md** (UML sınıf diyagramı ve nesne ilişkileri)
+**Database & Security Architect — Arda Meçik**: Spring Boot geçişi, JPA repository katmanı, PostgreSQL + pgvector, DataMigrator, Docker Compose, CI/CD, JWT + @PreAuthorize + Rate Limiting + TOTP 2FA, DatabaseManagerTest, AuthManagerTest.
 
-## 7. Gelecek Planları ve Geliştirme Önerileri
-Projenin V3 stabil sürümüne geçişiyle beraber altyapı iyileştirmelerinin ve yeni özelliklerin ekleneceği V4 sürümü için planlanan yenilikler `proje_gelistirme_oneriV1.md` dokümanında detaylandırılmıştır. PostgreSQL entegrasyonu, Spring Boot geçişi ve Dockerize edilmesi gibi önemli başlıkları kapsamaktadır.
-*   **docs/Proje_Raporu.md** (Detaylı proje raporu ve OOP prensipleri dokümantasyonu)
+**UI/UX Developer — Göktuğ Berke Kuzucu**: Modern web arayüzü (HTML/CSS/JS), karanlık tema, barkod tarayıcı, grafik ve dashboard bileşenleri, responsive tasarım, frontend dosyaları.
+
+**Security & Integration Specialist — Eren Gider**: REST API katmanı, Gemini AI (Chat + Vision + Embedding), RAG servisi, CORS, AuthController, ApiServer, GeminiClient, README, UML diyagramları, sistem dokümantasyonu.
+
+---
+
+**Sürüm**: 4.1.0-Kurumsal (Split-Brain Fix) | **Test**: 52/52 ✅ | **Lisans**: MIT

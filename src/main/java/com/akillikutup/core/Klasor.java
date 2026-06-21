@@ -1,6 +1,15 @@
 package com.akillikutup.core;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "klasorler")
 public class Klasor extends Materyal {
+
+    /** JPA için zorunlu no-arg constructor (protected). */
+    protected Klasor() {
+        super();
+    }
 
     public Klasor(String baslik) {
         super(baslik, 0, 0.0);

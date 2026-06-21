@@ -1,22 +1,79 @@
 package com.akillikutup.core;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "kullanicilar")
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "rol", discriminatorType = DiscriminatorType.STRING)
 public abstract class Kullanici {
+    @Id
+    @Column(name = "id", length = 36)
     private String id;
+
+    @Column(name = "isim", nullable = false)
     private String isim;
+
+    @Column(name = "tc_no", length = 11)
     private String tcNo;
+
+    @Column(name = "rol", insertable = false, updatable = false)
     private String rol;
+
+    @Column(name = "sifre")
     private String sifre;
+
+    @Column(name = "token", length = 500)
     private String token;
+
+    @Column(name = "token_expiry")
     private long tokenExpiry;
+
+    @Column(name = "kredi_puani")
     protected int krediPuani;
+
+    @ElementCollection
+    @CollectionTable(name = "kullanici_odunc_materyaller", joinColumns = @JoinColumn(name = "kullanici_id"))
+    @Column(name = "materyal_id")
     protected java.util.List<String> oduncAlinanMateryaller;
-    protected java.util.Map<String, String> oduncTarihleri;   // materyalId -> oduncVerilisTarihi (ISO)
-    protected java.util.Map<String, String> iadeTarihleri;    // materyalId -> iadeTarihi (ISO)
-    protected java.util.Map<String, Double> oduncCeza;        // materyalId -> cezaTutari
+
+    @ElementCollection
+    @CollectionTable(name = "kullanici_odunc_tarihleri", joinColumns = @JoinColumn(name = "kullanici_id"))
+    @MapKeyColumn(name = "materyal_id")
+    @Column(name = "tarih")
+    protected java.util.Map<String, String> oduncTarihleri;
+
+    @ElementCollection
+    @CollectionTable(name = "kullanici_iade_tarihleri", joinColumns = @JoinColumn(name = "kullanici_id"))
+    @MapKeyColumn(name = "materyal_id")
+    @Column(name = "tarih")
+    protected java.util.Map<String, String> iadeTarihleri;
+
+    @ElementCollection
+    @CollectionTable(name = "kullanici_odunc_ceza", joinColumns = @JoinColumn(name = "kullanici_id"))
+    @MapKeyColumn(name = "materyal_id")
+    @Column(name = "ceza_tutari")
+    protected java.util.Map<String, Double> oduncCeza;
+
+    @ElementCollection
+    @CollectionTable(name = "kullanici_bildirimler", joinColumns = @JoinColumn(name = "kullanici_id"))
     protected java.util.List<Bildirim> bildirimler;
+
+    @Column(name = "gemini_api_key", length = 500)
     protected String geminiApiKey;
+
+    @Column(name = "email")
     private String email;
 
+    /** JPA için zorunlu no-arg constructor (protected). */
+    protected Kullanici() {
+        this.id = java.util.UUID.randomUUID().toString();
+        this.oduncAlinanMateryaller = new java.util.ArrayList<>();
+        this.oduncTarihleri = new java.util.HashMap<>();
+        this.iadeTarihleri = new java.util.HashMap<>();
+        this.oduncCeza = new java.util.HashMap<>();
+        this.bildirimler = new java.util.ArrayList<>();
+    }
 
     public Kullanici(String isim, String tcNo, String rol, String sifre) {
         this.id = java.util.UUID.randomUUID().toString();
@@ -30,7 +87,7 @@ public abstract class Kullanici {
         this.iadeTarihleri = new java.util.HashMap<>();
         this.oduncCeza = new java.util.HashMap<>();
         this.bildirimler = new java.util.ArrayList<>();
-        
+
         // Hoş geldin bildirimi
         this.bildirimler.add(new Bildirim("primary", "fa-user-plus", "Sisteme hoş geldiniz!", "Şimdi"));
     }
