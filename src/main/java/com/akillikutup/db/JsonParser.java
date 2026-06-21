@@ -46,10 +46,24 @@ public class JsonParser {
             if (k.getGeminiApiKey() != null) {
                 obj.addProperty("geminiApiKey", k.getGeminiApiKey());
             }
+            if (k.getEmail() != null) {
+                obj.addProperty("email", k.getEmail());
+            }
             obj.addProperty("krediPuani", k.getKrediPuani());
             JsonArray oduncArray = new JsonArray();
             for(String matId : k.getOduncAlinanMateryaller()) {
-                oduncArray.add(matId);
+                JsonObject oduncObj = new JsonObject();
+                oduncObj.addProperty("materyalId", matId);
+                if (k.getOduncTarihleri().containsKey(matId)) {
+                    oduncObj.addProperty("oduncTarihi", k.getOduncTarihleri().get(matId));
+                }
+                if (k.getIadeTarihleri().containsKey(matId)) {
+                    oduncObj.addProperty("iadeTarihi", k.getIadeTarihleri().get(matId));
+                }
+                if (k.getOduncCeza().containsKey(matId)) {
+                    oduncObj.addProperty("ceza", k.getOduncCeza().get(matId));
+                }
+                oduncArray.add(oduncObj);
             }
             obj.add("oduncAlinanMateryaller", oduncArray);
             
@@ -83,8 +97,12 @@ public class JsonParser {
             obj.addProperty("stokAdedi", m.getStokAdedi());
             
             if (m instanceof Kitap) {
+                Kitap kitap = (Kitap) m;
                 obj.addProperty("tur", "Kitap");
-                obj.addProperty("isbn", ((Kitap) m).getIsbn());
+                obj.addProperty("isbn", kitap.getIsbn());
+                if (kitap.getYazar() != null) obj.addProperty("yazar", kitap.getYazar());
+                if (kitap.getKategori() != null) obj.addProperty("kategori", kitap.getKategori());
+                if (kitap.getKapakGorseli() != null) obj.addProperty("kapakGorseli", kitap.getKapakGorseli());
             } else if (m instanceof DijitalMedya) {
                 obj.addProperty("tur", "DijitalMedya");
                 obj.addProperty("dosyaFormati", ((DijitalMedya) m).getDosyaFormati());
@@ -137,10 +155,34 @@ public class JsonParser {
                 if (geminiApiKey != null) {
                     kullanici.setGeminiApiKey(geminiApiKey);
                 }
+                String email = getAsString(obj, "email");
+                if (email != null) {
+                    kullanici.setEmail(email);
+                } else {
+                    kullanici.setEmail("Yok");
+                }
                 if (obj.has("oduncAlinanMateryaller") && !obj.get("oduncAlinanMateryaller").isJsonNull()) {
                     JsonArray oduncArr = obj.getAsJsonArray("oduncAlinanMateryaller");
                     for (JsonElement e : oduncArr) {
-                        kullanici.materyalOduncAl(e.getAsString());
+                        if (e.isJsonObject()) {
+                            JsonObject oduncObj = e.getAsJsonObject();
+                            String matId = getAsString(oduncObj, "materyalId");
+                            if (matId != null) {
+                                kullanici.materyalOduncAl(matId);
+                                if (oduncObj.has("oduncTarihi") && !oduncObj.get("oduncTarihi").isJsonNull()) {
+                                    kullanici.setOduncTarihi(matId, oduncObj.get("oduncTarihi").getAsString());
+                                }
+                                if (oduncObj.has("iadeTarihi") && !oduncObj.get("iadeTarihi").isJsonNull()) {
+                                    kullanici.setIadeTarihi(matId, oduncObj.get("iadeTarihi").getAsString());
+                                }
+                                if (oduncObj.has("ceza") && !oduncObj.get("ceza").isJsonNull()) {
+                                    kullanici.setOduncCeza(matId, oduncObj.get("ceza").getAsDouble());
+                                }
+                            }
+                        } else {
+                            // Eski formata uyumluluk: sadece materyalId string olarak saklanmış
+                            kullanici.materyalOduncAl(e.getAsString());
+                        }
                     }
                 }
                 if (obj.has("bildirimler") && !obj.get("bildirimler").isJsonNull()) {
@@ -186,7 +228,11 @@ public class JsonParser {
                 Materyal materyal;
                 if ("Kitap".equals(tur)) {
                     String isbn = getAsString(obj, "isbn");
-                    materyal = new Kitap(baslik, stokAdedi, birimFiyat, isbn);
+                    Kitap kitap = new Kitap(baslik, stokAdedi, birimFiyat, isbn);
+                    kitap.setYazar(getAsString(obj, "yazar"));
+                    kitap.setKategori(getAsString(obj, "kategori"));
+                    kitap.setKapakGorseli(getAsString(obj, "kapakGorseli"));
+                    materyal = kitap;
                 } else if ("DijitalMedya".equals(tur)) {
                     String dosyaFormati = getAsString(obj, "dosyaFormati");
                     String dijitalTur = getAsString(obj, "dijitalTur");

@@ -31,15 +31,12 @@ export function updateDashboardStats() {
   if (statMembers) statMembers.dataset.target = appData.members ? appData.members.length : 0;
   if (statBorrows) {
     let totalBorrows = 0;
-    if (appData.members) {
-      totalBorrows = appData.members.reduce((sum, m) => sum + (m.oduncAlinanMateryaller ? m.oduncAlinanMateryaller.length : 0), 0);
+    if (appData.books) {
+      totalBorrows = appData.books.reduce((sum, b) => sum + (b.odunc || 0), 0);
     }
     statBorrows.dataset.target = totalBorrows;
   }
 
-  // Call the new dynamic renderers
-  if(typeof renderActivityTimeline === 'function') renderActivityTimeline();
-  if(typeof renderAssetOverview === 'function') renderAssetOverview();
 }
 export function updateUserInfo() {
   if (typeof Auth !== 'undefined') {
@@ -50,17 +47,8 @@ export function updateUserInfo() {
       document.querySelectorAll('.user-role').forEach(span => span.textContent = user.rol.toUpperCase() === 'ADMIN' ? 'Yönetici' : 'Üye');
       
       const welcomeHeader = document.querySelector('h1');
-      const welcomeP = document.querySelector('.welcome-text p');
       if (welcomeHeader && welcomeHeader.textContent.includes('Hoş Geldin')) {
         welcomeHeader.textContent = 'Hoş Geldin, ' + (user.ad || fullName) + ' 👋';
-      }
-      if (welcomeP) {
-        let pendingReturns = 0;
-        if (appData.members) {
-            pendingReturns = appData.members.reduce((sum, m) => sum + (m.oduncAlinanMateryaller ? m.oduncAlinanMateryaller.length : 0), 0);
-        }
-        let newRegs = appData.members ? appData.members.length : 0; 
-        welcomeP.innerHTML = `Kütüphane sisteminizde toplam <strong>${newRegs} kayıtlı üye</strong> ve <strong>${pendingReturns} aktif ödünç</strong> işlemi var.`;
       }
       
       const inputs = document.querySelectorAll('input[type="text"]');
@@ -78,22 +66,13 @@ export function renderDonutChart() {
   const svg = document.getElementById('donutChart');
   if (!svg) return;
 
-  let data = [];
-  if (appData.books && appData.books.length > 0) {
-      const categories = {};
-      appData.books.forEach(b => {
-          const cat = b.kategori || 'Diğer';
-          categories[cat] = (categories[cat] || 0) + 1;
-      });
-      const colors = ['#6c5ce7', '#00cec9', '#fdcb6e', '#e17055', '#636e72', '#0984e3', '#d63031', '#00b894'];
-      data = Object.keys(categories).map((k, i) => ({
-          label: k,
-          value: categories[k],
-          color: colors[i % colors.length]
-      })).sort((a, b) => b.value - a.value);
-  } else {
-      data = [{ label: 'Kayıt Yok', value: 1, color: '#636e72' }];
-  }
+  const data = [
+    { label: 'Roman', value: 45, color: '#6c5ce7' },
+    { label: 'Polisiye', value: 18, color: '#00cec9' },
+    { label: 'Bilim', value: 15, color: '#fdcb6e' },
+    { label: 'Tarih', value: 12, color: '#e17055' },
+    { label: 'Diğer', value: 10, color: '#636e72' }
+  ];
 
   const total = data.reduce((s, d) => s + d.value, 0);
   const cx = 80, cy = 80, r = 60;
@@ -137,19 +116,8 @@ export function renderBarChart() {
   if (!ctx) return;
 
   const months = ['Oca', 'Şub', 'Mar', 'Nis', 'May', 'Haz', 'Tem', 'Ağu', 'Eyl', 'Eki', 'Kas', 'Ara'];
-  
-  let totalBorrows = 0;
-  if (appData.members) {
-      totalBorrows = appData.members.reduce((sum, m) => sum + (m.oduncAlinanMateryaller ? m.oduncAlinanMateryaller.length : 0), 0);
-  }
-  
-  const values = new Array(12).fill(0);
-  if (totalBorrows > 0) {
-      const currentMonth = new Date().getMonth();
-      values[currentMonth] = totalBorrows;
-  }
-  
-  const maxVal = Math.max(...values, 10);
+  const values = [42, 55, 38, 67, 82, 73, 61, 49, 88, 95, 78, 64];
+  const maxVal = Math.max(...values);
 
   canvas.width = canvas.offsetWidth * 2;
   canvas.height = canvas.offsetHeight * 2;
@@ -197,10 +165,10 @@ export function renderBarChart() {
 export function renderRecentBooks() {
   const list = document.getElementById('recentBooksList');
   if (!list) return;
-  const recent = [...appData.books].slice(-5).reverse();
+  const recent = appData.books.slice(0, 5);
   list.innerHTML = recent.map(book => `
     <div class="book-list-item fade-in-up">
-      <div class="book-icon">${book.kapakGorseli ? `<img src="${book.kapakGorseli}" alt="K" style="width:100%; height:100%; object-fit:cover; border-radius:8px;">` : '📖'}</div>
+      <div class="book-icon">📖</div>
       <div class="book-info">
         <div class="book-title">${escapeHtml(book.baslik || 'Bilinmeyen Başlık')}</div>
         <div class="book-author">${escapeHtml(book.yazar || 'Bilinmeyen Yazar')}</div>
@@ -214,20 +182,7 @@ export function renderRecentBooks() {
 export function renderPopularBooks() {
   const list = document.getElementById('popularBooksList');
   if (!list) return;
-  // Calculate current borrows for each book
-  const borrowCounts = {};
-  if (appData.members) {
-      appData.members.forEach(m => {
-          if (m.oduncAlinanMateryaller) {
-              m.oduncAlinanMateryaller.forEach(oduncItem => {
-                  const bookId = typeof oduncItem === 'object' ? oduncItem.materyalId : oduncItem;
-                  borrowCounts[bookId] = (borrowCounts[bookId] || 0) + 1;
-              });
-          }
-      });
-  }
-  
-  const popular = [...appData.books].sort((a, b) => (borrowCounts[b.id] || 0) - (borrowCounts[a.id] || 0)).slice(0, 5);
+  const popular = [...appData.books].sort((a, b) => (b.odunc || 0) - (a.odunc || 0)).slice(0, 5);
   list.innerHTML = popular.map((book, i) => `
     <div class="book-list-item fade-in-up" style="animation-delay: ${i*0.1}s">
       <div class="rank">#${i + 1}</div>
@@ -235,7 +190,7 @@ export function renderPopularBooks() {
         <div class="book-title">${escapeHtml(book.baslik || 'Bilinmeyen Başlık')}</div>
         <div class="book-author">${escapeHtml(book.yazar || 'Yazar Yok')}</div>
       </div>
-      <div class="rating">📖 ${(borrowCounts[book.id] || 0)} Ödünç</div>
+      <div class="rating">⭐ ${book.stokAdedi || 0} Stok</div>
     </div>
   `).join('');
 }
@@ -247,7 +202,8 @@ export function renderMembersTable() {
       <td>${escapeHtml(m.isim || 'Bilinmiyor')}</td>
       <td>${(m.tcKimlikNo || '00000000000').substring(0, 3)}*****${(m.tcKimlikNo || '00000000000').substring(8)}</td>
       <td>${escapeHtml(m.email || 'Yok')}</td>
-      <td>${m.oduncAlinanMateryaller ? m.oduncAlinanMateryaller.length : 0}</td>
+      <td>${escapeHtml(m.id || '-')}</td>
+      <td>-</td>
       <td><span class="badge badge-success">Aktif</span></td>
       <td>
         <button class="btn-icon btn-edit-member" data-id="${m.id}" title="Düzenle"><i class="fas fa-edit"></i></button>
@@ -262,19 +218,12 @@ export function renderMembersTable() {
   }
 
   tbody.querySelectorAll('.btn-delete-member').forEach(btn => {
-    btn.addEventListener('click', async () => {
+    btn.addEventListener('click', () => {
       const memberId = btn.dataset.id;
       if (confirm('Bu üyeyi silmek istediğinize emin misiniz?')) {
-        try {
-          const res = await API.deleteUser(memberId);
-          if (res && res.basarili) {
-            appData.members = appData.members.filter(m => m.id !== memberId);
-            renderMembersTable();
-            if (typeof showToast === 'function') showToast('Üye silindi.', 'info');
-          }
-        } catch (err) {
-          if (typeof showToast === 'function') showToast('Üye silinemedi (Yetkisiz işlem olabilir).', 'error');
-        }
+        appData.members = appData.members.filter(m => m.id !== memberId);
+        renderMembersTable();
+        showToast('Üye silindi.', 'info');
       }
     });
   });
@@ -307,100 +256,35 @@ export function renderBorrowsTable() {
   }
 
   const borrows = [];
-  const today = new Date();
-
   appData.members.forEach(m => {
     if (m.oduncAlinanMateryaller && m.oduncAlinanMateryaller.length > 0) {
-      m.oduncAlinanMateryaller.forEach(oduncItem => {
-        // Yeni format: obje { materyalId, oduncTarihi, iadeTarihi, ceza }
-        const bookId = typeof oduncItem === 'object' ? oduncItem.materyalId : oduncItem;
+      m.oduncAlinanMateryaller.forEach(bookId => {
         const book = bookMap.get(bookId);
         if (book) {
-          const oduncTarihi = (typeof oduncItem === 'object' && oduncItem.oduncTarihi) ? oduncItem.oduncTarihi : null;
-          const iadeTarihi = (typeof oduncItem === 'object' && oduncItem.iadeTarihi) ? oduncItem.iadeTarihi : null;
-          const ceza = (typeof oduncItem === 'object' && oduncItem.ceza) ? oduncItem.ceza : 0;
-
-          // İade tarihi hesapla (ödünç tarihi + 14 gün)
-          let sonIadeTarihi = '-';
-          if (oduncTarihi) {
-            try {
-              const oduncDate = new Date(oduncTarihi);
-              const dueDate = new Date(oduncDate);
-              dueDate.setDate(dueDate.getDate() + 14);
-              sonIadeTarihi = dueDate.toLocaleDateString('tr-TR');
-            } catch(e) { /* tarih parse hatası */ }
-          }
-
-          // Gecikme durumunu kontrol et
-          const isOverdue = oduncTarihi && !iadeTarihi && (() => {
-            try {
-              const oduncDate = new Date(oduncTarihi);
-              const dueDate = new Date(oduncDate);
-              dueDate.setDate(dueDate.getDate() + 14);
-              return today > dueDate;
-            } catch(e) { return false; }
-          })();
-
-          // Durum belirle
-          let durum = 'Aktif';
-          let durumClass = 'badge-success';
-          if (iadeTarihi) {
-            durum = 'İade Edildi';
-            durumClass = 'badge-info';
-          } else if (isOverdue) {
-            durum = 'Gecikmiş';
-            durumClass = 'badge-warning';
-          }
-
           borrows.push({
             book: book,
             user: m,
-            date: oduncTarihi ? new Date(oduncTarihi).toLocaleDateString('tr-TR') : new Date().toLocaleDateString('tr-TR'),
-            iadeTarihi: sonIadeTarihi,
-            iadeEdildi: !!iadeTarihi,
-            isOverdue: isOverdue,
-            durum: durum,
-            durumClass: durumClass,
-            ceza: ceza,
-            bookId: bookId,
-            userId: m.id
+            
+            date: new Date().toLocaleDateString('tr-TR')
           });
         }
       });
     }
   });
 
-  // En yeni ödünçler önce gelsin
-  borrows.sort((a, b) => b.date.localeCompare(a.date));
-
   tbody.innerHTML = borrows.map(b => `
     <tr class="fade-in">
         <td>${escapeHtml(b.book.baslik)}</td>
         <td>${escapeHtml(b.user.isim)}</td>
         <td>${b.date}</td>
-        <td>${b.iadeTarihi}</td>
-        <td><span class="badge ${b.durumClass}">${b.durum}</span></td>
-        <td>
-          ${!b.iadeEdildi ? `<button class="btn btn-sm btn-outline btn-return-book" data-bookid="${b.bookId}" data-userid="${b.userId}">İade Al</button>` :
-            `<span style="color:var(--text-tertiary);font-size:12px;">İade: Tamamlandı</span>`}
-        </td>
+        <td>-</td>
+        <td><span class="badge badge-success">Aktif</span></td>
+        <td><button class="btn btn-sm btn-outline btn-return-book" data-bookid="${b.book.id}" data-userid="${b.user.id}">İade Al</button></td>
     </tr>
   `).join('');
 
   if (borrows.length === 0) {
       tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding:20px; color:var(--text-secondary);">Aktif ödünç işlemi bulunmamaktadır.</td></tr>';
-  }
-
-  // Ödünç badge'ini güncelle
-  const borrowBadge = document.querySelector('#nav-borrow .nav-badge');
-  if (borrowBadge) {
-      const aktifSayisi = borrows.filter(b => !b.iadeEdildi).length;
-      if (aktifSayisi > 0) {
-          borrowBadge.textContent = aktifSayisi;
-          borrowBadge.style.display = '';
-      } else {
-          borrowBadge.style.display = 'none';
-      }
   }
 
   tbody.querySelectorAll('.btn-return-book').forEach(btn => {
@@ -413,13 +297,10 @@ export function renderBorrowsTable() {
         try {
             const res = await API.returnBook(bookId, userId);
             if (res && res.basarili) {
-                const cezaMsg = res.ceza > 0 ? ` Gecikme cezası: ${res.ceza.toFixed(2)} TL` : '';
-                if (typeof showToast === 'function') showToast('Kitap başarıyla iade alındı.' + cezaMsg, 'success');
+                if (typeof showToast === 'function') showToast('Kitap başarıyla iade alındı.', 'success');
                 await loadDataFromAPI();
                 renderBorrowsTable();
                 updateCatalog();
-                // Raporları da güncelle
-                if (typeof renderReports === 'function') renderReports();
             } else {
                 if (typeof showToast === 'function') showToast(res?.mesaj || 'İade işlemi başarısız.', 'error');
                 btn.disabled = false;
@@ -486,7 +367,7 @@ export function updateCatalog() {
   grid.innerHTML = paginated.map((book, i) => `
     <div class="book-card" data-id="${book.id}">
       <div class="book-cover">
-        ${book.kapakGorseli ? `<img src="${book.kapakGorseli}" alt="Kapak" style="width:100%; height:100%; object-fit:cover; border-radius:12px 12px 0 0;">` : '<div class="cover-placeholder">📚</div>'}
+        <div class="cover-placeholder">📚</div>
       </div>
       <div class="book-card-body">
         <div class="book-card-info">
@@ -658,241 +539,4 @@ export function renderAssetGrid() {
       ${asset.tur !== 'Klasor' ? `<button class="btn btn-sm btn-outline">İndir</button>` : `<button class="btn btn-sm btn-primary">Aç</button>`}
     </div>
   `).join('');
-}
-
-export function renderActivityTimeline() {
-    const timeline = document.getElementById('activityTimeline');
-    if (!timeline) return;
-
-    const activities = [];
-    if(appData.members) {
-        appData.members.forEach(m => {
-            if(m.oduncAlinanMateryaller && m.oduncAlinanMateryaller.length > 0) {
-                m.oduncAlinanMateryaller.forEach(oduncItem => {
-                    const bookId = typeof oduncItem === 'object' ? oduncItem.materyalId : oduncItem;
-                    const oduncTarihi = (typeof oduncItem === 'object' && oduncItem.oduncTarihi) ? oduncItem.oduncTarihi : null;
-                    const iadeTarihi = (typeof oduncItem === 'object' && oduncItem.iadeTarihi) ? oduncItem.iadeTarihi : null;
-                    const book = appData.books ? appData.books.find(b => b.id.toString() === bookId.toString()) : null;
-                    if(book) {
-                        // Ödünç alındı olayı
-                        activities.push({
-                            action: 'Ödünç Verildi',
-                            time: oduncTarihi || 'Bilinmiyor',
-                            title: book.baslik,
-                            user: m.isim,
-                            type: 'borrow',
-                            date: oduncTarihi || ''
-                        });
-                        // İade edildiyse iade olayı da ekle
-                        if (iadeTarihi) {
-                            activities.push({
-                                action: 'İade Edildi',
-                                time: iadeTarihi,
-                                title: book.baslik,
-                                user: m.isim,
-                                type: 'return',
-                                date: iadeTarihi
-                            });
-                        }
-                    }
-                });
-            }
-        });
-    }
-
-    if(activities.length === 0) {
-        timeline.innerHTML = '<div style="padding:15px;text-align:center;color:var(--text-secondary)">Son işlem bulunmamaktadır.</div>';
-        return;
-    }
-
-    // Tarihe göre sırala (en yeni önce)
-    activities.sort((a, b) => b.date.localeCompare(a.date));
-
-    const recentAct = activities.slice(0, 5);
-    timeline.innerHTML = recentAct.map(act => `
-        <div class="timeline-item">
-            <div class="timeline-dot ${act.type}"></div>
-            <div class="timeline-content">
-                <div class="timeline-header">
-                    <span class="timeline-action">${escapeHtml(act.action)}</span>
-                    <span class="timeline-time">${act.time !== 'Bilinmiyor' ? act.time : ''}</span>
-                </div>
-                <p><strong>${escapeHtml(act.title)}</strong></p>
-                <span class="timeline-user"><i class="fas fa-user"></i> ${escapeHtml(act.user)}</span>
-            </div>
-        </div>
-    `).join('');
-}
-
-export async function renderReports() {
-    try {
-        const stats = await API.getStats();
-        if (!stats) return;
-
-        // Haftalık etkileşim grafiğini güncelle
-        renderWeeklyChart(stats.haftalikEtkilesim);
-
-        // Finansal özeti güncelle
-        renderFinancialSummary(stats);
-
-        // Dashboard istatistik kartlarını güncelle
-        updateStatCards(stats);
-
-    } catch(e) {
-        console.error('Raporlar yüklenemedi:', e);
-    }
-}
-
-function renderWeeklyChart(haftalikData) {
-    const weeklyContainer = document.getElementById('weeklyChartContainer');
-    if (!weeklyContainer || !haftalikData) return;
-
-    const gunAdlari = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
-    const values = gunAdlari.map(g => haftalikData[g] || 0);
-    const maxVal = Math.max(...values, 1);
-
-    weeklyContainer.innerHTML = values.map((val, i) => {
-        const heightPct = Math.max(5, (val / maxVal) * 100);
-        return `<div style="flex:1; display:flex; flex-direction:column; align-items:center; gap:8px;">
-            <span style="font-size:12px; color:var(--text-primary); font-weight:600;">${val}</span>
-            <div style="width:100%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height:${heightPct}%; border-radius:4px 4px 0 0; min-height:4px; transition: height 0.6s ease;"></div>
-            <span style="font-size:11px; color:var(--text-tertiary);">${gunAdlari[i]}</span>
-        </div>`;
-    }).join('');
-
-    // Gün etiketlerini güncelle
-    const daysContainer = document.getElementById('weeklyDaysContainer');
-    if (daysContainer) {
-        daysContainer.innerHTML = gunAdlari.map(g => `<span>${g}</span>`).join('');
-    }
-}
-
-function renderFinancialSummary(stats) {
-    const container = document.getElementById('financialSummaryContainer');
-    if (!container) return;
-
-    const tahsilEdilen = stats.tahsilEdilenCeza || 0;
-    const bekleyen = stats.toplamBekleyenCeza || 0;
-    const toplam = tahsilEdilen + bekleyen;
-
-    container.innerHTML = `
-        <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-success);"></div>
-                <span style="color: var(--text-secondary);">Tahsil Edilen (Toplam)</span>
-            </div>
-            <strong style="color: var(--accent-success);">+ ${tahsilEdilen.toLocaleString('tr-TR')} ₺</strong>
-        </li>
-        <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-warning);"></div>
-                <span style="color: var(--text-secondary);">Bekleyen Alacaklar</span>
-            </div>
-            <strong style="color: var(--accent-warning);">${bekleyen.toLocaleString('tr-TR')} ₺</strong>
-        </li>
-        <li style="display: flex; justify-content: space-between; align-items: center; padding-top: 5px;">
-            <span style="color: var(--text-primary); font-weight: 600;">Toplam Beklenti</span>
-            <strong style="color: white; font-size: 18px;">${toplam.toLocaleString('tr-TR')} ₺</strong>
-        </li>
-    `;
-}
-
-function updateStatCards(stats) {
-    // Dashboard istatistik kartlarını gerçek verilerle güncelle
-    const statBooks = document.querySelector('.stat-card-books .stat-value');
-    const statDigital = document.querySelector('.stat-card-digital .stat-value');
-    const statMembers = document.querySelector('.stat-card-members .stat-value');
-    const statBorrows = document.querySelector('.stat-card-borrows .stat-value');
-
-    if (statBooks && stats.toplamKitap) statBooks.dataset.target = stats.toplamKitap;
-    if (statDigital && stats.toplamDijitalVarlik) statDigital.dataset.target = stats.toplamDijitalVarlik;
-    if (statMembers && stats.toplamUye) statMembers.dataset.target = stats.toplamUye;
-    if (statBorrows && stats.aktifOdunc !== undefined) statBorrows.dataset.target = stats.aktifOdunc;
-
-    // Gecikmiş uyarısını güncelle
-    const statChange = document.querySelector('.stat-card-borrows .stat-change');
-    if (statChange && stats.gecikmis !== undefined) {
-        if (stats.gecikmis > 0) {
-            statChange.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${stats.gecikmis} gecikmiş`;
-            statChange.className = 'stat-change warning';
-        } else {
-            statChange.innerHTML = `<i class="fas fa-check-circle"></i> Gecikme yok`;
-            statChange.className = 'stat-change positive';
-        }
-    }
-
-    // Animasyonu yeniden başlat
-    if (typeof animateStats === 'function') animateStats();
-}
-
-export function renderAssetOverview() {
-    const container = document.querySelector('.digital-assets-card .card-body');
-    if (!container || !appData.assets) return;
-
-    const counts = { 'E-Kitap': 0, 'Ses': 0, 'Sesli Kitap': 0, 'Belge': 0, 'PDF': 0, 'Görsel': 0 };
-    appData.assets.forEach(a => {
-        if(counts[a.tur] !== undefined) counts[a.tur]++;
-    });
-
-    const ebookCount = counts['E-Kitap'];
-    const audioCount = counts['Ses'] + counts['Sesli Kitap'];
-    const docCount = counts['Belge'] + counts['PDF'];
-    const imgCount = counts['Görsel'];
-    const total = ebookCount + audioCount + docCount + imgCount;
-
-    if (total === 0) return;
-
-    const calcPct = (c) => total > 0 ? (c / total) * 100 : 0;
-    const calcSize = (c, avgMB) => (c * avgMB / 1024).toFixed(1);
-
-    container.innerHTML = `
-        <div class="storage-overview">
-            <div class="storage-bar-container">
-                <div class="storage-bar">
-                    <div class="storage-segment" style="width: ${calcPct(ebookCount)}%; background: var(--accent-primary)" data-label="E-Kitaplar"></div>
-                    <div class="storage-segment" style="width: ${calcPct(audioCount)}%; background: var(--accent-purple)" data-label="Sesli Kitaplar"></div>
-                    <div class="storage-segment" style="width: ${calcPct(docCount)}%; background: var(--accent-success)" data-label="Belgeler"></div>
-                    <div class="storage-segment" style="width: ${calcPct(imgCount)}%; background: var(--accent-warning)" data-label="Görseller"></div>
-                </div>
-                <div class="storage-info">
-                    <span>${total} toplam dijital dosya indexlendi</span>
-                    <span>%100</span>
-                </div>
-            </div>
-        </div>
-        <div class="asset-type-grid">
-            <div class="asset-type-item">
-                <div class="asset-type-icon epub"><i class="fas fa-book"></i></div>
-                <div class="asset-type-info">
-                    <span class="asset-type-name">E-Kitaplar</span>
-                    <span class="asset-type-count">${ebookCount} dosya</span>
-                </div>
-                <span class="asset-type-size">${calcSize(ebookCount, 2.5)} GB</span>
-            </div>
-            <div class="asset-type-item">
-                <div class="asset-type-icon audio"><i class="fas fa-headphones"></i></div>
-                <div class="asset-type-info">
-                    <span class="asset-type-name">Sesli Kitaplar</span>
-                    <span class="asset-type-count">${audioCount} dosya</span>
-                </div>
-                <span class="asset-type-size">${calcSize(audioCount, 150)} GB</span>
-            </div>
-            <div class="asset-type-item">
-                <div class="asset-type-icon document"><i class="fas fa-file-alt"></i></div>
-                <div class="asset-type-info">
-                    <span class="asset-type-name">Belgeler</span>
-                    <span class="asset-type-count">${docCount} dosya</span>
-                </div>
-                <span class="asset-type-size">${calcSize(docCount, 1.2)} GB</span>
-            </div>
-            <div class="asset-type-item">
-                <div class="asset-type-icon image"><i class="fas fa-image"></i></div>
-                <div class="asset-type-info">
-                    <span class="asset-type-name">Görseller</span>
-                    <span class="asset-type-count">${imgCount} dosya</span>
-                </div>
-                <span class="asset-type-size">${calcSize(imgCount, 4.5)} GB</span>
-            </div>
-        </div>
-    `;
 }

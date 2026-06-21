@@ -122,10 +122,7 @@ public class DatabaseManager {
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute("DELETE FROM kullanicilar");
-            }
-            String sql = "INSERT INTO kullanicilar (id, tcNo, json) VALUES (?, ?, ?)";
+            String sql = "INSERT OR REPLACE INTO kullanicilar (id, tcNo, json) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 for (Kullanici k : kullaniciListesi) {
                     ps.setString(1, k.getId());
@@ -156,10 +153,7 @@ public class DatabaseManager {
         try {
             conn = getConnection();
             conn.setAutoCommit(false);
-            try (Statement stmt = conn.createStatement()) {
-                stmt.execute("DELETE FROM materyaller");
-            }
-            String sql = "INSERT INTO materyaller (id, json) VALUES (?, ?)";
+            String sql = "INSERT OR REPLACE INTO materyaller (id, json) VALUES (?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
                 for (Materyal m : materyalListesi) {
                     ps.setString(1, m.getId());
@@ -222,7 +216,8 @@ public class DatabaseManager {
                 
                 // SQLite JDBC backup command
                 try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
-                    stmt.executeUpdate("backup to '" + backupPath.toString().replace("\\", "/") + "'");
+                    String safePath = backupPath.toString().replace("\\", "/").replace("'", "''");
+                    stmt.executeUpdate("backup to '" + safePath + "'");
                 }
                 
                 System.out.println("YEDEK: Veritabani yedeklendi -> " + backupPath);
@@ -239,24 +234,48 @@ public class DatabaseManager {
     }
 
     public void kullaniciEkle(Kullanici yeniKullanici) {
-        for (Kullanici mevcut : kullaniciListesi) {
-            if (mevcut.getIsim().equals(yeniKullanici.getIsim())) return;
+        lock.writeLock().lock();
+        try {
+            for (Kullanici mevcut : kullaniciListesi) {
+                if (mevcut.getIsim().equals(yeniKullanici.getIsim())) return;
+            }
+            kullaniciListesi.add(yeniKullanici);
+        } finally {
+            lock.writeLock().unlock();
         }
-        kullaniciListesi.add(yeniKullanici);
         kullanicilariKaydet();
     }
 
     public void kullaniciSil(String kullaniciIsmi) {
-        if (kullaniciListesi.removeIf(k -> k.getIsim().equals(kullaniciIsmi))) kullanicilariKaydet();
+        boolean removed = false;
+        lock.writeLock().lock();
+        try {
+            removed = kullaniciListesi.removeIf(k -> k.getIsim().equals(kullaniciIsmi));
+        } finally {
+            lock.writeLock().unlock();
+        }
+        if (removed) kullanicilariKaydet();
     }
 
     public void materyalEkle(Materyal yeniMateryal) {
-        materyalListesi.add(yeniMateryal);
+        lock.writeLock().lock();
+        try {
+            materyalListesi.add(yeniMateryal);
+        } finally {
+            lock.writeLock().unlock();
+        }
         materyallariKaydet();
     }
 
     public void materyalSil(String materyalId) {
-        if (materyalListesi.removeIf(m -> m.getId().equals(materyalId))) materyallariKaydet();
+        boolean removed = false;
+        lock.writeLock().lock();
+        try {
+            removed = materyalListesi.removeIf(m -> m.getId().equals(materyalId));
+        } finally {
+            lock.writeLock().unlock();
+        }
+        if (removed) materyallariKaydet();
     }
 
     public Kullanici kullaniciBul(String id) {

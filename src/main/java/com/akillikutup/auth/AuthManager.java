@@ -18,6 +18,7 @@ public class AuthManager {
     private final DatabaseManager db;
     private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> lockoutTimes = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Kullanici> activeSessions = new ConcurrentHashMap<>();
     private static final int MAX_FAILED_ATTEMPTS = 5;
     private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
 
@@ -26,8 +27,11 @@ public class AuthManager {
     }
 
     public String hashPassword(String password, byte[] salt) {
+        return hashPassword(password, salt, 210000);
+    }
+
+    public String hashPassword(String password, byte[] salt, int iterations) {
         try {
-            int iterations = 65536;
             int keyLength = 256;
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, iterations, keyLength);
             SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -69,7 +73,10 @@ public class AuthManager {
                             try {
                                 byte[] salt = Base64.getDecoder().decode(parts[0]);
                                 String expectedHash = parts[1];
-                                String actualHash = hashPassword(plainPassword, salt);
+                                String actualHash = hashPassword(plainPassword, salt, 65536);
+                                if (!expectedHash.equals(actualHash)) {
+                                    actualHash = hashPassword(plainPassword, salt, 210000);
+                                }
                                 return expectedHash.equals(actualHash);
                             } catch (Exception e) {
                                 return false;
@@ -109,15 +116,27 @@ public class AuthManager {
         user.setToken(token);
         user.setTokenExpiry(System.currentTimeMillis() + (2 * 60 * 60 * 1000)); // 2 hours
         db.kullanicilariKaydet();
+        activeSessions.put(token, user);
         return token;
     }
 
     public Kullanici getUserByToken(String token) {
         if (token == null || token.trim().isEmpty()) return null;
+        
+        Kullanici sessionUser = activeSessions.get(token);
+        if (sessionUser != null && System.currentTimeMillis() < sessionUser.getTokenExpiry()) {
+            return sessionUser;
+        }
+
         List<Kullanici> kullanicilar = db.getKullaniciListesi();
-        return kullanicilar.stream()
-                .filter(k -> token.equals(k.getToken()) && System.currentTimeMillis() < k.getTokenExpiry())
+        Kullanici k = kullanicilar.stream()
+                .filter(u -> token.equals(u.getToken()) && System.currentTimeMillis() < u.getTokenExpiry())
                 .findFirst()
                 .orElse(null);
+                
+        if (k != null) {
+            activeSessions.put(token, k);
+        }
+        return k;
     }
 }

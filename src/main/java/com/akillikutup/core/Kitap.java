@@ -2,6 +2,9 @@ package com.akillikutup.core;
 
 public class Kitap extends Materyal implements IOduncAlinabilir {
     private String isbn;
+    private String yazar;
+    private String kategori;
+    private String kapakGorseli;
 
     public Kitap(String baslik, int stokAdedi, double birimFiyat, String isbn) {
         super(baslik, stokAdedi, birimFiyat);
@@ -32,4 +35,13 @@ public class Kitap extends Materyal implements IOduncAlinabilir {
     }
 
     public String getIsbn() { return isbn; }
+    
+    public String getYazar() { return yazar; }
+    public void setYazar(String yazar) { this.yazar = yazar; }
+    
+    public String getKategori() { return kategori; }
+    public void setKategori(String kategori) { this.kategori = kategori; }
+    
+    public String getKapakGorseli() { return kapakGorseli; }
+    public void setKapakGorseli(String kapakGorseli) { this.kapakGorseli = kapakGorseli; }
 }

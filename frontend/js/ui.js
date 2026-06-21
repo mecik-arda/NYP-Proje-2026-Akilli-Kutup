@@ -65,6 +65,11 @@ export function initSidebar() {
 
       updateBreadcrumb(item.querySelector('span')?.textContent || targetPage);
 
+      // Raporlar sayfasına geçildiğinde verileri yenile
+      if (targetPage === 'reports' && typeof window.renderReports === 'function') {
+        window.renderReports();
+      }
+
       if (window.innerWidth < 1024 && sidebar) {
         sidebar.classList.remove('open');
       }
@@ -77,6 +82,19 @@ export function initSidebar() {
       document.querySelector('.main-content')?.classList.toggle('expanded');
     });
   }
+}
+export function initViewAllLinks() {
+  const links = document.querySelectorAll('.view-all-link');
+  links.forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetPage = link.dataset.page;
+      if (!targetPage) return;
+      
+      const navItem = document.querySelector(`.nav-item[data-page="${targetPage}"]`);
+      if (navItem) navItem.click();
+    });
+  });
 }
 export function initMobileMenu() {
   const mobileBtn = document.getElementById('mobileMenuBtn');
@@ -289,29 +307,80 @@ export function initAddBookModal() {
     }
   });
 
+  const coverInput = document.getElementById('bookCoverInput');
+  const fileUploadPreview = document.getElementById('fileUploadPreview');
+  const fileNameDisplay = document.getElementById('fileNameDisplay');
+  let selectedCoverBase64 = null;
+  let selectedCoverName = null;
+
+  if (coverInput) {
+      coverInput.addEventListener('change', (e) => {
+          const file = e.target.files[0];
+          if (file) {
+              if (file.size > 5 * 1024 * 1024) {
+                  if (typeof showToast === 'function') showToast('Dosya boyutu 5MB dan küçük olmalıdır.', 'warning');
+                  coverInput.value = '';
+                  return;
+              }
+              const reader = new FileReader();
+              reader.onload = (ev) => {
+                  selectedCoverBase64 = ev.target.result;
+                  selectedCoverName = file.name;
+                  if (fileUploadPreview && fileNameDisplay) {
+                      fileUploadPreview.style.display = 'block';
+                      fileNameDisplay.textContent = file.name;
+                  }
+              };
+              reader.readAsDataURL(file);
+          }
+      });
+  }
+
   if (saveBtn && form) {
-    saveBtn.addEventListener('click', (e) => {
+    saveBtn.addEventListener('click', async (e) => {
       if (form.checkValidity()) {
         e.preventDefault();
-        const title = document.getElementById('bookTitle').value;
-        const author = document.getElementById('bookAuthor').value;
-        const price = parseInt(document.getElementById('bookYear').value) || 50;
-        
-        const newId = appData.books.length > 0 ? Math.max(...appData.books.map(b => parseInt(b.id) || 0)) + 1 : 1;
-        appData.books.push({
-          id: newId,
-          baslik: title,
-          yazar: author,
-          stokAdedi: 5,
-          birimFiyat: price,
-          odunc: 0
-        });
-        
-        modal.classList.remove('active');
-        form.reset();
-        renderBookGrid();
-        renderRecentBooks();
-        showToast('Kitap başarıyla eklendi.', 'success');
+        saveBtn.disabled = true;
+        saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Ekleniyor...';
+        try {
+          const title = document.getElementById('bookTitle').value;
+          const author = document.getElementById('bookAuthor').value;
+          const category = document.getElementById('bookCategory').value;
+          const price = parseInt(document.getElementById('bookYear').value) || 50;
+          
+          const bookToAdd = {
+            baslik: title,
+            yazar: author,
+            kategori: category,
+            stokAdedi: 5,
+            birimFiyat: price,
+            isbn: `978-${Math.floor(Math.random() * 9000000) + 1000000}`,
+            type: "Kitap"
+          };
+          
+          if (selectedCoverBase64) {
+              bookToAdd.kapakGorseliBase64 = selectedCoverBase64;
+              bookToAdd.kapakGorseliAdi = selectedCoverName;
+          }
+          
+          const res = await API.addBook(bookToAdd);
+          if (res && res.basarili) {
+            modal.classList.remove('active');
+            form.reset();
+            if (typeof loadDataFromAPI === 'function') await loadDataFromAPI();
+            if (typeof renderBookGrid === 'function') renderBookGrid();
+            if (typeof renderRecentBooks === 'function') renderRecentBooks();
+            if (typeof updateDashboardStats === 'function') updateDashboardStats();
+            if (typeof showToast === 'function') showToast('Kitap başarıyla eklendi.', 'success');
+          } else {
+            if (typeof showToast === 'function') showToast(res?.mesaj || 'Ekleme başarısız.', 'error');
+          }
+        } catch (error) {
+          if (typeof showToast === 'function') showToast('Bağlantı hatası.', 'error');
+        } finally {
+          saveBtn.disabled = false;
+          saveBtn.innerHTML = '<i class="fas fa-save"></i> Kaydet';
+        }
       } else {
         form.reportValidity();
       }
@@ -371,30 +440,35 @@ export function initAddMemberModal() {
                     if (typeof showToast === 'function') showToast('Üye bilgileri güncellendi.', 'success');
                     renderMembersTable();
                   }
+                  modal.classList.remove('active');
+                  form.reset();
+                  delete modal.dataset.editId;
               }
           } catch(err) {
-              if (typeof showToast === 'function') showToast('Güncelleme başarısız.', 'error');
+              let msg = 'Güncelleme başarısız.';
+              try { msg = JSON.parse(err.message).mesaj || msg; } catch(e) { msg = err.message || msg; }
+              if (typeof showToast === 'function') showToast(msg, 'error');
           }
         } else {
-          const maxNum = appData.members.length > 0 
-            ? Math.max(...appData.members.map(m => parseInt((m.id || '').replace('M-', '')) || 0)) 
-            : 1020;
-          const newId = 'M-' + (maxNum + 1);
-          appData.members.push({
-            id: newId,
-            isim: name,
-            tcKimlikNo: tc,
-            email: email,
-            rol: 'uye'
-          });
-          if (typeof showToast === 'function') showToast('Yeni üye başarıyla kaydedildi.', 'success');
-          renderMembersTable();
+          try {
+            const res = await API.addUser({ isim: name, tcKimlikNo: tc, email: email, rol: 'uye' });
+            if (res && res.basarili) {
+               if (typeof showToast === 'function') showToast('Yeni üye başarıyla kaydedildi.', 'success');
+               const users = await API.getUsers();
+               if(users && Array.isArray(users)) {
+                 appData.members = users;
+                 renderMembersTable();
+               }
+               modal.classList.remove('active');
+               form.reset();
+               delete modal.dataset.editId;
+            }
+          } catch(err) {
+            let msg = 'Kayıt başarısız.';
+            try { msg = JSON.parse(err.message).mesaj || msg; } catch(e) { msg = err.message || msg; }
+            if (typeof showToast === 'function') showToast(msg, 'error');
+          }
         }
-
-        modal.classList.remove('active');
-        form.reset();
-        delete modal.dataset.editId;
-        renderMembersTable();
       } else {
         form.reportValidity();
       }

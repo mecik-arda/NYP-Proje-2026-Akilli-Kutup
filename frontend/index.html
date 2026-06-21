@@ -663,8 +663,8 @@
                     <thead>
                         <tr>
                             <th>Üye</th>
-                            <th>Üyelik No</th>
-                            <th>Kayıt Tarihi</th>
+                            <th>TC No</th>
+                            <th>E-posta</th>
                             <th>Ödünç</th>
                             <th>Durum</th>
                             <th>İşlem</th>
@@ -720,16 +720,12 @@
             <div class="settings-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 24px; margin-top: 20px;">
                 <div class="card" style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 20px;">
                     <h3 style="font-size: 16px; margin-bottom: 20px; color: var(--text-primary);"><i class="fas fa-chart-line" style="color: var(--accent-primary);"></i> Haftalık Etkileşim Analizi</h3>
-                    <div style="height: 200px; display: flex; align-items: flex-end; gap: 10px; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 40%; border-radius: 4px 4px 0 0;"></div>
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 65%; border-radius: 4px 4px 0 0;"></div>
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 50%; border-radius: 4px 4px 0 0;"></div>
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 90%; border-radius: 4px 4px 0 0;"></div>
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 75%; border-radius: 4px 4px 0 0;"></div>
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 100%; border-radius: 4px 4px 0 0;"></div>
-                        <div style="width: 12%; background: linear-gradient(to top, var(--accent-primary-dark), var(--accent-primary)); height: 85%; border-radius: 4px 4px 0 0;"></div>
+                    <div style="height: 200px; display: flex; align-items: flex-end; gap: 10px; justify-content: space-between; padding-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.05);" id="weeklyChartContainer">
+                        <div style="width:100%; text-align:center; color:var(--text-tertiary); padding-top:80px;">
+                            <i class="fas fa-spinner fa-spin"></i> Veriler yükleniyor...
+                        </div>
                     </div>
-                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-tertiary);">
+                    <div style="display: flex; justify-content: space-between; margin-top: 10px; font-size: 12px; color: var(--text-tertiary);" id="weeklyDaysContainer">
                         <span>Pzt</span><span>Sal</span><span>Çar</span><span>Per</span><span>Cum</span><span>Cmt</span><span>Paz</span>
                     </div>
                 </div>
@@ -738,24 +734,9 @@
                         <h3 style="font-size: 16px; margin: 0; color: var(--text-primary);"><i class="fas fa-file-invoice" style="color: var(--accent-success);"></i> Finansal Özet (Cezalar)</h3>
                         <button class="btn btn-sm btn-glass" id="downloadPdfBtn"><i class="fas fa-download"></i> PDF</button>
                     </div>
-                    <ul style="list-style: none; padding: 0; margin: 0;">
-                        <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-success);"></div>
-                                <span style="color: var(--text-secondary);">Tahsil Edilen (Bu Ay)</span>
-                            </div>
-                            <strong style="color: var(--accent-success);">+ 1,250 ₺</strong>
-                        </li>
-                        <li style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding-bottom: 15px; border-bottom: 1px solid rgba(255,255,255,0.05);">
-                            <div style="display: flex; align-items: center; gap: 10px;">
-                                <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--accent-warning);"></div>
-                                <span style="color: var(--text-secondary);">Bekleyen Alacaklar</span>
-                            </div>
-                            <strong style="color: var(--accent-warning);">450 ₺</strong>
-                        </li>
-                        <li style="display: flex; justify-content: space-between; align-items: center; padding-top: 5px;">
-                            <span style="color: var(--text-primary); font-weight: 600;">Toplam Beklenti</span>
-                            <strong style="color: white; font-size: 18px;">1,700 ₺</strong>
+                    <ul style="list-style: none; padding: 0; margin: 0;" id="financialSummaryContainer">
+                        <li style="text-align:center; color:var(--text-tertiary); padding:20px;">
+                            <i class="fas fa-spinner fa-spin"></i> Veriler yükleniyor...
                         </li>
                     </ul>
                 </div>
@@ -986,14 +967,19 @@
                             <label for="bookCategory">Kategori *</label>
                             <select id="bookCategory" class="form-input" required>
                                 <option value="">Seçin...</option>
-                                <option value="roman">Roman</option>
-                                <option value="bilim">Bilim</option>
-                                <option value="tarih">Tarih</option>
-                                <option value="felsefe">Felsefe</option>
-                                <option value="sanat">Sanat</option>
-                                <option value="cocuk">Çocuk Kitabı</option>
-                                <option value="siir">Şiir</option>
-                                <option value="ansiklopedi">Ansiklopedi</option>
+                                <option value="Roman">Roman</option>
+                                <option value="Bilim Kurgu">Bilim Kurgu</option>
+                                <option value="Tarih">Tarih</option>
+                                <option value="Felsefe">Felsefe</option>
+                                <option value="Sanat">Sanat</option>
+                                <option value="Psikoloji">Psikoloji</option>
+                                <option value="Kişisel Gelişim">Kişisel Gelişim</option>
+                                <option value="Biyografi">Biyografi</option>
+                                <option value="Yazılım/Teknoloji">Yazılım/Teknoloji</option>
+                                <option value="Çocuk Kitabı">Çocuk Kitabı</option>
+                                <option value="Şiir">Şiir</option>
+                                <option value="Ansiklopedi">Ansiklopedi</option>
+                                <option value="Edebiyat">Edebiyat</option>
                             </select>
                         </div>
                     </div>
@@ -1018,10 +1004,14 @@
                     </div>
                     <div class="form-group">
                         <label>Kapak Görseli</label>
-                        <div class="file-upload-zone" id="fileUploadZone">
+                        <div class="file-upload-zone" id="fileUploadZone" onclick="document.getElementById('bookCoverInput').click()">
+                            <input type="file" id="bookCoverInput" accept="image/png, image/jpeg" style="display:none">
                             <i class="fas fa-cloud-upload-alt"></i>
                             <p>Görseli buraya sürükleyin veya <span class="upload-browse">gözatın</span></p>
                             <span class="upload-hint">PNG, JPG max 5MB</span>
+                        </div>
+                        <div id="fileUploadPreview" style="margin-top: 10px; color: var(--accent-success); display: none;">
+                            <i class="fas fa-check-circle"></i> <span id="fileNameDisplay"></span>
                         </div>
                     </div>
                 </form>

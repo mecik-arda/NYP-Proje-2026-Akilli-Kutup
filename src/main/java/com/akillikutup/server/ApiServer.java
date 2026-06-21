@@ -4,6 +4,8 @@ import com.sun.net.httpserver.HttpServer;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpExchange;
 import com.akillikutup.core.Kullanici;
+import com.akillikutup.core.Admin;
+import com.akillikutup.core.Uye;
 import com.akillikutup.core.Materyal;
 import com.akillikutup.core.IOduncAlinabilir;
 import com.akillikutup.db.DatabaseManager;
@@ -43,6 +45,8 @@ public class ApiServer {
             server.createContext("/api/backup", new BackupHandler());
             server.createContext("/api/dijital/upload", new DijitalUploadHandler());
             server.createContext("/api/dijital/klasor", new KlasorCreateHandler());
+            server.createContext("/api/istatistikler", new IstatistiklerHandler());
+            server.createContext("/api/odunc-gecmisi", new OduncGecmisiHandler());
             server.createContext("/", new StaticFileHandler("frontend"));
             server.setExecutor(null);
             server.start();
@@ -131,7 +135,7 @@ public class ApiServer {
     class KitaplarHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            if (handleCors(t, "GET, OPTIONS")) return;
+            if (handleCors(t, "GET, POST, OPTIONS")) return;
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
                 List<com.akillikutup.core.Materyal> materyaller = DatabaseManager.tekOrnekAl().getMateryalListesi();
                 JsonArray jsonArray = new JsonArray();
@@ -142,9 +146,12 @@ public class ApiServer {
                     dto.addProperty("birimFiyat", m.getBirimFiyat());
                     dto.addProperty("stokAdedi", m.getStokAdedi());
                     if (m instanceof com.akillikutup.core.Kitap) {
+                        com.akillikutup.core.Kitap kitap = (com.akillikutup.core.Kitap) m;
                         dto.addProperty("tur", "Kitap");
-                        dto.addProperty("yazar", "Bilinmeyen Yazar");
-                        dto.addProperty("isbn", ((com.akillikutup.core.Kitap) m).getIsbn());
+                        dto.addProperty("yazar", kitap.getYazar() != null ? kitap.getYazar() : "Bilinmeyen Yazar");
+                        dto.addProperty("kategori", kitap.getKategori() != null ? kitap.getKategori() : "Diger");
+                        if (kitap.getKapakGorseli() != null) dto.addProperty("kapakGorseli", kitap.getKapakGorseli());
+                        dto.addProperty("isbn", kitap.getIsbn());
                     } else if (m instanceof com.akillikutup.core.DijitalMedya) {
                         dto.addProperty("tur", "DijitalMedya");
                         dto.addProperty("yazar", "Dijital Icerik");
@@ -157,6 +164,75 @@ public class ApiServer {
                     jsonArray.add(dto);
                 }
                 sendResponse(t, 200, gson.toJson(jsonArray));
+            } else if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Sadece yoneticiler kitap ekleyebilir.\"}");
+                    return;
+                }
+
+                try {
+                    JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                    if (body == null) body = new JsonObject();
+                    
+                    String baslik = body.has("baslik") ? body.get("baslik").getAsString() : "Bilinmeyen Kitap";
+                    String yazar = body.has("yazar") ? body.get("yazar").getAsString() : "Bilinmeyen Yazar";
+                    String kategori = body.has("kategori") ? body.get("kategori").getAsString() : "Diger";
+                    int stokAdedi = body.has("stokAdedi") ? body.get("stokAdedi").getAsInt() : 1;
+                    double birimFiyat = body.has("birimFiyat") ? body.get("birimFiyat").getAsDouble() : 50.0;
+                    String isbn = body.has("isbn") ? body.get("isbn").getAsString() : "978-0000000000";
+                    
+                    com.akillikutup.core.Kitap yeniKitap = new com.akillikutup.core.Kitap(baslik, stokAdedi, birimFiyat, isbn);
+                    yeniKitap.setYazar(yazar);
+                    yeniKitap.setKategori(kategori);
+                    
+                    if (body.has("kapakGorseliBase64") && body.has("kapakGorseliAdi")) {
+                        String base64Str = body.get("kapakGorseliBase64").getAsString();
+                        String rawFileName = body.get("kapakGorseliAdi").getAsString();
+                        
+                        // Guvenlik: Dosya adini sanitize et (Path Traversal onlemi)
+                        String safeName = rawFileName.replaceAll("[^a-zA-Z0-9._-]", "_");
+                        
+                        // Guvenlik: Sadece gorsel uzantilarina izin ver
+                        String lowerName = safeName.toLowerCase();
+                        if (!lowerName.endsWith(".jpg") && !lowerName.endsWith(".jpeg") && !lowerName.endsWith(".png")) {
+                            sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Sadece JPG ve PNG dosyalari yuklenebilir.\"}");
+                            return;
+                        }
+                        
+                        if (base64Str.contains(",")) {
+                            base64Str = base64Str.split(",")[1];
+                        }
+                        byte[] imageBytes = java.util.Base64.getDecoder().decode(base64Str);
+                        
+                        // Guvenlik: 5MB sunucu tarafli boyut siniri
+                        if (imageBytes.length > 5 * 1024 * 1024) {
+                            sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Dosya boyutu 5MB sinirini asiyor.\"}");
+                            return;
+                        }
+                        
+                        String uploadDir = "frontend/uploads/covers/";
+                        Path dirPath = Paths.get(uploadDir);
+                        if (!Files.exists(dirPath)) {
+                            Files.createDirectories(dirPath);
+                        }
+                        
+                        String uniqueFileName = yeniKitap.getId() + "_" + safeName;
+                        Path filePath = dirPath.resolve(uniqueFileName);
+                        Files.write(filePath, imageBytes);
+                        
+                        yeniKitap.setKapakGorseli("/uploads/covers/" + uniqueFileName);
+                    }
+                    
+                    DatabaseManager db = DatabaseManager.tekOrnekAl();
+                    db.materyalEkle(yeniKitap);
+                    
+                    sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Kitap eklendi.\"}");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    sendResponse(t, 500, "{\"basarili\":false, \"mesaj\":\"Sunucu hatasi olustu.\"}");
+                }
             } else {
                 t.sendResponseHeaders(405, -1);
             }
@@ -166,7 +242,7 @@ public class ApiServer {
     class KullanicilarHandler implements HttpHandler {
         @Override
         public void handle(HttpExchange t) throws IOException {
-            if (handleCors(t, "GET, PUT, OPTIONS")) return;
+            if (handleCors(t, "GET, POST, PUT, DELETE, OPTIONS")) return;
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
                 Kullanici reqUser = verifyAuth(t);
                 if (reqUser == null) return;
@@ -187,18 +263,67 @@ public class ApiServer {
                     } else {
                         dto.addProperty("tcKimlikNo", tc);
                     }
-                    dto.addProperty("email", k.getIsim().toLowerCase().replace(" ", "") + "@example.com");
+                    dto.addProperty("email", k.getEmail() != null ? k.getEmail() : "Yok");
                     dto.addProperty("rol", k.getRol());
                     
                     JsonArray oduncArr = new JsonArray();
                     for(String mid : k.getOduncAlinanMateryaller()) {
-                        oduncArr.add(mid);
+                        JsonObject oduncDetay = new JsonObject();
+                        oduncDetay.addProperty("materyalId", mid);
+                        if (k.getOduncTarihleri().containsKey(mid)) {
+                            oduncDetay.addProperty("oduncTarihi", k.getOduncTarihleri().get(mid));
+                        }
+                        if (k.getIadeTarihleri().containsKey(mid)) {
+                            oduncDetay.addProperty("iadeTarihi", k.getIadeTarihleri().get(mid));
+                        }
+                        if (k.getOduncCeza().containsKey(mid)) {
+                            oduncDetay.addProperty("ceza", k.getOduncCeza().get(mid));
+                        }
+                        oduncArr.add(oduncDetay);
                     }
                     dto.add("oduncAlinanMateryaller", oduncArr);
                     
                     jsonArray.add(dto);
                 }
                 sendResponse(t, 200, gson.toJson(jsonArray));
+            } else if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Yonetici yetkisi gerekli\"}");
+                    return;
+                }
+                JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
+                if (body == null) body = new JsonObject();
+                String isim = body.has("isim") ? body.get("isim").getAsString() : null;
+                String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : null;
+                String email = body.has("email") ? body.get("email").getAsString() : null;
+                String rol = body.has("rol") ? body.get("rol").getAsString() : "uye";
+                String sifre = body.has("sifre") ? body.get("sifre").getAsString() : "123456";
+
+                if (isim == null || tcNo == null || email == null) {
+                    sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Eksik bilgi\"}");
+                    return;
+                }
+
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                for (Kullanici u : db.getKullaniciListesi()) {
+                    if (isim.equalsIgnoreCase(u.getIsim()) || tcNo.equals(u.getTcNoDogrudan()) || email.equalsIgnoreCase(u.getEmail())) {
+                        sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Bu isim, TC No veya E-posta sistemde kayitli.\"}");
+                        return;
+                    }
+                }
+
+                Kullanici yeniKullanici;
+                if ("ADMIN".equals(rol)) {
+                    yeniKullanici = new Admin(isim, tcNo, sifre);
+                } else {
+                    yeniKullanici = new Uye(isim, tcNo, sifre);
+                }
+                yeniKullanici.setEmail(email);
+                db.getKullaniciListesi().add(yeniKullanici);
+                db.kullanicilariKaydet();
+                sendResponse(t, 200, "{\"basarili\":true}");
             } else if ("PUT".equalsIgnoreCase(t.getRequestMethod())) {
                 Kullanici reqUser = verifyAuth(t);
                 if (reqUser == null) return;
@@ -215,13 +340,48 @@ public class ApiServer {
                 if (body == null) body = new JsonObject();
                 String isim = body.has("isim") ? body.get("isim").getAsString() : null;
                 String tcNo = body.has("tcKimlikNo") ? body.get("tcKimlikNo").getAsString() : null;
+                String email = body.has("email") ? body.get("email").getAsString() : null;
                 
                 DatabaseManager db = DatabaseManager.tekOrnekAl();
                 Kullanici k = findUserById(db, userId);
                 
                 if (k != null) {
+                    for (Kullanici u : db.getKullaniciListesi()) {
+                        if (!u.getId().equals(k.getId())) {
+                            boolean isimCakisiyor = isim != null && isim.equalsIgnoreCase(u.getIsim());
+                            boolean tcCakisiyor = tcNo != null && tcNo.equals(u.getTcNoDogrudan());
+                            boolean emailCakisiyor = email != null && email.equalsIgnoreCase(u.getEmail());
+                            if (isimCakisiyor || tcCakisiyor || emailCakisiyor) {
+                                sendResponse(t, 400, "{\"basarili\":false, \"mesaj\":\"Bu isim, TC No veya E-posta sistemde kayitli.\"}");
+                                return;
+                            }
+                        }
+                    }
+
                     if (isim != null) k.setIsim(isim);
                     if (tcNo != null) k.setTcNo(tcNo);
+                    if (email != null) k.setEmail(email);
+                    db.kullanicilariKaydet();
+                    sendResponse(t, 200, "{\"basarili\":true}");
+                } else {
+                    sendResponse(t, 404, "{\"basarili\":false, \"mesaj\":\"Kullanici bulunamadi\"}");
+                }
+            } else if ("DELETE".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+                if (!"ADMIN".equals(reqUser.getRol())) {
+                    sendResponse(t, 403, "{\"basarili\":false, \"mesaj\":\"Yonetici yetkisi gerekli\"}");
+                    return;
+                }
+                
+                String uri = t.getRequestURI().getPath();
+                String[] parts = uri.split("/");
+                String userId = parts[parts.length - 1];
+                
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                Kullanici k = findUserById(db, userId);
+                if (k != null) {
+                    db.getKullaniciListesi().remove(k);
                     db.kullanicilariKaydet();
                     sendResponse(t, 200, "{\"basarili\":true}");
                 } else {
@@ -300,9 +460,28 @@ public class ApiServer {
                         return;
                     }
                         targetUser.materyalOduncAl(targetMat.getId());
+                        // Ödünç tarihini kaydet
+                        String bugun = java.time.LocalDate.now().toString();
+                        targetUser.setOduncTarihi(targetMat.getId(), bugun);
+
+                        // Kullanıcıya bildirim ekle
+                        targetUser.getBildirimler().add(new com.akillikutup.core.Bildirim(
+                            "info", "fa-book",
+                            "\"" + targetMat.getBaslik() + "\" kitabı ödünç alındı.",
+                            "Şimdi"
+                        ));
+
+                        // İade tarihi bilgisini de response'a ekle
+                        String iadeGunu = java.time.LocalDate.now().plusDays(14).toString();
+                        JsonObject response = new JsonObject();
+                        response.addProperty("basarili", true);
+                        response.addProperty("mesaj", "Kitap ödünç verildi. İade tarihi: " + iadeGunu);
+                        response.addProperty("oduncTarihi", bugun);
+                        response.addProperty("iadeTarihi", iadeGunu);
+
                         db.kullanicilariKaydet();
                         db.materyallariKaydet();
-                        sendResponse(t, 200, "{\"basarili\":true}");
+                        sendResponse(t, 200, gson.toJson(response));
                     } else {
                         sendResponse(t, 200, "{\"basarili\":false, \"mesaj\":\"Stokta yok\"}");
                     }
@@ -345,9 +524,47 @@ public class ApiServer {
                         return;
                     }
                     targetUser.materyalIadeEt(targetMat.getId());
+                    // İade tarihini kaydet
+                    String bugun = java.time.LocalDate.now().toString();
+                    targetUser.setIadeTarihi(targetMat.getId(), bugun);
+
+                    // Gecikme cezası hesapla (14 günlük ödünç süresi)
+                    String oduncTarihiStr = targetUser.getOduncTarihi(targetMat.getId());
+                    double ceza = 0.0;
+                    if (oduncTarihiStr != null) {
+                        try {
+                            java.time.LocalDate oduncTarihi = java.time.LocalDate.parse(oduncTarihiStr);
+                            java.time.LocalDate iadeTarihi = java.time.LocalDate.parse(bugun);
+                            java.time.LocalDate sonIadeGunu = oduncTarihi.plusDays(14);
+                            long gecikmeGunu = java.time.temporal.ChronoUnit.DAYS.between(sonIadeGunu, iadeTarihi);
+                            if (gecikmeGunu > 0) {
+                                // ConfigManager'dan lateFee değerini al veya varsayılan 5 TL/gün kullan
+                                ceza = gecikmeGunu * 5.0; // Günlük 5 TL ceza
+                                if (targetMat instanceof com.akillikutup.core.Kitap) {
+                                    ceza = ((com.akillikutup.core.Kitap) targetMat).cezaHesapla((int) gecikmeGunu);
+                                }
+                                targetUser.setOduncCeza(targetMat.getId(), ceza);
+                            }
+                        } catch (Exception ex) {
+                            // Tarih parse hatası - ceza hesaplanamaz
+                        }
+                    }
+
+                    // Kullanıcıya bildirim ekle
+                    targetUser.getBildirimler().add(new com.akillikutup.core.Bildirim(
+                        "success", "fa-check-circle",
+                        "\"" + targetMat.getBaslik() + "\" iade edildi." + (ceza > 0 ? " Gecikme cezası: " + String.format("%.2f", ceza) + " TL" : ""),
+                        "Şimdi"
+                    ));
+
+                    JsonObject response = new JsonObject();
+                    response.addProperty("basarili", true);
+                    response.addProperty("mesaj", "Kitap iade alındı." + (ceza > 0 ? " Gecikme cezası: " + String.format("%.2f", ceza) + " TL" : ""));
+                    response.addProperty("ceza", ceza);
+
                     db.kullanicilariKaydet();
                     db.materyallariKaydet();
-                    sendResponse(t, 200, "{\"basarili\":true}");
+                    sendResponse(t, 200, gson.toJson(response));
                 } else {
                     sendResponse(t, 200, "{\"basarili\":false, \"mesaj\":\"Kullanici veya Materyal bulunamadi\"}");
                 }
@@ -500,10 +717,14 @@ public class ApiServer {
             }
 
             if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
-                JsonObject config = com.akillikutup.core.ConfigManager.getConfigData().deepCopy();
-                config.remove("gemini_api_key_encrypted");
-                config.addProperty("geminiApiKeyRaw", "********");
-                sendResponse(t, 200, gson.toJson(config));
+                JsonObject originalConfig = com.akillikutup.core.ConfigManager.getConfigData();
+                JsonObject safeConfig = new JsonObject();
+                String[] safeKeys = {"sessionTimeout", "keyRotationNotify", "auditTrail", "aiTemperature", "maxTokens", "systemPrompt", "backupPeriod", "lateFee", "maxPenalty", "gracePeriod"};
+                for (String key : safeKeys) {
+                    if (originalConfig.has(key)) safeConfig.add(key, originalConfig.get(key));
+                }
+                safeConfig.addProperty("geminiApiKeyRaw", "********");
+                sendResponse(t, 200, gson.toJson(safeConfig));
             } else if ("POST".equalsIgnoreCase(t.getRequestMethod())) {
                 try {
                     JsonObject body = gson.fromJson(new InputStreamReader(t.getRequestBody(), "UTF-8"), JsonObject.class);
@@ -556,6 +777,209 @@ public class ApiServer {
         }
     }
 
+    class IstatistiklerHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "GET, OPTIONS")) return;
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                List<Materyal> materyaller = db.getMateryalListesi();
+                List<Kullanici> kullanicilar = db.getKullaniciListesi();
+
+                JsonObject stats = new JsonObject();
+
+                // Temel sayılar
+                long kitapSayisi = materyaller.stream().filter(m -> m instanceof com.akillikutup.core.Kitap).count();
+                long dijitalSayisi = materyaller.stream().filter(m -> m instanceof com.akillikutup.core.DijitalMedya).count();
+                long klasorSayisi = materyaller.stream().filter(m -> m instanceof com.akillikutup.core.Klasor).count();
+                long uyeSayisi = kullanicilar.stream().filter(k -> !"ADMIN".equals(k.getRol())).count();
+
+                stats.addProperty("toplamKitap", kitapSayisi);
+                stats.addProperty("toplamDijitalVarlik", dijitalSayisi + klasorSayisi);
+                stats.addProperty("toplamUye", uyeSayisi);
+
+                // Aktif ödünç ve gecikmiş sayısı
+                int aktifOdunc = 0;
+                int gecikmis = 0;
+                double toplamBekleyenCeza = 0.0;
+                double tahsilEdilenCeza = 0.0;
+                java.time.LocalDate bugun = java.time.LocalDate.now();
+
+                for (Kullanici k : kullanicilar) {
+                    for (String mid : k.getOduncAlinanMateryaller()) {
+                        aktifOdunc++;
+                        String oduncTarihiStr = k.getOduncTarihi(mid);
+                        if (oduncTarihiStr != null) {
+                            try {
+                                java.time.LocalDate oduncTarihi = java.time.LocalDate.parse(oduncTarihiStr);
+                                java.time.LocalDate sonGun = oduncTarihi.plusDays(14);
+                                if (bugun.isAfter(sonGun)) {
+                                    gecikmis++;
+                                    // Bekleyen cezayı hesapla
+                                    long gecikmeGunu = java.time.temporal.ChronoUnit.DAYS.between(sonGun, bugun);
+                                    double ceza = gecikmeGunu * 5.0;
+                                    toplamBekleyenCeza += ceza;
+                                }
+                            } catch (Exception e) { /* parse hatası */ }
+                        }
+                    }
+                    // Tahsil edilmiş cezaları topla
+                    for (Double ceza : k.getOduncCeza().values()) {
+                        tahsilEdilenCeza += ceza;
+                    }
+                }
+
+                stats.addProperty("aktifOdunc", aktifOdunc);
+                stats.addProperty("gecikmis", gecikmis);
+                stats.addProperty("toplamBekleyenCeza", Math.round(toplamBekleyenCeza * 100.0) / 100.0);
+                stats.addProperty("tahsilEdilenCeza", Math.round(tahsilEdilenCeza * 100.0) / 100.0);
+
+                // Haftalık etkileşim analizi (son 7 gün)
+                JsonObject haftalik = new JsonObject();
+                String[] gunAdlari = {"Pzt", "Sal", "Çar", "Per", "Cum", "Cmt", "Paz"};
+                java.time.DayOfWeek bugunGun = bugun.getDayOfWeek();
+                int bugunIndex = bugunGun.getValue() - 1; // Monday=0 ... Sunday=6
+
+                // Son 7 günün her biri için ödünç sayısı
+                int[] gunlukOdunc = new int[7];
+                for (Kullanici k : kullanicilar) {
+                    for (String mid : k.getOduncAlinanMateryaller()) {
+                        String tarihStr = k.getOduncTarihi(mid);
+                        if (tarihStr != null) {
+                            try {
+                                java.time.LocalDate oduncGunu = java.time.LocalDate.parse(tarihStr);
+                                long gunFarki = java.time.temporal.ChronoUnit.DAYS.between(oduncGunu, bugun);
+                                if (gunFarki >= 0 && gunFarki < 7) {
+                                    int gunIndex = (int) ((bugunIndex - gunFarki + 7) % 7);
+                                    gunlukOdunc[gunIndex]++;
+                                }
+                            } catch (Exception e) { /* parse hatası */ }
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 7; i++) {
+                    int gunIndex = (bugunIndex - (6 - i) + 7) % 7;
+                    haftalik.addProperty(gunAdlari[i], gunlukOdunc[gunIndex]);
+                }
+                stats.add("haftalikEtkilesim", haftalik);
+
+                // Kategori dağılımı
+                JsonObject kategoriDagilim = new JsonObject();
+                java.util.Map<String, Integer> kategoriSayac = new java.util.HashMap<>();
+                for (Materyal m : materyaller) {
+                    if (m instanceof com.akillikutup.core.Kitap) {
+                        String kat = ((com.akillikutup.core.Kitap) m).getKategori();
+                        if (kat == null || kat.isEmpty()) kat = "Diğer";
+                        kategoriSayac.put(kat, kategoriSayac.getOrDefault(kat, 0) + 1);
+                    }
+                }
+                for (java.util.Map.Entry<String, Integer> entry : kategoriSayac.entrySet()) {
+                    kategoriDagilim.addProperty(entry.getKey(), entry.getValue());
+                }
+                stats.add("kategoriDagilimi", kategoriDagilim);
+
+                // En popüler kitaplar (en çok ödünç alınan)
+                JsonArray populerKitaplar = new JsonArray();
+                java.util.Map<String, Integer> oduncSayaci = new java.util.HashMap<>();
+                for (Kullanici k : kullanicilar) {
+                    for (String mid : k.getOduncAlinanMateryaller()) {
+                        oduncSayaci.put(mid, oduncSayaci.getOrDefault(mid, 0) + 1);
+                    }
+                }
+                // En çok ödünç alınan 5 kitap
+                oduncSayaci.entrySet().stream()
+                    .sorted((a, b) -> b.getValue().compareTo(a.getValue()))
+                    .limit(5)
+                    .forEach(entry -> {
+                        Materyal m = findMateryalById(db, entry.getKey());
+                        if (m != null) {
+                            JsonObject kitapObj = new JsonObject();
+                            kitapObj.addProperty("id", m.getId());
+                            kitapObj.addProperty("baslik", m.getBaslik());
+                            kitapObj.addProperty("oduncSayisi", entry.getValue());
+                            if (m instanceof com.akillikutup.core.Kitap) {
+                                kitapObj.addProperty("yazar", ((com.akillikutup.core.Kitap) m).getYazar());
+                            }
+                            populerKitaplar.add(kitapObj);
+                        }
+                    });
+                stats.add("populerKitaplar", populerKitaplar);
+
+                // Son işlemler
+                JsonArray sonIslemler = new JsonArray();
+                for (Kullanici k : kullanicilar) {
+                    for (String mid : k.getOduncAlinanMateryaller()) {
+                        String tarihStr = k.getOduncTarihi(mid);
+                        Materyal m = findMateryalById(db, mid);
+                        if (tarihStr != null && m != null) {
+                            JsonObject islem = new JsonObject();
+                            islem.addProperty("tip", "odunc");
+                            islem.addProperty("kitapAdi", m.getBaslik());
+                            islem.addProperty("kullaniciAdi", k.getIsim());
+                            islem.addProperty("tarih", tarihStr);
+                            islem.addProperty("kitapId", mid);
+                            islem.addProperty("kullaniciId", k.getId());
+                            sonIslemler.add(islem);
+                        }
+                    }
+                }
+                // Tarihe göre sırala (en yeni önce)
+                JsonArray siraliIslemler = new JsonArray();
+                sonIslemler.asList().stream()
+                    .map(e -> e.getAsJsonObject())
+                    .sorted((a, b) -> b.get("tarih").getAsString().compareTo(a.get("tarih").getAsString()))
+                    .limit(10)
+                    .forEach(siraliIslemler::add);
+                stats.add("sonIslemler", siraliIslemler);
+
+                sendResponse(t, 200, gson.toJson(stats));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
+    class OduncGecmisiHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange t) throws IOException {
+            if (handleCors(t, "GET, OPTIONS")) return;
+            if ("GET".equalsIgnoreCase(t.getRequestMethod())) {
+                Kullanici reqUser = verifyAuth(t);
+                if (reqUser == null) return;
+
+                DatabaseManager db = DatabaseManager.tekOrnekAl();
+                JsonArray gecmis = new JsonArray();
+
+                for (Kullanici k : db.getKullaniciListesi()) {
+                    // Admin tüm geçmişi görebilir, normal kullanıcı sadece kendisininkini
+                    if (!"ADMIN".equals(reqUser.getRol()) && !reqUser.getId().equals(k.getId())) {
+                        continue;
+                    }
+
+                    // Hem aktif hem iade edilmiş ödünçleri listele
+                    for (String mid : k.getOduncAlinanMateryaller()) {
+                        Materyal m = findMateryalById(db, mid);
+                        JsonObject kayit = new JsonObject();
+                        kayit.addProperty("kullaniciId", k.getId());
+                        kayit.addProperty("kullaniciAdi", k.getIsim());
+                        kayit.addProperty("materyalId", mid);
+                        kayit.addProperty("kitapAdi", m != null ? m.getBaslik() : "Bilinmeyen");
+                        kayit.addProperty("oduncTarihi", k.getOduncTarihi(mid));
+                        kayit.addProperty("iadeTarihi", k.getIadeTarihi(mid));
+                        kayit.addProperty("ceza", k.getOduncCeza(mid));
+                        kayit.addProperty("durum", k.getIadeTarihi(mid) != null ? "İade Edildi" : "Aktif");
+                        gecmis.add(kayit);
+                    }
+                }
+
+                sendResponse(t, 200, gson.toJson(gecmis));
+            } else {
+                t.sendResponseHeaders(405, -1);
+            }
+        }
+    }
+
     class StaticFileHandler implements HttpHandler {
         private final String baseDir;
         public StaticFileHandler(String baseDir) { this.baseDir = baseDir; }
@@ -590,7 +1014,14 @@ public class ApiServer {
             if (path.endsWith(".css")) return "text/css; charset=utf-8";
             if (path.endsWith(".js")) return "application/javascript; charset=utf-8";
             if (path.endsWith(".json")) return "application/json; charset=utf-8";
-            return "text/plain; charset=utf-8";
+            if (path.endsWith(".png")) return "image/png";
+            if (path.endsWith(".jpg") || path.endsWith(".jpeg")) return "image/jpeg";
+            if (path.endsWith(".gif")) return "image/gif";
+            if (path.endsWith(".svg")) return "image/svg+xml";
+            if (path.endsWith(".ico")) return "image/x-icon";
+            if (path.endsWith(".woff2")) return "font/woff2";
+            if (path.endsWith(".woff")) return "font/woff";
+            return "application/octet-stream";
         }
     }
 
@@ -622,8 +1053,7 @@ public class ApiServer {
                     
                     com.akillikutup.core.DijitalMedya dm = new com.akillikutup.core.DijitalMedya(baslik, 0.0, format, tur, boyut);
                     DatabaseManager db = DatabaseManager.tekOrnekAl();
-                    db.getMateryalListesi().add(dm);
-                    db.senkronizeEt(db.getKullaniciListesi(), db.getMateryalListesi());
+                    db.materyalEkle(dm);
                     
                     sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Dijital varlik eklendi.\"}");
                 } catch (Exception e) {
@@ -659,8 +1089,7 @@ public class ApiServer {
                     
                     com.akillikutup.core.Klasor klasor = new com.akillikutup.core.Klasor(baslik);
                     DatabaseManager db = DatabaseManager.tekOrnekAl();
-                    db.getMateryalListesi().add(klasor);
-                    db.senkronizeEt(db.getKullaniciListesi(), db.getMateryalListesi());
+                    db.materyalEkle(klasor);
                     
                     sendResponse(t, 200, "{\"basarili\":true, \"mesaj\":\"Klasor olusturuldu.\"}");
                 } catch (Exception e) {

@@ -19,7 +19,7 @@ public class CoreTest {
 
     @Test
     public void testDijitalMedyaErisimVeCeza() {
-        DijitalMedya dijital = new DijitalMedya("AI Handbook", 50.0, "PDF");
+        DijitalMedya dijital = new DijitalMedya("AI Handbook", 50.0, "PDF", "E-Kitap", "5MB");
 
         assertTrue(dijital.stoktaVarMi());
 

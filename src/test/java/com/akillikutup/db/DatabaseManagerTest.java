@@ -152,7 +152,7 @@ public class DatabaseManagerTest {
     @Order(7)
     public void dijitalMedyaSerializeDeserializeTesti() {
         List<Materyal> liste = new ArrayList<>();
-        DijitalMedya dm = new DijitalMedya("Test Film", 15.0, "MP4");
+        DijitalMedya dm = new DijitalMedya("Test Film", 15.0, "MP4", "Video", "1.2GB");
         liste.add(dm);
 
         db.kaydet(new ArrayList<>(), liste);
@@ -175,7 +175,7 @@ public class DatabaseManagerTest {
     public void karisikMateryalTesti() {
         List<Materyal> liste = new ArrayList<>();
         liste.add(new Kitap("Kitap 1", 5, 20.0, "ISBN-111"));
-        liste.add(new DijitalMedya("Medya 1", 10.0, "PDF"));
+        liste.add(new DijitalMedya("Medya 1", 10.0, "PDF", "E-Kitap", "1MB"));
         liste.add(new Kitap("Kitap 2", 3, 30.0, "ISBN-222"));
 
         db.kaydet(new ArrayList<>(), liste);
@@ -276,7 +276,7 @@ public class DatabaseManagerTest {
         Kitap kitap = new Kitap("Silinecek Kitap", 2, 10.0, "ISBN-SK");
         String silinecekId = kitap.getId();
         liste.add(kitap);
-        liste.add(new DijitalMedya("Kalacak Medya", 5.0, "MP3"));
+        liste.add(new DijitalMedya("Kalacak Medya", 5.0, "MP3", "Ses", "3MB"));
         db.kaydet(new ArrayList<>(), liste);
 
         db.materyalSil(silinecekId);
@@ -325,7 +325,7 @@ public class DatabaseManagerTest {
         List<Materyal> liste = new ArrayList<>();
         liste.add(new Kitap("Java Programlama", 5, 40.0, "ISBN-JP"));
         liste.add(new Kitap("Python Rehberi", 3, 35.0, "ISBN-PR"));
-        liste.add(new DijitalMedya("Java Video Kursu", 20.0, "MP4"));
+        liste.add(new DijitalMedya("Java Video Kursu", 20.0, "MP4", "Video", "500MB"));
         db.kaydet(new ArrayList<>(), liste);
 
         List<Materyal> sonuclar = db.materyalAra("Java");

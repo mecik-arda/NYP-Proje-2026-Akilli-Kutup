@@ -93,6 +93,10 @@ export const API = (() => {
     return get('/api/istatistikler');
   }
 
+  async function getBorrowHistory() {
+    return get('/api/odunc-gecmisi');
+  }
+
   async function getDigitalAssets() {
     return get('/api/dijital-varliklar');
   }
@@ -133,10 +137,20 @@ export const API = (() => {
     return post('/api/dijital/klasor', data);
   }
 
+  async function addUser(data) {
+    return post('/api/kullanicilar', data);
+  }
+
+  async function deleteUser(id) {
+    return del(`/api/kullanicilar/${id}`);
+  }
+
   return {
     checkServerStatus,
     getBooks,
     getUsers,
+    addUser,
+    deleteUser,
     addBook,
     borrowBook,
     returnBook,
@@ -152,6 +166,7 @@ export const API = (() => {
     getNotifications,
     markAllNotificationsRead,
     uploadAsset,
-    createFolder
+    createFolder,
+    getBorrowHistory
   };
 })();

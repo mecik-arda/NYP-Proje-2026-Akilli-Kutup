@@ -1,0 +1,12 @@
+Created At: 2026-06-17T17:50:07Z
+Completed At: 2026-06-17T17:50:10Z
+
+				The command failed with exit code: 1
+				Output:
+				C:\Users\ardam\Desktop\Akilli-kutup-v2\extract.py:6: SyntaxWarning: invalid escape sequence '\:'
+  if '\" "type\:\VIEW_FILE\' in line and 'charts.js' in line:
+  File "C:\Users\ardam\Desktop\Akilli-kutup-v2\extract.py", line 6
+    if '\" "type\:\VIEW_FILE\' in line and 'charts.js' in line:  
+                                                     ^
+SyntaxError: unterminated string literal (detected at line 6)
+
