@@ -1,24 +1,19 @@
 package com.akillikutup.gui;
 
-import com.akillikutup.core.*;
+import com.akillikutup.material.*;
+import com.akillikutup.user.User;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Swing GUI'nin veri erisim katmani.
- * V4: SQLite yerine Spring Boot REST API uzerinden PostgreSQL'e baglanir.
- * Split-brain sorunu cozulmustur — Swing ve Web ayni veritabanini kullanir.
- */
 public class LibraryManager {
 
     private static volatile LibraryManager instance;
 
-    private Kullanici currentUser;
-    private List<Kullanici> cachedUsers;
+    private User currentUser;
+    private List<User> cachedUsers;
     private List<Materyal> cachedMaterials;
 
     private LibraryManager() {
@@ -37,10 +32,8 @@ public class LibraryManager {
         return instance;
     }
 
-    // ─── Oturum ────────────────────────────────────────────────────
-
-    public Kullanici getCurrentUser() { return currentUser; }
-    public void setCurrentUser(Kullanici u) { this.currentUser = u; }
+    public User getCurrentUser() { return currentUser; }
+    public void setCurrentUser(User u) { this.currentUser = u; }
 
     public boolean login(String tcNo, String password) {
         try {
@@ -53,11 +46,8 @@ public class LibraryManager {
 
                 ApiClient.getInstance().setSession(token, id, rol);
 
-                if ("ADMIN".equals(rol)) {
-                    currentUser = new Admin(ad, tcNo, "");
-                } else {
-                    currentUser = new Uye(ad, tcNo, "");
-                }
+                User.Role role = "ADMIN".equals(rol) ? User.Role.ADMIN : User.Role.UYE;
+                currentUser = new User(ad, tcNo, role, "");
                 currentUser.setId(id);
                 return true;
             }
@@ -72,13 +62,11 @@ public class LibraryManager {
         currentUser = null;
     }
 
-    // ─── Kullanicilar ──────────────────────────────────────────────
-
-    public List<Kullanici> getUsers() {
+    public List<User> getUsers() {
         if (!ApiClient.getInstance().isAuthenticated()) return cachedUsers;
         try {
             JsonArray arr = ApiClient.getInstance().getUsers();
-            List<Kullanici> list = new ArrayList<>();
+            List<User> list = new ArrayList<>();
             for (JsonElement e : arr) {
                 JsonObject o = e.getAsJsonObject();
                 String isim = o.get("isim").getAsString();
@@ -86,7 +74,8 @@ public class LibraryManager {
                 String tc = o.has("tcKimlikNo") ? o.get("tcKimlikNo").getAsString() : "***********";
                 String apiId = o.get("id").getAsString();
 
-                Kullanici k = "ADMIN".equals(rol) ? new Admin(isim, tc, "") : new Uye(isim, tc, "");
+                User.Role role = "ADMIN".equals(rol) ? User.Role.ADMIN : User.Role.UYE;
+                User k = new User(isim, tc, role, "");
                 k.setId(apiId);
                 if (o.has("email")) k.setEmail(o.get("email").getAsString());
                 list.add(k);
@@ -99,13 +88,13 @@ public class LibraryManager {
         }
     }
 
-    public void addUser(Kullanici user) {
+    public void addUser(User user) {
         try {
             java.util.Map<String, Object> data = new java.util.HashMap<>();
             data.put("isim", user.getIsim());
             data.put("tcKimlikNo", user.getTcNoDogrudan());
             data.put("email", user.getEmail() != null ? user.getEmail() : user.getIsim().replace(" ", ".").toLowerCase() + "@kutuphane.local");
-            data.put("rol", user.getRol());
+            data.put("rol", user.getRol().name());
             data.put("sifre", user.getSifre());
             ApiClient.getInstance().addUser(data);
         } catch (Exception e) {
@@ -113,7 +102,7 @@ public class LibraryManager {
         }
     }
 
-    public void removeUser(Kullanici user) {
+    public void removeUser(User user) {
         try {
             ApiClient.getInstance().deleteUser(user.getId());
         } catch (Exception e) {
@@ -121,7 +110,7 @@ public class LibraryManager {
         }
     }
 
-    public void updateUser(String apiId, Kullanici updated) {
+    public void updateUser(String apiId, User updated) {
         try {
             java.util.Map<String, Object> data = new java.util.HashMap<>();
             data.put("isim", updated.getIsim());
@@ -132,8 +121,6 @@ public class LibraryManager {
             System.err.println("Kullanici guncelleme API hatasi: " + e.getMessage());
         }
     }
-
-    // ─── Materyaller ───────────────────────────────────────────────
 
     public List<Materyal> getMaterials() {
         if (!ApiClient.getInstance().isAuthenticated()) return cachedMaterials;
@@ -177,7 +164,8 @@ public class LibraryManager {
             java.util.Map<String, Object> data = new java.util.HashMap<>();
             data.put("baslik", m.getBaslik());
             data.put("birimFiyat", m.getBirimFiyat());
-            if (m instanceof Kitap kitap) {
+            if ("Kitap".equals(m.getMateryalTuru())) {
+                Kitap kitap = (Kitap) m;
                 data.put("isbn", kitap.getIsbn());
                 data.put("stokAdedi", kitap.getStokAdedi());
                 data.put("yazar", kitap.getYazar());
@@ -201,8 +189,6 @@ public class LibraryManager {
         }
     }
 
-    // ─── Odunc Islemleri ───────────────────────────────────────────
-
     public boolean borrowMaterial(String userId, String materialId) {
         try {
             JsonObject res = ApiClient.getInstance().borrowBook(userId, materialId);
@@ -222,8 +208,6 @@ public class LibraryManager {
             return false;
         }
     }
-
-    // ─── Sunucu Kontrolu ───────────────────────────────────────────
 
     public boolean isServerAlive() {
         return ApiClient.getInstance().isServerAlive();

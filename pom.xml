@@ -13,7 +13,7 @@
 
     <groupId>org.example</groupId>
     <artifactId>kutuphane1</artifactId>
-    <version>4.1.0</version>
+    <version>4.2.0</version>
     <name>Akilli Kutuphane V4</name>
 
     <properties>
@@ -73,11 +73,18 @@
             <artifactId>HikariCP</artifactId>
         </dependency>
 
-        <!-- Gson (eski kod uyumluluğu için korunuyor) -->
+        <!-- Gson (Swing GUI ApiClient uyumlulugu için korunuyor) -->
         <dependency>
             <groupId>com.google.code.gson</groupId>
             <artifactId>gson</artifactId>
             <version>2.14.0</version>
+        </dependency>
+
+        <!-- Lombok -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
         </dependency>
 
         <!-- Redis (Rate Limiting ve önbellekleme) -->

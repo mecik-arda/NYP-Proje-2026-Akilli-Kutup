@@ -1,6 +1,7 @@
 package com.akillikutup.db;
 
-import com.akillikutup.core.*;
+import com.akillikutup.material.*;
+import com.akillikutup.user.User;
 import org.junit.jupiter.api.*;
 
 import java.io.*;
@@ -68,47 +69,47 @@ public class DatabaseManagerTest {
     @Test
     @Order(3)
     public void kullaniciSerializeDeserializeTesti() {
-        List<Kullanici> liste = new ArrayList<>();
-        liste.add(new Admin("Test Admin", "11111111111", "admin123"));
-        liste.add(new Uye("Test Uye", "22222222222", "uye456"));
+        List<User> liste = new ArrayList<>();
+        liste.add(new User("Test Admin", "11111111111", User.Role.ADMIN, "admin123"));
+        liste.add(new User("Test Uye", "22222222222", User.Role.UYE, "uye456"));
 
         db.kaydet(liste, new ArrayList<>());
 
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
 
-        List<Kullanici> yuklenen = db.kullanicilariYukle();
+        List<User> yuklenen = db.kullanicilariYukle();
 
         assertEquals(2, yuklenen.size(), "2 kullanici yuklenmeli");
         assertEquals("Test Admin", yuklenen.get(0).getIsim());
-        assertEquals("ADMIN", yuklenen.get(0).getRol());
+        assertEquals(User.Role.ADMIN, yuklenen.get(0).getRol());
         assertEquals("Test Uye", yuklenen.get(1).getIsim());
-        assertEquals("UYE", yuklenen.get(1).getRol());
+        assertEquals(User.Role.UYE, yuklenen.get(1).getRol());
     }
 
     @Test
     @Order(4)
     public void kullaniciSifreTesti() {
-        List<Kullanici> liste = new ArrayList<>();
-        liste.add(new Admin("SifreTest", "33333333333", "gizliSifre!@#"));
+        List<User> liste = new ArrayList<>();
+        liste.add(new User("SifreTest", "33333333333", User.Role.ADMIN, "gizliSifre!@#"));
 
         db.kaydet(liste, new ArrayList<>());
 
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
 
-        List<Kullanici> yuklenen = db.kullanicilariYukle();
+        List<User> yuklenen = db.kullanicilariYukle();
         assertEquals("gizliSifre!@#", yuklenen.get(0).getSifre(), "Sifre dogru yuklenmeli");
     }
 
     @Test
     @Order(5)
     public void uyeKrediPuaniTesti() {
-        Uye uye = new Uye("PuanTest", "44444444444", "sifre");
+        User uye = new User("PuanTest", "44444444444", User.Role.UYE, "sifre");
         uye.puanGuncelle(-30);
         assertEquals(70, uye.getKrediPuani());
 
-        List<Kullanici> liste = new ArrayList<>();
+        List<User> liste = new ArrayList<>();
         liste.add(uye);
 
         db.kaydet(liste, new ArrayList<>());
@@ -116,7 +117,7 @@ public class DatabaseManagerTest {
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
 
-        List<Kullanici> yuklenen = db.kullanicilariYukle();
+        List<User> yuklenen = db.kullanicilariYukle();
         assertEquals(70, yuklenen.get(0).getKrediPuani(), "Kredi puani dogru yuklenmeli");
     }
 
@@ -197,7 +198,7 @@ public class DatabaseManagerTest {
         File dosya = new File("test-data" + File.separator + "users.json");
         if (dosya.exists()) dosya.delete();
 
-        List<Kullanici> sonuc = db.kullanicilariYukle();
+        List<User> sonuc = db.kullanicilariYukle();
         assertNotNull(sonuc);
         assertEquals(0, sonuc.size(), "Dosya yokken bos liste donmeli");
     }
@@ -222,7 +223,7 @@ public class DatabaseManagerTest {
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
 
-        List<Kullanici> kullanicilar = db.kullanicilariYukle();
+        List<User> kullanicilar = db.kullanicilariYukle();
         List<Materyal> materyaller = db.materyallariYukle();
 
         assertEquals(0, kullanicilar.size());
@@ -235,7 +236,7 @@ public class DatabaseManagerTest {
     public void kullaniciEkleTesti() {
         db.kaydet(new ArrayList<>(), new ArrayList<>());
 
-        Admin admin = new Admin("Eklenen Admin", "99999999999", "sifre");
+        User admin = new User("Eklenen Admin", "99999999999", User.Role.ADMIN, "sifre");
         db.kullaniciEkle(admin);
 
         assertEquals(1, db.getKullaniciListesi().size());
@@ -245,9 +246,9 @@ public class DatabaseManagerTest {
     @Test
     @Order(13)
     public void kullaniciSilTesti() {
-        List<Kullanici> liste = new ArrayList<>();
-        liste.add(new Admin("Silinecek", "88888888888", "sifre"));
-        liste.add(new Uye("Kalacak", "77777777777", "sifre"));
+        List<User> liste = new ArrayList<>();
+        liste.add(new User("Silinecek", "88888888888", User.Role.ADMIN, "sifre"));
+        liste.add(new User("Kalacak", "77777777777", User.Role.UYE, "sifre"));
         db.kaydet(liste, new ArrayList<>());
 
         db.kullaniciSil("Silinecek");
@@ -288,16 +289,16 @@ public class DatabaseManagerTest {
     @Test
     @Order(16)
     public void kullaniciBulTesti() {
-        List<Kullanici> liste = new ArrayList<>();
-        Admin admin = new Admin("Aranan Admin", "66666666666", "sifre");
+        List<User> liste = new ArrayList<>();
+        User admin = new User("Aranan Admin", "66666666666", User.Role.ADMIN, "sifre");
         liste.add(admin);
         db.kaydet(liste, new ArrayList<>());
 
-        Kullanici bulunan = db.kullaniciBul(admin.getId());
+        User bulunan = db.kullaniciBul(admin.getId());
         assertNotNull(bulunan);
         assertEquals("Aranan Admin", bulunan.getIsim());
 
-        Kullanici yok = db.kullaniciBul("Olmayan Kullanici");
+        User yok = db.kullaniciBul("Olmayan Kullanici");
         assertNull(yok);
     }
 
@@ -338,8 +339,8 @@ public class DatabaseManagerTest {
     @Test
     @Order(19)
     public void yedeklemeTesti() {
-        List<Kullanici> kullanicilar = new ArrayList<>();
-        kullanicilar.add(new Admin("YedekTest", "12312312312", "sifre"));
+        List<User> kullanicilar = new ArrayList<>();
+        kullanicilar.add(new User("YedekTest", "12312312312", User.Role.ADMIN, "sifre"));
         List<Materyal> materyaller = new ArrayList<>();
         materyaller.add(new Kitap("Yedek Kitap", 1, 5.0, "ISBN-YK"));
 
@@ -363,8 +364,8 @@ public class DatabaseManagerTest {
     @Test
     @Order(20)
     public void senkronizasyonTesti() {
-        List<Kullanici> kullanicilar = new ArrayList<>();
-        kullanicilar.add(new Uye("SenkronTest", "45645645645", "sifre"));
+        List<User> kullanicilar = new ArrayList<>();
+        kullanicilar.add(new User("SenkronTest", "45645645645", User.Role.UYE, "sifre"));
         List<Materyal> materyaller = new ArrayList<>();
         materyaller.add(new Kitap("Senkron Kitap", 2, 12.0, "ISBN-SN"));
 
@@ -374,7 +375,7 @@ public class DatabaseManagerTest {
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
 
-        List<Kullanici> yukKul = db.kullanicilariYukle();
+        List<User> yukKul = db.kullanicilariYukle();
         List<Materyal> yukMat = db.materyallariYukle();
 
         assertEquals(1, yukKul.size());
@@ -391,8 +392,8 @@ public class DatabaseManagerTest {
             DatabaseManager.tekOrnekSifirla();
             DatabaseManager testDb = DatabaseManager.tekOrnekAl();
 
-            List<Kullanici> liste = new ArrayList<>();
-            liste.add(new Admin("Hacker", "00000000000", "x"));
+            List<User> liste = new ArrayList<>();
+            liste.add(new User("Hacker", "00000000000", User.Role.ADMIN, "x"));
             testDb.kaydet(liste, new ArrayList<>());
 
             File kotu = new File("test-data" + File.separator + ".." + File.separator + ".." + File.separator + "etc" + File.separator + "passwd");
@@ -427,7 +428,7 @@ public class DatabaseManagerTest {
     @Test
     @Order(24)
     public void bosJsonTesti() {
-        List<Kullanici> kullanicilar = JsonParser.deserializeKullanicilar("");
+        List<User> kullanicilar = JsonParser.deserializeKullanicilar("");
         assertEquals(0, kullanicilar.size());
 
         List<Materyal> materyaller = JsonParser.deserializeMateryaller("");
@@ -437,7 +438,7 @@ public class DatabaseManagerTest {
     @Test
     @Order(25)
     public void bosDiziJsonTesti() {
-        List<Kullanici> kullanicilar = JsonParser.deserializeKullanicilar("[]");
+        List<User> kullanicilar = JsonParser.deserializeKullanicilar("[]");
         assertEquals(0, kullanicilar.size());
 
         List<Materyal> materyaller = JsonParser.deserializeMateryaller("[]");
@@ -456,15 +457,15 @@ public class DatabaseManagerTest {
     @Test
     @Order(28)
     public void ozelKarakterTesti() {
-        List<Kullanici> liste = new ArrayList<>();
-        liste.add(new Admin("Test \"Ozel\" Karakter", "11122233344", "sifre\\test"));
+        List<User> liste = new ArrayList<>();
+        liste.add(new User("Test \"Ozel\" Karakter", "11122233344", User.Role.ADMIN, "sifre\\test"));
 
         db.kaydet(liste, new ArrayList<>());
 
         DatabaseManager.tekOrnekSifirla();
         db = DatabaseManager.tekOrnekAl();
 
-        List<Kullanici> yuklenen = db.kullanicilariYukle();
+        List<User> yuklenen = db.kullanicilariYukle();
         assertEquals(1, yuklenen.size());
         assertEquals("Test \"Ozel\" Karakter", yuklenen.get(0).getIsim());
         assertEquals("sifre\\test", yuklenen.get(0).getSifre());
@@ -476,8 +477,8 @@ public class DatabaseManagerTest {
     public void ayniIsimdeKullaniciEklemeTesti() {
         db.kaydet(new ArrayList<>(), new ArrayList<>());
 
-        Admin admin1 = new Admin("Tekrar Eden", "11111111111", "sifre1");
-        Admin admin2 = new Admin("Tekrar Eden", "22222222222", "sifre2");
+        User admin1 = new User("Tekrar Eden", "11111111111", User.Role.ADMIN, "sifre1");
+        User admin2 = new User("Tekrar Eden", "22222222222", User.Role.ADMIN, "sifre2");
 
         db.kullaniciEkle(admin1);
         db.kullaniciEkle(admin2);

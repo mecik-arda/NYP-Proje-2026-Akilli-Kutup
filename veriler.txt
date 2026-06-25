@@ -1,0 +1,15 @@
+6f1ecc6f-16c9-48a8-add7-2534ca1eec7a	Emrullah Efendi - Tevfik Fikret Anlaşmazlığı (Mekteb-İ Sultani Hadisesi)	Kitap	9	86.0
+e022e782-2c67-44e0-b8ec-1edf092d2b6a	Effects of Preoperative Anxiety on Intraoperative Hemodynamics and Postoperative Pain	Kitap	10	50.0
+ba913ca8-4b98-49a1-896b-792745689a99	Investigation of Carbapenemase Genes and Clonal Relationship in Carbapenem Resistant Klebsiella pneumoniae Strains	Kitap	8	99.0
+e891bfa8-626b-496b-b4d6-84fa3dbcb11b	Studies on Synthesis, Characterization, Micellar Features, and Solubilization of Four Novel Cationic Gemini Surfactants	Kitap	4	51.0
+bc02eff0-2fd0-479d-a943-9922638b4989	Protective effects of regular aerobic and/or resistance exercise programs on sleep deprivation-induced cognitive impairment	Kitap	2	36.0
+3e64411a-ac29-4011-bdbd-91aa46d1017f	Yeşil ekonomi yaklaşımı ile küresel iklim değişikliğin turizm sektörüne etkileri	Kitap	4	35.0
+9b5a61a2-6b03-4c02-b14f-4295e44eab13	The architectural and artical criticism of the movie troy	Kitap	2	48.0
+c07c74ec-b6c9-435c-9287-de1eeaed96db	Edirne’nin park ve bahçelerinde bulunan bazı egzotik ağaçların ve çalıların polen morfolojilerinin incelenmesi	Kitap	3	76.0
+5859f214-5db6-40a5-af27-09b0562f1e3b	Üniversite öğrencilerinde serbest zaman fiziksel aktivitelere katılımı kısıtlayan faktörlerin cinsiyete ve düzenli fiziksel aktivite alışkanlığına göre karşılaştırılması	Kitap	6	49.0
+af29136a-2d10-428b-8356-a1db7df6a543	Nakit dönüşüm süresi ve şirket karlılığı: Borsa İstanbul’daki şirketler üzerine bir uygulama	Kitap	5	53.0
+2604faf1-6274-4bb9-9b29-3741262f9ba6	Emergence and co-infections of West Nile virus and Toscana virus in Eastern Thrace, Turkey	Kitap	3	51.0
+4f48f98a-be11-43e0-86cf-aa7f9b10867d	Fatih’in kullarından Vezir-i Azam Mahmud Paşa ve faaliyetleri	Kitap	3	39.0
+b445e7ee-56c6-40b5-beda-fac74a3e7644	Hepatik ve kemik-eklem tutulumunun ön planda olduğu iki bruselloz olgusu	Kitap	9	82.0
+091bf820-8a07-4bc3-9ca7-f122797a8458	Effect of nutritional status on mortality in patients undergoing coronary artery bypass grafting	Kitap	7	40.0
+51ca59c5-01a4-484d-b4c2-0847a45e9935	On Gray Images of Constacyclic Codes	Kitap	7	90.0

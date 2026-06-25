@@ -197,6 +197,37 @@ public class ApiClient {
         return get("/api/settings").getAsJsonObject();
     }
 
+    // ─── Aktif Kullanicilar ─────────────────────────────────────────
+
+    public JsonObject getActiveUsers() throws IOException, InterruptedException {
+        return get("/api/aktif-kullanicilar").getAsJsonObject();
+    }
+
+    public JsonObject reportActivity(String action) throws IOException, InterruptedException {
+        JsonObject body = new JsonObject();
+        body.addProperty("action", action);
+        JsonElement result = post("/api/aktif-kullanicilar/aktivite",
+            gson.fromJson(body.toString(), Map.class));
+        return result.getAsJsonObject();
+    }
+
+    public JsonObject getHourlyActiveStats() throws IOException, InterruptedException {
+        return get("/api/istatistikler/saatlik-aktif").getAsJsonObject();
+    }
+
+    public JsonObject sendAnnouncement(String message) throws IOException, InterruptedException {
+        JsonObject body = new JsonObject();
+        body.addProperty("mesaj", message);
+        JsonElement result = post("/api/duyuru",
+            gson.fromJson(body.toString(), Map.class));
+        return result.getAsJsonObject();
+    }
+
+    public JsonObject terminateAllSessions() throws IOException, InterruptedException {
+        JsonElement result = post("/api/oturumlari-kapat", Map.of());
+        return result.getAsJsonObject();
+    }
+
     // ─── Saglik Kontrolu ───────────────────────────────────────────
 
     public boolean isServerAlive() {

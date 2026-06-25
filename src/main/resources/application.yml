@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: akilli-kutuphane-v4
+logging:
+  level:
+    org.springframework.security: TRACE
 
   # ── Veritabani ────────────────────────────────────────────────
   # PostgreSQL (Docker Compose ortaminda PG_HOST=postgres ile override edilir)
@@ -41,7 +44,7 @@ spring:
   # ── Statik dosya servisi (frontend) ───────────────────────────
   web:
     resources:
-      static-locations: classpath:/static/,file:frontend/
+      static-locations: classpath:/static/,file:./frontend/,file:/app/frontend/
 
 # ── JWT ─────────────────────────────────────────────────────────
 app:

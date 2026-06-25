@@ -4,12 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi - Kitaplarınızı, e-kitaplarınızı ve dijital varlıklarınızı tek platformda yönetin.">
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Akıllı Kütüphane ve Dijital Varlık Yönetim Sistemi - Kitaplarınızı, e-kitaplarınızı ve dijital varlıklarınızı tek platformda yönetin.">
     <title>Akıllı Kütüphane & Dijital Varlık Yönetimi</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -236,22 +230,36 @@
                     </div>
                 </div>
 
-                <div class="stat-card stat-card-members">
+                <div class="stat-card stat-card-members" id="activeMemberCard">
                     <div class="stat-card-bg"></div>
                     <div class="stat-icon">
                         <i class="fas fa-user-friends"></i>
                     </div>
                     <div class="stat-info">
                         <span class="stat-label">Aktif Üye</span>
-                        <span class="stat-value" data-target="1893">0</span>
-                        <div class="stat-change positive">
-                            <i class="fas fa-arrow-up"></i> +56 bu ay
+                        <span class="stat-value flip-counter" id="activeMemberCount" data-target="0">0</span>
+                        <div class="stat-change positive" id="activeMemberChange">
+                            <i class="fas fa-arrow-up"></i> <span id="activeMemberChangeText">+0 bu ay</span>
                         </div>
                     </div>
-                    <div class="stat-chart">
-                        <svg viewBox="0 0 100 40" class="sparkline">
-                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,32 10,30 20,28 30,26 40,24 50,22 60,20 70,18 80,16 90,14 100,12"/>
+                    <div class="stat-chart" id="activeSparklineContainer">
+                        <svg viewBox="0 0 100 40" class="sparkline" id="activeSparkline">
+                            <polyline fill="none" stroke="currentColor" stroke-width="2" points="0,35 10,35 20,35 30,35 40,35 50,35 60,35 70,35 80,35 90,35 100,35"/>
                         </svg>
+                    </div>
+                    <!-- Tooltip -->
+                    <div class="stat-tooltip" id="activeMemberTooltip">Yükleniyor...</div>
+                    <!-- Quick Actions Popover -->
+                    <div class="quick-actions-popover" id="quickActionsPopover">
+                        <button class="qa-btn" id="qaAnnounce" title="Aktif üyelere duyuru gönder">
+                            <i class="fas fa-bullhorn"></i> Duyuru Gönder
+                        </button>
+                        <button class="qa-btn qa-btn-danger" id="qaTerminateSessions" title="Tüm aktif oturumları kapat">
+                            <i class="fas fa-shield-alt"></i> Oturumları Kapat
+                        </button>
+                        <button class="qa-btn" id="qaExportCSV" title="Aktif üye listesini CSV olarak dışa aktar">
+                            <i class="fas fa-file-export"></i> Listeyi Dışa Aktar
+                        </button>
                     </div>
                 </div>
 
@@ -935,9 +943,80 @@
                 </div>
             </div>
         </div>
+
+
+        <!-- 🟢 Aktif Üye Drawer (Sağ Çekmece) -->
+        <div class="active-drawer-overlay" id="activeDrawerOverlay"></div>
+        <div class="active-drawer" id="activeDrawer">
+            <div class="active-drawer-header">
+                <h2><i class="fas fa-users"></i> Şu An Kimler Aktif</h2>
+                <div class="active-drawer-status">
+                    <span class="live-dot"></span>
+                    <span id="activeDrawerCount">0 kişi online</span>
+                </div>
+                <button class="active-drawer-close" id="activeDrawerClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="active-drawer-body" id="activeDrawerBody">
+                <div class="active-drawer-empty">
+                    <i class="fas fa-user-clock"></i>
+                    <p>Yükleniyor...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- 📈 Genişletilmiş Sparkline Grafik -->
+        <div class="sparkline-expanded" id="sparklineExpanded">
+            <div class="sparkline-expanded-header">
+                <h3><i class="fas fa-chart-line"></i> Son 24 Saat Aktif Kullanıcı Grafiği</h3>
+                <button class="sparkline-expanded-close" id="sparklineExpandedClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sparkline-expanded-body">
+                <canvas id="sparklineExpandedCanvas"></canvas>
+            </div>
+        </div>
     </main>
 
-    
+    <!-- 📢 Duyuru Modalı -->
+    <div class="modal-overlay" id="announcementModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-bullhorn"></i> Aktif Üyelere Duyuru Gönder</h2>
+                <button class="modal-close" id="announcementModalClose" aria-label="Kapat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="announcementForm">
+                    <div class="form-group" style="margin-bottom: 20px;">
+                        <label class="form-label" style="display: block; margin-bottom: 8px; color: rgba(255,255,255,0.7);">Duyuru Mesajı</label>
+                        <textarea id="announcementMessage" class="form-input" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; min-height: 100px; resize: vertical;" placeholder="Aktif kullanıcılara gönderilecek mesajı yazın..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-ghost" id="announcementModalCancel">İptal</button>
+                <button class="btn btn-primary" id="announcementSendBtn">
+                    <i class="fas fa-paper-plane"></i> Gönder
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📥 Broadcast Mesajı (Duyuru Geldi) -->
+    <div class="broadcast-toast" id="broadcastToast">
+        <div class="broadcast-toast-icon"><i class="fas fa-bullhorn"></i></div>
+        <div class="broadcast-toast-content">
+            <strong>Yöneticiden Duyuru</strong>
+            <p id="broadcastToastMessage"></p>
+        </div>
+        <button class="broadcast-toast-close" id="broadcastToastClose"><i class="fas fa-times"></i></button>
+    </div>
+
+
     <div class="modal-overlay" id="addBookModal">
         <div class="modal">
             <div class="modal-header">
@@ -1083,7 +1162,7 @@
             <div class="notification-item">
                 <div class="notification-icon info"><i class="fas fa-info-circle"></i></div>
                 <div class="notification-content">
-                    <p class="notification-text">Sistem güncellemesi <strong>[v4.1.0]</strong> tamamlandı.</p>
+                    <p class="notification-text">Sistem güncellemesi <strong>[v4.2.0]</strong> tamamlandı.</p>
                     <span class="notification-time">3 saat önce</span>
                 </div>
             </div>

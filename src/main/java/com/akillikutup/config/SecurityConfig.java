@@ -56,11 +56,12 @@ public class SecurityConfig {
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/status", "/api/giris").permitAll()
-                .requestMatchers("/", "/index.html", "/login.html", "/css/**", "/js/**",
+                .requestMatchers("/", "/error", "/index.html", "/login.html", "/css/**", "/js/**",
                     "/uploads/**", "/*.ico", "/*.png", "/*.jpg").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/kitaplar").permitAll()
-                .requestMatchers("/api/kullanicilar/**", "/api/settings", "/api/backup",
-                    "/api/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/kullanicilar", "/api/kullanicilar/**", "/api/settings", "/api/backup",
+                    "/api/admin/**", "/api/duyuru", "/api/oturumlari-kapat",
+                    "/api/aktif-kullanicilar/export").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/kitaplar").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/kitaplar/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

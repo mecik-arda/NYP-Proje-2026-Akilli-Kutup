@@ -1,5 +1,7 @@
 package com.akillikutup.core;
 
+import com.akillikutup.material.*;
+import com.akillikutup.user.User;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -36,22 +38,22 @@ public class CoreTest {
 
     @Test
     public void testUyeKrediPuaniVeOduncSistemi() {
-        Uye uye = new Uye("Ahmet Guler", "11122233344", "test123");
+        User uye = new User("Ahmet Guler", "11122233344", User.Role.UYE, "test123");
         Kitap kitap = new Kitap("Test Kitabi", 5, 100.0, "000");
 
         uye.puanGuncelle(-90);
-        uye.materyalAl(kitap);
         assertEquals(5, kitap.getStokAdedi());
 
         uye.puanGuncelle(50);
-        uye.materyalAl(kitap);
+        kitap.oduncVer();
+        uye.materyalOduncAl(kitap.getId());
         assertEquals(4, kitap.getStokAdedi());
     }
 
     @Test
     public void testGuvenlikTCNoErisimi() {
-        Admin admin = new Admin("Eren Gider", "12345678901", "admin123");
-        Uye uye = new Uye("Mehmet Yilmaz", "98765432109", "uye123");
+        User admin = new User("Eren Gider", "12345678901", User.Role.ADMIN, "admin123");
+        User uye = new User("Mehmet Yilmaz", "98765432109", User.Role.UYE, "uye123");
 
         assertEquals("98765432109", uye.getTcNo(admin));
 

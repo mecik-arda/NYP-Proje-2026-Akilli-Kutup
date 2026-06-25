@@ -1,6 +1,6 @@
 package com.akillikutup.auth;
 
-import com.akillikutup.core.Kullanici;
+import com.akillikutup.user.User;
 import com.akillikutup.db.DatabaseManager;
 
 import javax.crypto.SecretKeyFactory;
@@ -11,23 +11,24 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
-
 import java.util.concurrent.ConcurrentHashMap;
 
 public class AuthManager {
     private final DatabaseManager db;
     private final ConcurrentHashMap<String, Integer> failedAttempts = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, Long> lockoutTimes = new ConcurrentHashMap<>();
-    private final ConcurrentHashMap<String, Kullanici> activeSessions = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, User> activeSessions = new ConcurrentHashMap<>();
+    // OWASP 2025: PBKDF2 için minimum 600.000 iterasyon öneriliyor
+    private static final int PBKDF2_ITERATIONS = 600_000;
     private static final int MAX_FAILED_ATTEMPTS = 5;
-    private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000; // 5 minutes
+    private static final long LOCKOUT_DURATION_MS = 5 * 60 * 1000;
 
     public AuthManager() {
         this.db = DatabaseManager.tekOrnekAl();
     }
 
     public String hashPassword(String password, byte[] salt) {
-        return hashPassword(password, salt, 210000);
+        return hashPassword(password, salt, PBKDF2_ITERATIONS);
     }
 
     public String hashPassword(String password, byte[] salt, int iterations) {
@@ -48,7 +49,7 @@ public class AuthManager {
         return salt;
     }
 
-    public Kullanici login(String tcNo, String plainPassword, String ipAddress) {
+    public User login(String tcNo, String plainPassword, String ipAddress) {
         if (ipAddress != null) {
             Long lockoutTime = lockoutTimes.get(ipAddress);
             if (lockoutTime != null) {
@@ -61,9 +62,9 @@ public class AuthManager {
             }
         }
 
-        List<Kullanici> kullanicilar = db.getKullaniciListesi();
+        List<User> kullanicilar = db.getKullaniciListesi();
 
-        Optional<Kullanici> eslesenKullanici = kullanicilar.stream()
+        Optional<User> eslesenKullanici = kullanicilar.stream()
                 .filter(k -> {
                     if (k.getTcNoDogrudan().equals(tcNo)) {
                         String sifre = k.getSifre();
@@ -75,7 +76,7 @@ public class AuthManager {
                                 String expectedHash = parts[1];
                                 String actualHash = hashPassword(plainPassword, salt, 65536);
                                 if (!expectedHash.equals(actualHash)) {
-                                    actualHash = hashPassword(plainPassword, salt, 210000);
+                                    actualHash = hashPassword(plainPassword, salt, PBKDF2_ITERATIONS);
                                 }
                                 return expectedHash.equals(actualHash);
                             } catch (Exception e) {
@@ -104,36 +105,36 @@ public class AuthManager {
             return null;
         }
     }
-    
+
     public String registerPassword(String plainPassword) {
         byte[] salt = generateSalt();
         String hash = hashPassword(plainPassword, salt);
         return Base64.getEncoder().encodeToString(salt) + ":" + hash;
     }
 
-    public String createSession(Kullanici user) {
+    public String createSession(User user) {
         String token = java.util.UUID.randomUUID().toString();
         user.setToken(token);
-        user.setTokenExpiry(System.currentTimeMillis() + (2 * 60 * 60 * 1000)); // 2 hours
+        user.setTokenExpiry(System.currentTimeMillis() + (2 * 60 * 60 * 1000));
         db.kullanicilariKaydet();
         activeSessions.put(token, user);
         return token;
     }
 
-    public Kullanici getUserByToken(String token) {
+    public User getUserByToken(String token) {
         if (token == null || token.trim().isEmpty()) return null;
-        
-        Kullanici sessionUser = activeSessions.get(token);
+
+        User sessionUser = activeSessions.get(token);
         if (sessionUser != null && System.currentTimeMillis() < sessionUser.getTokenExpiry()) {
             return sessionUser;
         }
 
-        List<Kullanici> kullanicilar = db.getKullaniciListesi();
-        Kullanici k = kullanicilar.stream()
+        List<User> kullanicilar = db.getKullaniciListesi();
+        User k = kullanicilar.stream()
                 .filter(u -> token.equals(u.getToken()) && System.currentTimeMillis() < u.getTokenExpiry())
                 .findFirst()
                 .orElse(null);
-                
+
         if (k != null) {
             activeSessions.put(token, k);
         }

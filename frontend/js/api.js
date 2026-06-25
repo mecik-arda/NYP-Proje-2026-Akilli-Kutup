@@ -145,6 +145,53 @@ export const API = (() => {
     return del(`/api/kullanicilar/${id}`);
   }
 
+  // ─── Aktif Kullanıcılar ──────────────────────────────────────
+
+  async function getActiveUsers() {
+    return get('/api/aktif-kullanicilar');
+  }
+
+  async function reportActivity(action) {
+    return post('/api/aktif-kullanicilar/aktivite', { action: action });
+  }
+
+  async function getHourlyActiveStats() {
+    return get('/api/istatistikler/saatlik-aktif');
+  }
+
+  async function sendAnnouncement(message) {
+    return post('/api/duyuru', { mesaj: message });
+  }
+
+  async function terminateAllSessions() {
+    return post('/api/oturumlari-kapat', {});
+  }
+
+  async function exportActiveUsersCSV() {
+    const rawSession = sessionStorage.getItem('akilli_kutup_session');
+    let token = '';
+    try {
+      if (rawSession) {
+        const session = JSON.parse(rawSession);
+        if (session.token) token = session.token;
+      }
+    } catch(e) {}
+    const resp = await fetch(`${BASE_URL}/api/aktif-kullanicilar/export`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    if (!resp.ok) throw new Error('Export failed');
+    const blob = await resp.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'aktif_kullanicilar.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    return { basarili: true };
+  }
+
   return {
     checkServerStatus,
     getBooks,
@@ -167,6 +214,12 @@ export const API = (() => {
     markAllNotificationsRead,
     uploadAsset,
     createFolder,
-    getBorrowHistory
+    getBorrowHistory,
+    getActiveUsers,
+    reportActivity,
+    getHourlyActiveStats,
+    sendAnnouncement,
+    terminateAllSessions,
+    exportActiveUsersCSV
   };
 })();

@@ -1,6 +1,7 @@
 package com.akillikutup.db;
 
-import com.akillikutup.core.*;
+import com.akillikutup.material.Materyal;
+import com.akillikutup.user.User;
 import java.io.File;
 import java.nio.file.Path;
 import java.sql.*;
@@ -24,7 +25,7 @@ public class DatabaseManager {
     private String getDbYolu() { return "jdbc:sqlite:" + getVeriKlasoru() + "/database.db"; }
     private String getYedekKlasoru() { return getVeriKlasoru() + File.separator + "backup"; }
 
-    private List<Kullanici> kullaniciListesi;
+    private List<User> kullaniciListesi;
     private List<Materyal> materyalListesi;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private HikariDataSource dataSource;
@@ -34,15 +35,15 @@ public class DatabaseManager {
     private DatabaseManager() {
         kullaniciListesi = new ArrayList<>();
         materyalListesi = new ArrayList<>();
-        
+
         File veriKlasoru = new File(getVeriKlasoru());
         if (!veriKlasoru.exists()) veriKlasoru.mkdirs();
-        
+
         File yedekKlasoru = new File(getYedekKlasoru());
         if (!yedekKlasoru.exists()) yedekKlasoru.mkdirs();
-        
+
         FileEncryptionService.init();
-        
+
         HikariConfig config = new HikariConfig();
         config.setJdbcUrl(getDbYolu());
         config.setMaximumPoolSize(10);
@@ -75,7 +76,6 @@ public class DatabaseManager {
                 try {
                     Runtime.getRuntime().removeShutdownHook(tekOrnek.shutdownHook);
                 } catch (IllegalStateException e) {
-                    // Shutdown in progress, ignore
                 }
             }
         }
@@ -85,11 +85,11 @@ public class DatabaseManager {
     private Connection getConnection() throws SQLException {
         return dataSource.getConnection();
     }
-    
+
     private void baslatYedeklemeZamanlayici() {
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(this::yedekle, 1, 1, TimeUnit.HOURS);
-        
+
         shutdownHook = new Thread(() -> {
             yedekle();
             if (dataSource != null && !dataSource.isClosed()) dataSource.close();
@@ -107,7 +107,7 @@ public class DatabaseManager {
         }
     }
 
-    public void kaydet(List<Kullanici> kullanicilar, List<Materyal> materyaller) {
+    public void kaydet(List<User> kullanicilar, List<Materyal> materyaller) {
         this.kullaniciListesi = new ArrayList<>(kullanicilar);
         this.materyalListesi = new ArrayList<>(materyaller);
         kullanicilariKaydet();
@@ -122,7 +122,7 @@ public class DatabaseManager {
             conn.setAutoCommit(false);
             String sql = "INSERT OR REPLACE INTO kullanicilar (id, tcNo, json) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(sql)) {
-                for (Kullanici k : kullaniciListesi) {
+                for (User k : kullaniciListesi) {
                     ps.setString(1, k.getId());
                     ps.setString(2, k.getTcNoDogrudan());
                     String json = JsonParser.serializeKullanici(k);
@@ -175,13 +175,13 @@ public class DatabaseManager {
         }
     }
 
-    public List<Kullanici> kullanicilariYukle() {
+    public List<User> kullanicilariYukle() {
         kullaniciListesi.clear();
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement(); ResultSet rs = stmt.executeQuery("SELECT json FROM kullanicilar")) {
             while (rs.next()) {
                 String encryptedJson = rs.getString("json");
                 String json = FileEncryptionService.decrypt(encryptedJson);
-                Kullanici k = JsonParser.deserializeKullanici(json);
+                User k = JsonParser.deserializeKullanici(json);
                 if (k != null) kullaniciListesi.add(k);
             }
         } catch (Exception e) {
@@ -211,30 +211,26 @@ public class DatabaseManager {
             if (dbFile.exists()) {
                 String timestamp = new java.text.SimpleDateFormat("yyyyMMdd_HHmmss").format(new java.util.Date());
                 Path backupPath = Path.of(getYedekKlasoru(), "database_" + timestamp + ".db");
-                
-                // SQLite JDBC backup command
+
                 try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
                     String safePath = backupPath.toString().replace("\\", "/").replace("'", "''");
                     stmt.executeUpdate("backup to '" + safePath + "'");
                 }
-                
-                System.out.println("YEDEK: Veritabani yedeklendi -> " + backupPath);
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void senkronizeEt(List<Kullanici> kullanicilar, List<Materyal> materyaller) {
+    public void senkronizeEt(List<User> kullanicilar, List<Materyal> materyaller) {
         yedekle();
         kaydet(kullanicilar, materyaller);
-        System.out.println("SENKRONIZASYON TAMAMLANDI: Veriler yedeklendi ve SQLite'a kaydedildi.");
     }
 
-    public void kullaniciEkle(Kullanici yeniKullanici) {
+    public void kullaniciEkle(User yeniKullanici) {
         lock.writeLock().lock();
         try {
-            for (Kullanici mevcut : kullaniciListesi) {
+            for (User mevcut : kullaniciListesi) {
                 if (mevcut.getIsim().equals(yeniKullanici.getIsim())) return;
             }
             kullaniciListesi.add(yeniKullanici);
@@ -276,10 +272,10 @@ public class DatabaseManager {
         if (removed) materyallariKaydet();
     }
 
-    public Kullanici kullaniciBul(String id) {
+    public User kullaniciBul(String id) {
         lock.readLock().lock();
         try {
-            for (Kullanici k : kullaniciListesi) {
+            for (User k : kullaniciListesi) {
                 if (k.getId().equals(id)) return k;
             }
             return null;
@@ -315,7 +311,7 @@ public class DatabaseManager {
         return new File(getVeriKlasoru() + "/database.db").exists();
     }
 
-    public List<Kullanici> getKullaniciListesi() {
+    public List<User> getKullaniciListesi() {
         if (kullaniciListesi.isEmpty() && veritabaniMevcutMu()) {
             lock.writeLock().lock();
             try {

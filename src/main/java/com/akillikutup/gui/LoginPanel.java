@@ -1,6 +1,6 @@
 package com.akillikutup.gui;
 
-import com.akillikutup.core.Kullanici;
+import com.akillikutup.user.User;
 
 import javax.swing.*;
 import java.awt.*;
@@ -105,8 +105,8 @@ public class LoginPanel extends JPanel {
                         statusLabel.setForeground(new Color(0, 128, 0));
                         passwordField.setText("");
 
-                        Kullanici user = LibraryManager.getInstance().getCurrentUser();
-                        if (user != null && "ADMIN".equals(user.getRol())) {
+                        User user = LibraryManager.getInstance().getCurrentUser();
+                        if (user != null && user.getRol() == User.Role.ADMIN) {
                             mainFrame.showPanel("ADMIN");
                         } else {
                             mainFrame.showPanel("USER");
@@ -199,12 +199,8 @@ public class LoginPanel extends JPanel {
                 @Override
                 protected Boolean doInBackground() {
                     try {
-                        com.akillikutup.core.Kullanici yeni;
-                        if ("Admin".equals(secilenRol)) {
-                            yeni = new com.akillikutup.core.Admin(name, tc, password);
-                        } else {
-                            yeni = new com.akillikutup.core.Uye(name, tc, password);
-                        }
+                        User.Role role = "Admin".equals(secilenRol) ? User.Role.ADMIN : User.Role.UYE;
+                        User yeni = new User(name, tc, role, password);
                         yeni.setEmail(email.isEmpty() ? name.replace(" ", ".").toLowerCase() + "@kutuphane.local" : email);
                         LibraryManager.getInstance().addUser(yeni);
                         return true;

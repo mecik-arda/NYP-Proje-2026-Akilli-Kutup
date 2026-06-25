@@ -1,6 +1,7 @@
 package com.akillikutup.gui;
 
-import com.akillikutup.core.*;
+import com.akillikutup.material.*;
+import com.akillikutup.user.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -49,11 +50,11 @@ public class UserPanel extends JPanel {
 
         JButton profileButton = new JButton("Profilim");
         profileButton.addActionListener(e -> {
-            Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
+            User currentUser = LibraryManager.getInstance().getCurrentUser();
             if (currentUser != null) {
                 String profil = "=== Profil Bilgileri ===\n"
                         + "Isim: " + currentUser.getIsim() + "\n"
-                        + "Rol: " + currentUser.getRol() + "\n"
+                        + "Rol: " + currentUser.getRol().name() + "\n"
                         + "Kredi Puani: " + currentUser.getKrediPuani() + "\n"
                         + "TC Kimlik No: " + currentUser.getTcNo(currentUser);
                 JOptionPane.showMessageDialog(this, profil, "Profilim", JOptionPane.INFORMATION_MESSAGE);
@@ -93,8 +94,8 @@ public class UserPanel extends JPanel {
             List<Materyal> materials = LibraryManager.getInstance().getMaterials();
             for (Materyal m : materials) {
                 if (arama.isEmpty() || m.getBaslik().toLowerCase().contains(arama)) {
-                    String tur = m instanceof Kitap ? "Kitap" : "Dijital Medya";
-                    String stok = m instanceof Kitap ? String.valueOf(m.getStokAdedi()) : "Sinirsiz";
+                    String tur = "Kitap".equals(m.getMateryalTuru()) ? "Kitap" : "Dijital Medya";
+                    String stok = "Kitap".equals(m.getMateryalTuru()) ? String.valueOf(m.getStokAdedi()) : "Sinirsiz";
                     tableModel.addRow(new Object[]{m.getId(), m.getBaslik(), tur, stok, m.getBirimFiyat()});
                 }
             }
@@ -124,14 +125,13 @@ public class UserPanel extends JPanel {
                 }
 
                 if (selectedMaterial != null) {
-                    final Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
+                    final User currentUser = LibraryManager.getInstance().getCurrentUser();
                     final Materyal secilenMateryal = selectedMaterial;
                     if (currentUser != null) {
-                        if (currentUser instanceof Uye) {
-                            Uye uye = (Uye) currentUser;
-                            if (uye.getKrediPuani() < 20) {
+                        if (currentUser.getRol() == User.Role.UYE) {
+                            if (currentUser.getKrediPuani() < 20) {
                                 JOptionPane.showMessageDialog(this,
-                                    "Kredi puaniniz cok dusuk (" + uye.getKrediPuani() + ")! Odunc alamazsiniz.",
+                                    "Kredi puaniniz cok dusuk (" + currentUser.getKrediPuani() + ")! Odunc alamazsiniz.",
                                     "Yetersiz Kredi", JOptionPane.WARNING_MESSAGE);
                                 return;
                             }
@@ -172,10 +172,10 @@ public class UserPanel extends JPanel {
     }
 
     public void refreshData() {
-        Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
+        User currentUser = LibraryManager.getInstance().getCurrentUser();
         if (currentUser != null) {
             welcomeLabel.setText("Hosgeldin, " + currentUser.getIsim());
-            rolLabel.setText("Rol: " + currentUser.getRol());
+            rolLabel.setText("Rol: " + currentUser.getRol().name());
 
             int puan = currentUser.getKrediPuani();
             pointsLabel.setText("Kredi Puani: " + puan);
@@ -191,8 +191,8 @@ public class UserPanel extends JPanel {
         tableModel.setRowCount(0);
         List<Materyal> materials = LibraryManager.getInstance().getMaterials();
         for (Materyal m : materials) {
-            String tur = m instanceof Kitap ? "Kitap" : "Dijital Medya";
-            String stok = m instanceof Kitap ? String.valueOf(m.getStokAdedi()) : "Sinirsiz";
+            String tur = "Kitap".equals(m.getMateryalTuru()) ? "Kitap" : "Dijital Medya";
+            String stok = "Kitap".equals(m.getMateryalTuru()) ? String.valueOf(m.getStokAdedi()) : "Sinirsiz";
             tableModel.addRow(new Object[]{m.getId(), m.getBaslik(), tur, stok, m.getBirimFiyat()});
         }
     }

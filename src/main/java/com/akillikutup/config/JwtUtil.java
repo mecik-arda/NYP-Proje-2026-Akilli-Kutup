@@ -20,22 +20,27 @@ public class JwtUtil {
     private final SecretKey key;
     private final long expirationMs;
 
-    public JwtUtil(@Value("${app.jwt.secret:akilli-kutuphane-v4-jwt-secret-key}") String secret,
+    public JwtUtil(@Value("${app.jwt.secret}") String secret,
                    @Value("${app.jwt.expiration-ms:3600000}") long expirationMs) {
+        if (secret == null || secret.isBlank() || secret.startsWith("CHANGE_ME")) {
+            throw new IllegalStateException(
+                "KRITIK GUVENLIK HATASI: app.jwt.secret konfigurasyonu zorunludur. "
+                + "application.yml veya JWT_SECRET env degiskeninde guclu bir deger tanimlayin.");
+        }
         this.key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         this.expirationMs = expirationMs;
     }
 
     /**
      * Kullanıcı için JWT token üretir.
+     * NOT: PII (TC Kimlik No) JWT payload'da taşınmaz — JWT Base64 ile encode edilir, şifreli değildir.
      */
-    public String generateToken(String userId, String tcNo, String rol, String isim) {
+    public String generateToken(String userId, String rol, String isim) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
 
         return Jwts.builder()
             .subject(userId)
-            .claim("tcNo", tcNo)
             .claim("rol", rol)
             .claim("isim", isim)
             .issuedAt(now)

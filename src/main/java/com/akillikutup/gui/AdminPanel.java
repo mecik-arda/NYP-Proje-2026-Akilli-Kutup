@@ -1,6 +1,7 @@
 package com.akillikutup.gui;
 
-import com.akillikutup.core.*;
+import com.akillikutup.material.*;
+import com.akillikutup.user.User;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -11,6 +12,7 @@ public class AdminPanel extends JPanel {
     private MainFrame mainFrame;
     private JLabel welcomeLabel;
     private JLabel statsLabel;
+    private JLabel activeUsersLabel;
 
     private JTable materialTable;
     private DefaultTableModel materialTableModel;
@@ -23,13 +25,17 @@ public class AdminPanel extends JPanel {
         setLayout(new BorderLayout());
 
         JPanel topPanel = new JPanel(new BorderLayout());
-        JPanel leftTop = new JPanel(new GridLayout(2, 1));
+        JPanel leftTop = new JPanel(new GridLayout(3, 1));
         welcomeLabel = new JLabel("Admin Paneli");
         welcomeLabel.setFont(new Font("Arial", Font.BOLD, 16));
         statsLabel = new JLabel("İstatistikler yükleniyor...");
         statsLabel.setFont(new Font("Arial", Font.PLAIN, 12));
+        activeUsersLabel = new JLabel("🟢 Aktif Üye: yükleniyor...");
+        activeUsersLabel.setFont(new Font("Arial", Font.BOLD, 13));
+        activeUsersLabel.setForeground(new Color(5, 150, 105));
         leftTop.add(welcomeLabel);
         leftTop.add(statsLabel);
+        leftTop.add(activeUsersLabel);
         topPanel.add(leftTop, BorderLayout.WEST);
 
         JButton logoutButton = new JButton("Çıkış Yap (JWT temizle)");
@@ -106,10 +112,6 @@ public class AdminPanel extends JPanel {
                     yeniMateryal = new DijitalMedya(baslik, fiyat, extra, "E-Kitap", "0 MB");
                 }
 
-                Kullanici user = LibraryManager.getInstance().getCurrentUser();
-                if (user instanceof Admin) {
-                    ((Admin) user).envanterEkle(yeniMateryal);
-                }
                 LibraryManager.getInstance().addMaterial(yeniMateryal);
                 refreshData();
 
@@ -176,13 +178,13 @@ public class AdminPanel extends JPanel {
 
         JButton detailButton = new JButton("Detay Görüntüle");
         detailButton.addActionListener(e -> {
-            Kullanici secilen = getSelectedUser();
+            User secilen = getSelectedUser();
             if (secilen == null) return;
-            Kullanici admin = LibraryManager.getInstance().getCurrentUser();
+            User admin = LibraryManager.getInstance().getCurrentUser();
             String tcBilgi = secilen.getTcNo(admin);
             String detay = "=== Kullanıcı Detayları ===\n"
                     + "İsim: " + secilen.getIsim() + "\n"
-                    + "Rol: " + secilen.getRol() + "\n"
+                    + "Rol: " + secilen.getRol().name() + "\n"
                     + "TC Kimlik No: " + tcBilgi + "\n"
                     + "Kredi Puanı: " + secilen.getKrediPuani() + "\n"
                     + "Şifre: " + secilen.getSifre();
@@ -192,10 +194,10 @@ public class AdminPanel extends JPanel {
 
         JButton deleteUserButton = new JButton("Üyeyi Sil");
         deleteUserButton.addActionListener(e -> {
-            Kullanici secilen = getSelectedUser();
+            User secilen = getSelectedUser();
             if (secilen == null) return;
 
-            Kullanici currentAdmin = LibraryManager.getInstance().getCurrentUser();
+            User currentAdmin = LibraryManager.getInstance().getCurrentUser();
             if (currentAdmin != null && currentAdmin.getIsim().equals(secilen.getIsim())) {
                 JOptionPane.showMessageDialog(this, "Kendinizi silemezsiniz!", "Hata", JOptionPane.ERROR_MESSAGE);
                 return;
@@ -214,9 +216,9 @@ public class AdminPanel extends JPanel {
 
         JButton updatePointsButton = new JButton("Kredi Güncelle");
         updatePointsButton.addActionListener(e -> {
-            Kullanici secilen = getSelectedUser();
+            User secilen = getSelectedUser();
             if (secilen == null) return;
-            if (secilen instanceof Admin) {
+            if (secilen.getRol() == User.Role.ADMIN) {
                 JOptionPane.showMessageDialog(this, "Admin kullanıcıların kredi puanı değiştirilemez.", "Bilgi", JOptionPane.INFORMATION_MESSAGE);
                 return;
             }
@@ -227,7 +229,7 @@ public class AdminPanel extends JPanel {
                 try {
                     int yeniPuan = Integer.parseInt(input.trim());
                     int fark = yeniPuan - secilen.getKrediPuani();
-                    ((Uye) secilen).puanGuncelle(fark);
+                    secilen.puanGuncelle(fark);
                     refreshData();
                     JOptionPane.showMessageDialog(this, "Kredi puanı güncellendi: " + secilen.getKrediPuani());
                 } catch (NumberFormatException ex) {
@@ -239,9 +241,9 @@ public class AdminPanel extends JPanel {
 
         JButton changeTcButton = new JButton("TC Değiştir");
         changeTcButton.addActionListener(e -> {
-            Kullanici secilen = getSelectedUser();
+            User secilen = getSelectedUser();
             if (secilen == null) return;
-            Kullanici admin = LibraryManager.getInstance().getCurrentUser();
+            User admin = LibraryManager.getInstance().getCurrentUser();
             String mevcutTc = secilen.getTcNo(admin);
             String yeniTc = JOptionPane.showInputDialog(this,
                     secilen.getIsim() + " için yeni TC Kimlik No (mevcut: " + mevcutTc + "):",
@@ -261,7 +263,7 @@ public class AdminPanel extends JPanel {
 
         JButton resetPassButton = new JButton("Şifre Sıfırla");
         resetPassButton.addActionListener(e -> {
-            Kullanici secilen = getSelectedUser();
+            User secilen = getSelectedUser();
             if (secilen == null) return;
             String yeniSifre = JOptionPane.showInputDialog(this,
                     secilen.getIsim() + " için yeni şifre girin:",
@@ -277,14 +279,14 @@ public class AdminPanel extends JPanel {
 
         JButton changeNameButton = new JButton("İsim Değiştir");
         changeNameButton.addActionListener(e -> {
-            Kullanici secilen = getSelectedUser();
+            User secilen = getSelectedUser();
             if (secilen == null) return;
             String yeniIsim = JOptionPane.showInputDialog(this,
                     "Mevcut isim: " + secilen.getIsim() + "\nYeni isim girin:",
                     "İsim Değiştir", JOptionPane.PLAIN_MESSAGE);
             if (yeniIsim != null && !yeniIsim.trim().isEmpty()) {
                 boolean exists = false;
-                for (Kullanici k : LibraryManager.getInstance().getUsers()) {
+                for (User k : LibraryManager.getInstance().getUsers()) {
                     if (k.getIsim().equalsIgnoreCase(yeniIsim.trim()) && k != secilen) {
                         exists = true;
                         break;
@@ -308,14 +310,14 @@ public class AdminPanel extends JPanel {
         add(tabbedPane, BorderLayout.CENTER);
     }
 
-    private Kullanici getSelectedUser() {
+    private User getSelectedUser() {
         int selectedRow = userTable.getSelectedRow();
         if (selectedRow < 0) {
             JOptionPane.showMessageDialog(this, "Lütfen bir kullanıcı seçin.", "Uyarı", JOptionPane.WARNING_MESSAGE);
             return null;
         }
         String isim = (String) userTableModel.getValueAt(selectedRow, 0);
-        for (Kullanici k : LibraryManager.getInstance().getUsers()) {
+        for (User k : LibraryManager.getInstance().getUsers()) {
             if (k.getIsim().equals(isim)) {
                 return k;
             }
@@ -324,14 +326,14 @@ public class AdminPanel extends JPanel {
     }
 
     public void refreshData() {
-        Kullanici currentUser = LibraryManager.getInstance().getCurrentUser();
+        User currentUser = LibraryManager.getInstance().getCurrentUser();
         if (currentUser != null) {
             welcomeLabel.setText("Hoş geldiniz, " + currentUser.getIsim() + " (Admin)");
         }
 
         int toplamUye = 0, toplamAdmin = 0;
-        for (Kullanici k : LibraryManager.getInstance().getUsers()) {
-            if (k.getRol().equals("ADMIN")) toplamAdmin++;
+        for (User k : LibraryManager.getInstance().getUsers()) {
+            if (k.getRol() == User.Role.ADMIN) toplamAdmin++;
             else toplamUye++;
         }
         int toplamMateryal = LibraryManager.getInstance().getMaterials().size();
@@ -340,19 +342,32 @@ public class AdminPanel extends JPanel {
         materialTableModel.setRowCount(0);
         List<Materyal> materials = LibraryManager.getInstance().getMaterials();
         for (Materyal m : materials) {
-            String tur = m instanceof Kitap ? "Kitap" : "Dijital Medya";
-            String stok = m instanceof Kitap ? String.valueOf(m.getStokAdedi()) : "Sınırsız";
+            String tur = "Kitap".equals(m.getMateryalTuru()) ? "Kitap" : "Dijital Medya";
+            String stok = "Kitap".equals(m.getMateryalTuru()) ? String.valueOf(m.getStokAdedi()) : "Sınırsız";
             materialTableModel.addRow(new Object[]{m.getId(), m.getBaslik(), tur, stok, m.getBirimFiyat()});
         }
 
         userTableModel.setRowCount(0);
-        Kullanici admin = LibraryManager.getInstance().getCurrentUser();
-        List<Kullanici> users = LibraryManager.getInstance().getUsers();
-        for (Kullanici k : users) {
+        User admin = LibraryManager.getInstance().getCurrentUser();
+        List<User> users = LibraryManager.getInstance().getUsers();
+        for (User k : users) {
             String tcBilgi = (admin != null) ? k.getTcNo(admin) : k.getTcNoDogrudan();
             String email = k.getEmail() != null ? k.getEmail() : "Yok";
-            userTableModel.addRow(new Object[]{k.getIsim(), k.getRol(), tcBilgi, email, k.getKrediPuani()});
+            userTableModel.addRow(new Object[]{k.getIsim(), k.getRol().name(), tcBilgi, email, k.getKrediPuani()});
         }
         statsLabel.setText(statsLabel.getText() + " [REST API ✅]");
+
+        // Aktif kullanıcı sayısını REST API'den çek
+        try {
+            com.google.gson.JsonObject activeData = ApiClient.getInstance().getActiveUsers();
+            if (activeData.has("basarili") && activeData.get("basarili").getAsBoolean()) {
+                int aktifSayisi = activeData.get("aktifSayisi").getAsInt();
+                activeUsersLabel.setText("🟢 Aktif Üye: " + aktifSayisi);
+                activeUsersLabel.setForeground(new Color(5, 150, 105));
+            }
+        } catch (Exception ex) {
+            activeUsersLabel.setText("🟡 Aktif Üye: bağlantı bekleniyor");
+            activeUsersLabel.setForeground(new Color(200, 150, 0));
+        }
     }
 }

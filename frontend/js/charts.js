@@ -896,3 +896,170 @@ export function renderAssetOverview() {
         </div>
     `;
 }
+
+// ═══════════════════════════════════════════════════════════════
+// Aktif Üye Kartı Özellikleri (uye_prompt.md)
+// ═══════════════════════════════════════════════════════════════
+
+let previousActiveCount = 0;
+let activeUsersCache = [];
+
+export async function loadActiveMemberFeatures() {
+  try {
+    const stats = await API.getHourlyActiveStats();
+    if (stats && stats.basarili) {
+      renderActiveSparkline(stats.saatlikVeri || []);
+      updateMonthlyIncrease(stats.artisBuAy || 0);
+      window._hourlyActiveData = stats.saatlikVeri || [];
+    }
+    const activeData = await API.getActiveUsers();
+    if (activeData && activeData.basarili) {
+      activeUsersCache = activeData.kullanicilar || [];
+      updateActiveMemberCard(activeData.aktifSayisi || 0, activeUsersCache);
+      renderActiveDrawer(activeUsersCache);
+      updateTooltip(activeUsersCache);
+    }
+  } catch (e) {
+    console.warn('Aktif üye özellikleri yüklenemedi:', e);
+  }
+}
+
+function updateActiveMemberCard(count, users) {
+  const valueEl = document.getElementById('activeMemberCount');
+  if (valueEl) {
+    const oldCount = parseInt(valueEl.textContent, 10) || 0;
+    if (count !== oldCount && oldCount > 0) {
+      valueEl.classList.remove('flipping');
+      void valueEl.offsetWidth;
+      valueEl.classList.add('flipping');
+      if (count > oldCount) {
+        const card = document.getElementById('activeMemberCard');
+        if (card) {
+          card.classList.remove('flash-green');
+          void card.offsetWidth;
+          card.classList.add('flash-green');
+        }
+      }
+    }
+    valueEl.textContent = count.toLocaleString('tr-TR');
+    valueEl.dataset.target = count;
+    previousActiveCount = count;
+  }
+}
+
+function updateTooltip(users) {
+  const tooltip = document.getElementById('activeMemberTooltip');
+  if (!tooltip) return;
+  if (!users || users.length === 0) {
+    tooltip.textContent = 'Şu an aktif kullanıcı yok';
+    return;
+  }
+  const names = users.slice(0, 3).map(u => u.userName);
+  const remaining = users.length - names.length;
+  let text = names.join(', ');
+  if (remaining > 0) text += ' ve ' + remaining + ' kişi daha şu an online';
+  else text += ' şu an online';
+  tooltip.textContent = text;
+}
+
+function updateMonthlyIncrease(increase) {
+  const changeText = document.getElementById('activeMemberChangeText');
+  if (changeText) changeText.textContent = '+' + increase + ' bu ay';
+}
+
+export function renderActiveDrawer(users) {
+  const body = document.getElementById('activeDrawerBody');
+  const countEl = document.getElementById('activeDrawerCount');
+  if (countEl) countEl.textContent = (users ? users.length : 0) + ' kişi online';
+  if (!body) return;
+  if (!users || users.length === 0) {
+    body.innerHTML = '<div class="active-drawer-empty"><i class="fas fa-user-clock"></i><p>Şu an aktif kullanıcı bulunmuyor</p><p style="font-size:12px;margin-top:4px;">Yeni girişler burada canlı görünecek</p></div>';
+    return;
+  }
+  body.innerHTML = users.map(u => {
+    const initials = (u.userName || '??').split(' ').map(w => w[0]).join('').substring(0, 2).toUpperCase();
+    const action = u.currentAction || 'Sistemi kullanıyor';
+    const loginTime = u.loginTime ? formatTimeAgo(u.loginTime) : '';
+    return '<div class="active-user-item"><div class="active-user-avatar">' + escapeHtml(initials) + '<span class="online-indicator"></span></div><div class="active-user-info"><div class="active-user-name">' + escapeHtml(u.userName) + '</div><div class="active-user-action">' + escapeHtml(action) + '</div></div><div class="active-user-time">' + escapeHtml(loginTime) + '</div></div>';
+  }).join('');
+}
+
+function renderActiveSparkline(hourlyData) {
+  const polyline = document.querySelector('#activeSparkline polyline');
+  if (!polyline || !hourlyData || hourlyData.length === 0) return;
+  const max = Math.max(...hourlyData, 1);
+  const points = hourlyData.map((val, i) => {
+    const x = (i / (hourlyData.length - 1)) * 100;
+    const y = 40 - (val / max) * 35;
+    return x.toFixed(1) + ',' + y.toFixed(1);
+  }).join(' ');
+  polyline.setAttribute('points', points);
+}
+
+export function renderExpandedSparkline(hourlyData) {
+  const canvas = document.getElementById('sparklineExpandedCanvas');
+  if (!canvas || !hourlyData || hourlyData.length === 0) return;
+  const container = canvas.parentElement;
+  canvas.width = container.clientWidth;
+  canvas.height = container.clientHeight;
+  const ctx = canvas.getContext('2d');
+  const w = canvas.width, h = canvas.height;
+  const pad = { top: 20, right: 20, bottom: 40, left: 50 };
+  const cw = w - pad.left - pad.right;
+  const ch = h - pad.top - pad.bottom;
+  ctx.clearRect(0, 0, w, h);
+  const max = Math.max(...hourlyData, 1);
+  const now = new Date();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, h - pad.bottom);
+  grad.addColorStop(0, 'rgba(16, 185, 129, 0.3)');
+  grad.addColorStop(1, 'rgba(16, 185, 129, 0.02)');
+  ctx.beginPath();
+  hourlyData.forEach((val, i) => {
+    const x = pad.left + (i / (hourlyData.length - 1)) * cw;
+    const y = pad.top + ch - (val / max) * ch;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.lineTo(pad.left + cw, pad.top + ch);
+  ctx.lineTo(pad.left, pad.top + ch);
+  ctx.closePath();
+  ctx.fillStyle = grad; ctx.fill();
+  ctx.beginPath();
+  ctx.strokeStyle = '#10b981'; ctx.lineWidth = 2.5; ctx.lineJoin = 'round';
+  hourlyData.forEach((val, i) => {
+    const x = pad.left + (i / (hourlyData.length - 1)) * cw;
+    const y = pad.top + ch - (val / max) * ch;
+    if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+  });
+  ctx.stroke();
+  hourlyData.forEach((val, i) => {
+    const x = pad.left + (i / (hourlyData.length - 1)) * cw;
+    const y = pad.top + ch - (val / max) * ch;
+    ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fillStyle = '#10b981'; ctx.fill();
+  });
+  ctx.fillStyle = '#94a3b8'; ctx.font = '11px Inter, sans-serif'; ctx.textAlign = 'center';
+  for (let i = 0; i < hourlyData.length; i += 4) {
+    const x = pad.left + (i / (hourlyData.length - 1)) * cw;
+    const d = new Date(now); d.setHours(d.getHours() - (23 - i));
+    ctx.fillText(d.getHours().toString().padStart(2, '0') + ':00', x, h - pad.bottom + 20);
+  }
+  ctx.textAlign = 'right';
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + ch - (i / 4) * ch;
+    ctx.fillText(Math.round((max * i) / 4).toString(), pad.left - 10, y + 4);
+  }
+}
+
+function formatTimeAgo(isoString) {
+  if (!isoString) return '';
+  try {
+    const then = new Date(isoString);
+    const diffMs = Date.now() - then;
+    const diffMin = Math.floor(diffMs / 60000);
+    if (diffMin < 1) return 'Az önce';
+    if (diffMin < 60) return diffMin + ' dk önce';
+    const diffH = Math.floor(diffMin / 60);
+    if (diffH < 24) return diffH + ' saat önce';
+    return Math.floor(diffH / 24) + ' gün önce';
+  } catch { return ''; }
+}

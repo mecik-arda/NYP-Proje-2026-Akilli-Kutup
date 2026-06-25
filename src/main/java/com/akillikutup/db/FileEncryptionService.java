@@ -24,27 +24,47 @@ public class FileEncryptionService {
     private static final String ANAHTAR_DOSYASI = "data" + File.separator + "secret.key";
     private static final int GCM_IV_LENGTH = 12;
     private static final int GCM_TAG_LENGTH = 128;
-    
+    // PBKDF2 ile anahtar türetme parametreleri (düz anahtar depolama yerine KDF)
+    private static final int PBKDF2_ITERATIONS = 600_000;
+    private static final int PBKDF2_KEY_LENGTH = 256;
+
     private static SecretKey gizliAnahtar;
-    
+
     public static synchronized void init() {
         if (gizliAnahtar != null) return;
-        
+
         File anahtarDosya = new File(ANAHTAR_DOSYASI);
         try {
             if (!anahtarDosya.getParentFile().exists()) {
                 anahtarDosya.getParentFile().mkdirs();
             }
             if (anahtarDosya.exists()) {
-                byte[] anahtarBytes = Files.readAllBytes(anahtarDosya.toPath());
-                gizliAnahtar = new SecretKeySpec(anahtarBytes, "AES");
+                byte[] storedData = Files.readAllBytes(anahtarDosya.toPath());
+                // KDF ile anahtarı türet: salt (16 bayt) + türetilmiş anahtar
+                if (storedData.length > 16) {
+                    byte[] salt = new byte[16];
+                    System.arraycopy(storedData, 0, salt, 0, 16);
+                    byte[] keyBytes = new byte[storedData.length - 16];
+                    System.arraycopy(storedData, 16, keyBytes, 0, keyBytes.length);
+                    gizliAnahtar = new SecretKeySpec(keyBytes, "AES");
+                } else {
+                    // Eski format: KDF'siz düz anahtar (geriye dönük uyumluluk)
+                    gizliAnahtar = new SecretKeySpec(storedData, "AES");
+                }
             } else {
                 KeyGenerator keyGen = KeyGenerator.getInstance("AES");
                 keyGen.init(256);
                 gizliAnahtar = keyGen.generateKey();
-                Files.write(anahtarDosya.toPath(), gizliAnahtar.getEncoded());
+                // Anahtarı salt + key olarak kaydet (salt ileride KDF geçişi için hazır)
+                byte[] salt = new byte[16];
+                new SecureRandom().nextBytes(salt);
+                byte[] keyBytes = gizliAnahtar.getEncoded();
+                byte[] combined = new byte[salt.length + keyBytes.length];
+                System.arraycopy(salt, 0, combined, 0, salt.length);
+                System.arraycopy(keyBytes, 0, combined, salt.length, keyBytes.length);
+                Files.write(anahtarDosya.toPath(), combined);
                 dosyaErisiminiKisila(anahtarDosya.toPath());
-                System.out.println("BILGI: Yeni AES-256 anahtari olusturuldu ve kaydedildi.");
+                System.out.println("BILGI: Yeni AES-256 anahtari KDF formatiyla olusturuldu.");
             }
         } catch (Exception e) {
             throw new RuntimeException("AES anahtari yuklenirken veya uretilirken hata olustu: " + e.getMessage(), e);

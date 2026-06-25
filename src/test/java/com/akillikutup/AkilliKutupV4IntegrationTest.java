@@ -1,10 +1,9 @@
 package com.akillikutup;
 
-import com.akillikutup.core.Admin;
-import com.akillikutup.core.Kitap;
-import com.akillikutup.core.Kullanici;
-import com.akillikutup.repository.KitapRepository;
-import com.akillikutup.repository.KullaniciRepository;
+import com.akillikutup.material.Kitap;
+import com.akillikutup.material.KitapRepository;
+import com.akillikutup.user.User;
+import com.akillikutup.user.UserRepository;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
@@ -19,35 +18,35 @@ import static org.junit.jupiter.api.Assertions.*;
 @ActiveProfiles("test")
 class AkilliKutupV4IntegrationTest {
 
-    @Autowired private KullaniciRepository kullaniciRepository;
+    @Autowired private UserRepository userRepository;
     @Autowired private KitapRepository kitapRepository;
 
     @BeforeEach
     void setUp() {
-        kullaniciRepository.deleteAll();
+        userRepository.deleteAll();
         kitapRepository.deleteAll();
     }
 
     @Test
     @DisplayName("JPA context yuklenmeli, repository bean'leri hazir olmali")
     void contextLoads() {
-        assertNotNull(kullaniciRepository);
+        assertNotNull(userRepository);
         assertNotNull(kitapRepository);
     }
 
     @Test
     @DisplayName("Admin kullanicisi olusturma, PostgreSQL'e kaydetme ve geri okuma")
     void createAndRetrieveAdmin() {
-        Admin admin = new Admin("Test Admin", "11111111111", "bcrypt_encoded_password");
+        User admin = new User("Test Admin", "11111111111", User.Role.ADMIN, "bcrypt_encoded_password");
         admin.setEmail("admin@test.com");
-        Admin saved = (Admin) kullaniciRepository.save(admin);
+        User saved = userRepository.save(admin);
         assertNotNull(saved.getId());
         assertEquals("Test Admin", saved.getIsim());
-        assertEquals("ADMIN", saved.getRol());
+        assertEquals(User.Role.ADMIN, saved.getRol());
 
-        Optional<Kullanici> found = kullaniciRepository.findByTcNo("11111111111");
+        Optional<User> found = userRepository.findByTcNo("11111111111");
         assertTrue(found.isPresent());
-        assertInstanceOf(Admin.class, found.get());
+        assertEquals(User.Role.ADMIN, found.get().getRol());
     }
 
     @Test
@@ -73,13 +72,13 @@ class AkilliKutupV4IntegrationTest {
     @Test
     @DisplayName("Kullanici kopya kontrolu calismali")
     void duplicateUserCheck() {
-        Admin admin = new Admin("Test Admin 2", "22222222222", "pass");
+        User admin = new User("Test Admin 2", "22222222222", User.Role.ADMIN, "pass");
         admin.setEmail("admin2@test.com");
-        kullaniciRepository.save(admin);
+        userRepository.save(admin);
 
-        assertTrue(kullaniciRepository.existsByIsimIgnoreCase("Test Admin 2"));
-        assertTrue(kullaniciRepository.existsByTcNo("22222222222"));
-        assertTrue(kullaniciRepository.existsByEmailIgnoreCase("admin2@test.com"));
-        assertFalse(kullaniciRepository.existsByTcNo("99999999999"));
+        assertTrue(userRepository.existsByIsimIgnoreCase("Test Admin 2"));
+        assertTrue(userRepository.existsByTcNo("22222222222"));
+        assertTrue(userRepository.existsByEmailIgnoreCase("admin2@test.com"));
+        assertFalse(userRepository.existsByTcNo("99999999999"));
     }
 }
